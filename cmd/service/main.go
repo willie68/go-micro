@@ -14,6 +14,7 @@ import (
 
 	"github.com/willie68/go-micro/internal/api"
 	"github.com/willie68/go-micro/internal/apiv1"
+	"github.com/willie68/go-micro/internal/auth"
 	"github.com/willie68/go-micro/internal/health"
 	"github.com/willie68/go-micro/internal/serror"
 
@@ -48,6 +49,8 @@ var ssl bool
 var configFile string
 var serviceConfig config.Config
 var Tracer opentracing.Tracer
+var sslsrv *http.Server
+var srv *http.Server
 
 func init() {
 	// variables for parameter override
@@ -59,7 +62,7 @@ func init() {
 	flag.StringVarP(&serviceURL, "serviceURL", "u", "", "service url from outside")
 }
 
-func apiRoutes() *chi.Mux {
+func apiRoutes() (*chi.Mux, error) {
 	baseURL := fmt.Sprintf("/api/v%s", apiVersion)
 	router := chi.NewRouter()
 	router.Use(
@@ -110,11 +113,25 @@ func apiRoutes() *chi.Mux {
 		)
 	}
 
+	if strings.EqualFold(serviceConfig.Auth.Type, "jwt") {
+		jwtConfig, err := auth.ParseJWTConfig(serviceConfig.Auth)
+		if err != nil {
+			return router, err
+		}
+		log.Logger.Infof("jwt config: %v", jwtConfig)
+		jwtAuth := auth.JWTAuth{
+			Config: jwtConfig,
+		}
+		router.Use(
+			auth.Verifier(&jwtAuth),
+			auth.Authenticator,
+		)
+	}
 	router.Route("/", func(r chi.Router) {
 		r.Mount(baseURL+"/config", apiv1.ConfigRoutes())
 		r.Mount("/health", health.Routes())
 	})
-	return router
+	return router, nil
 }
 
 func healthRoutes() *chi.Mux {
@@ -130,7 +147,6 @@ func healthRoutes() *chi.Mux {
 			SampleRate:     1,
 			SkipFunc: func(r *http.Request) bool {
 				return false
-				//return r.URL.Path == "/health"
 			},
 			Tags: map[string]interface{}{
 				"_dd.measured": 1, // datadog, turn on metrics for http.request stats
@@ -189,15 +205,6 @@ func main() {
 
 	health.InitHealthSystem(healthCheckConfig, Tracer)
 
-	gc := crypt.GenerateCertificate{
-		Organization: "EASY SOFTWARE",
-		Host:         "127.0.0.1",
-		ValidFor:     10 * 365 * 24 * time.Hour,
-		IsCA:         false,
-		EcdsaCurve:   "P384",
-		Ed25519Key:   false,
-	}
-
 	if serviceConfig.Sslport > 0 {
 		ssl = true
 		log.Logger.Info("ssl active")
@@ -205,11 +212,17 @@ func main() {
 
 	apikey = getApikey()
 	apiv1.APIKey = apikey
-	log.Logger.Infof("apikey: %s", apikey)
+	if config.Get().Apikey {
+		log.Logger.Infof("apikey: %s", apikey)
+	}
+
 	log.Logger.Infof("ssl: %t", ssl)
 	log.Logger.Infof("serviceURL: %s", serviceConfig.ServiceURL)
-	log.Logger.Info("gomicro api routes")
-	router := apiRoutes()
+	log.Logger.Infof("%s api routes", servicename)
+	router, err := apiRoutes()
+	if err != nil {
+		log.Logger.Alertf("could not create api routes. %s", err.Error())
+	}
 	walkFunc := func(method string, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
 		log.Logger.Infof("%s %s", method, route)
 		return nil
@@ -224,9 +237,15 @@ func main() {
 		log.Logger.Alertf("could not walk health routes. %s", err.Error())
 	}
 
-	var sslsrv *http.Server
-	var srv *http.Server
 	if ssl {
+		gc := crypt.GenerateCertificate{
+			Organization: "MCS",
+			Host:         "127.0.0.1",
+			ValidFor:     10 * 365 * 24 * time.Hour,
+			IsCA:         false,
+			EcdsaCurve:   "P384",
+			Ed25519Key:   false,
+		}
 		tlsConfig, err := gc.GenerateTLSConfig()
 		if err != nil {
 			log.Logger.Alertf("could not create tls config. %s", err.Error())
@@ -275,11 +294,11 @@ func main() {
 		}()
 	}
 
+	log.Logger.Info("waiting for clients")
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	<-c
 
-	log.Logger.Info("waiting for clients")
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 
