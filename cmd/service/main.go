@@ -112,7 +112,7 @@ func apiRoutes() (*chi.Mux, error) {
 			}),
 		)
 	}
-
+	// jwt is activated, register the Authenticator and Validator
 	if strings.EqualFold(serviceConfig.Auth.Type, "jwt") {
 		jwtConfig, err := auth.ParseJWTConfig(serviceConfig.Auth)
 		if err != nil {
@@ -127,6 +127,8 @@ func apiRoutes() (*chi.Mux, error) {
 			auth.Authenticator,
 		)
 	}
+
+	// building the routes
 	router.Route("/", func(r chi.Router) {
 		r.Mount(baseURL+"/config", apiv1.ConfigRoutes())
 		r.Mount("/health", health.Routes())

@@ -1,7 +1,7 @@
 ## Taken from http://www.codershaven.com/multi-platform-makefile-for-go/
 ## Could be a good possibility if more than one platform must be supported
 ## It also use the git version as version for the binary.
-EXECUTABLE=bin/gomicro
+EXECUTABLE=bin/gomicro-service
 WINDOWS=$(EXECUTABLE)_windows_amd64.exe
 LINUX=$(EXECUTABLE)_linux_amd64
 DARWIN=$(EXECUTABLE)_darwin_amd64

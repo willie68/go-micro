@@ -1,3 +1,3 @@
 @echo off
-docker build ./ -t easy_software/gomicro-service-go:V1
-docker run --name gomicro-service-go -p 9443:9443 -p 9080:9080 easy_software/gomicro-service-go:V1
+docker build ./ -t mcs/gomicro-service:V1
+docker run --name gomicro-service -p 9543:8443 -p 9080:8080 mcs/gomicro-service:V1
