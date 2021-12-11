@@ -106,7 +106,7 @@ func NotFound(typ string, id string, err ...error) *Serr {
 	}, first)
 }
 
-// NotFound not found error
+// InternalServerError not found error
 func InternalServerError(err ...error) *Serr {
 	var first error
 	if len(err) > 0 {

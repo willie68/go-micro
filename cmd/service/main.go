@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/willie68/go-micro/error/serror"
-	"github.com/willie68/go-micro/health"
 	"github.com/willie68/go-micro/internal/api"
 	"github.com/willie68/go-micro/internal/apiv1"
+	"github.com/willie68/go-micro/internal/health"
+	"github.com/willie68/go-micro/internal/serror"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/uber/jaeger-client-go"
@@ -28,7 +28,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/go-chi/httptracer"
 	"github.com/go-chi/render"
-	"github.com/willie68/go-micro/crypt"
+	"github.com/willie68/go-micro/internal/crypt"
 	log "github.com/willie68/go-micro/internal/logging"
 
 	flag "github.com/spf13/pflag"

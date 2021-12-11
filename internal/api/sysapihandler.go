@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/render"
-	"github.com/willie68/go-micro/error/serror"
+	"github.com/willie68/go-micro/internal/serror"
 )
 
 // SysAPIKey defining a handler for checking system id and api key

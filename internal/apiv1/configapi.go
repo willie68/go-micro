@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
-	"github.com/willie68/go-micro/error/serror"
+	"github.com/willie68/go-micro/internal/serror"
 
 	"github.com/willie68/go-micro/internal/api"
 	"github.com/willie68/go-micro/internal/utils/httputils"
