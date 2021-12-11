@@ -1,0 +1,19 @@
+# port of the http server
+port: 8080 
+# port of the https server
+sslport: 8443
+# this is the servicURL from outside
+serviceURL: http://127.0.0.1:8080
+# this is the registry URL from inside
+registryURL: http://127.0.0.1:8500
+# this is the system id of this service. services in a cluster mode should have the same system id.
+systemID: easy1
+#sercret file for storing usernames and passwords
+secretfile: /tmp/storage/config/secret.yaml
+
+logging:
+    gelf-url: 127.0.0.1
+    gelf-port: 12201
+
+healthcheck:
+    period: 30

@@ -1,0 +1,54 @@
+openapi: 3.0.0
+info:
+  description: >-
+    The gomicro service is a template for all microservices written in go for
+    our dm product.
+  version: "1.0.0-oas3"
+  title: GoMicro Service Template
+  termsOfService: 'http://www.easy.de/'
+  contact:
+    email: info@easy.de
+  license:
+    name: EASY License
+    url: 'http://www.easy.de/'
+tags:
+  - name: health
+    description: readiness/healthcheck endpoints
+paths:
+  /healthz:
+    servers:
+      - url: 'https://gomicro/'
+      - url: 'http://gomicro/'
+    get:
+      tags:
+        - health
+      summary: getting the actual health status of the service
+      description: getting the actual health status of the service
+      operationId: healthcheck
+      responses:
+        '200':
+          description: service is healthy
+        '503':
+          description: service is unhealthy
+  /readyz:
+    servers:
+      - url: 'https://gomicro/'
+      - url: 'http://gomicro/'
+    get:
+     tags:
+        - health
+     summary: service is ready to get traffic
+     description: ''
+     operationId: readinesscheck
+     responses:
+        '200':
+          description: service is ready
+servers:
+  - url: 'https://gomicro/'
+  - url: 'http://gomicro/'
+components:
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: X-es-apikey
+      in: header
