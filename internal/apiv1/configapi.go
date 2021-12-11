@@ -1,4 +1,4 @@
-package routes
+package apiv1
 
 import (
 	"fmt"
@@ -8,9 +8,10 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
-	"wkla.no-ip.biz/go-micro/error/serror"
+	"github.com/willie68/go-micro/error/serror"
 
-	"wkla.no-ip.biz/go-micro/api"
+	"github.com/willie68/go-micro/internal/api"
+	"github.com/willie68/go-micro/internal/utils/httputils"
 )
 
 // TenantHeader in this header thr right tenant should be inserted
@@ -50,8 +51,8 @@ because of the automatic store creation, the value is more likely that data is s
 func GetConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
-		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeader)
-		api.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
+		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
+		httputils.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
 		return
 	}
 	c := ConfigDescription{
@@ -69,8 +70,8 @@ because of the automatic store creation, this method will always return 201
 func PostConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
-		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeader)
-		api.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
+		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
+		httputils.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
 		return
 	}
 	log.Printf("create store for tenant %s", tenant)
@@ -84,8 +85,8 @@ DeleteConfigEndpoint deleting store for a tenant, this will automatically delete
 func DeleteConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
-		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeader)
-		api.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
+		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
+		httputils.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
 		return
 	}
 	render.JSON(response, request, tenant)
@@ -97,8 +98,8 @@ GetConfigSizeEndpoint size of the store for a tenant
 func GetConfigSizeEndpoint(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
-		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeader)
-		api.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
+		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
+		httputils.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
 		return
 	}
 
@@ -109,5 +110,5 @@ func GetConfigSizeEndpoint(response http.ResponseWriter, request *http.Request) 
 getTenant getting the tenant from the request
 */
 func getTenant(req *http.Request) string {
-	return req.Header.Get(api.TenantHeader)
+	return req.Header.Get(api.TenantHeaderKey)
 }

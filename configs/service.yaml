@@ -12,8 +12,10 @@ systemID: easy1
 secretfile: /tmp/storage/config/secret.yaml
 
 logging:
-    gelf-url: 127.0.0.1
-    gelf-port: 12201
+  level: debug
+  filename: ""
+  gelf-url: 127.0.0.1
+  gelf-port: 12201
 
 healthcheck:
     period: 30

@@ -1,59 +1,42 @@
-package handler
+package api
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/go-chi/render"
-	"wkla.no-ip.biz/go-micro/error/serror"
+	"github.com/willie68/go-micro/error/serror"
 )
 
-// KeyHeader in this header the right api key should be inserted
-const KeyHeader = "X-es-apikey"
-
-// SystemHeader in this header the right system should be inserted
-const SystemHeader = "X-es-system"
-
 // SysAPIKey defining a handler for checking system id and api key
-type SysAPIKey struct {
-	SystemID string
-	Apikey   string
-	log      *log.Logger
+type SysAPIConfig struct {
+	Apikey string
+	// Skip particular requests from the handler
+	SkipFunc func(r *http.Request) bool
 }
 
-// NewSysAPIHandler creates a new SysApikeyHandler
-func NewSysAPIHandler(systemID string, apikey string) *SysAPIKey {
-	return &SysAPIKey{
-		SystemID: systemID,
-		Apikey:   apikey,
+// SysAPIHandler creates a new directly usable handler
+func SysAPIHandler(cfg SysAPIConfig) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Skip tracer
+			if cfg.SkipFunc != nil && cfg.SkipFunc(r) {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			if cfg.Apikey != strings.ToLower(r.Header.Get(APIKeyHeaderKey)) {
+				msg := "apikey not correct"
+				apierr := serror.BadRequest(nil, "missing-header", msg)
+				render.Status(r, apierr.Code)
+				render.JSON(w, r, apierr)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
 	}
-}
-
-// Handler the handler checks systemid and apikey headers
-func (s *SysAPIKey) Handler(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		path := strings.TrimSuffix(r.URL.Path, "/")
-		if !strings.HasPrefix(path, "/health") {
-			if s.SystemID != r.Header.Get(SystemHeader) {
-				msg := "either system id or apikey not correct"
-				apierr := serror.BadRequest(nil, "missing-header", msg)
-				render.Status(r, apierr.Code)
-				render.JSON(w, r, apierr)
-				return
-			}
-			if s.Apikey != strings.ToLower(r.Header.Get(KeyHeader)) {
-				msg := "either system id or apikey not correct"
-				apierr := serror.BadRequest(nil, "missing-header", msg)
-				render.Status(r, apierr.Code)
-				render.JSON(w, r, apierr)
-				return
-			}
-		}
-		next.ServeHTTP(w, r)
-	})
 }
 
 var (

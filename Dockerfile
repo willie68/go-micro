@@ -1,6 +1,6 @@
 ##### BUILDER #####
 
-FROM golang:1.13-alpine3.11 as builder
+FROM golang:1.17-alpine3.14 as builder
 
 ## Task: Install build deps
 
@@ -60,7 +60,7 @@ RUN set -eu +x; \
 
 ##### TARGET #####
 
-FROM alpine:3.11
+FROM alpine:3.14
 
 ARG RELEASE
 ENV IMG_VERSION="${RELEASE}"
@@ -81,11 +81,11 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=10s \
   CMD wget -q -T 5 --spider http://localhost:8080/health/health
 
 LABEL org.opencontainers.image.title="GoMicro" \
-      org.opencontainers.image.description="DM GoMicro" \
+      org.opencontainers.image.description="MCS GoMicro Template" \
       org.opencontainers.image.version="${IMG_VERSION}" \
-      org.opencontainers.image.source="https://bitbucket.easy.de/scm/dm/service-gomicro-go.git" \
-      org.opencontainers.image.vendor="EASY SOFTWARE AG (www.easy-software.com)" \
-      org.opencontainers.image.authors="EASY Apiomat GmbH" \
-      maintainer="EASY Apiomat GmbH" \
+      org.opencontainers.image.source="https://github.com/willie68/go-micro.git" \
+      org.opencontainers.image.vendor="MCS (www.rcarduino.de)" \
+      org.opencontainers.image.authors="info@wk-music.de" \
+      maintainer="MCS" \
       NAME="gomicro"
 

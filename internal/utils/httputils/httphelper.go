@@ -1,4 +1,4 @@
-package api
+package httputils
 
 import (
 	"fmt"
@@ -7,50 +7,28 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
-	"wkla.no-ip.biz/go-micro/error/serror"
+	"github.com/willie68/go-micro/internal/api"
+	"github.com/willie68/go-micro/internal/auth"
+	"github.com/willie68/go-micro/internal/serror"
 )
 
 // Validate validator
 var Validate *validator.Validate
 
-// TokenHeader in this header the token is expected
-const TokenHeader = "Authorization"
-
-// TenantHeader in this header the tenant is expected
-const TenantHeader = "X-es-tenant"
-
-// UserHeader in this header the username is expected
-const UserHeader = "X-es-username"
-
-// CustomerHeader in this header the customer is expected (only for tenant unspecific requests)
-const CustomerHeader = "X-es-customer"
-
-// Username gets the username of the given request
-func Username(r *http.Request) (string, error) {
-	uid := r.Header.Get(UserHeader)
-	if uid == "" {
-		msg := fmt.Sprintf("user header missing: %s", UserHeader)
-		return "", serror.BadRequest(nil, "missing-header", msg)
-	}
-	return uid, nil
-}
-
 // TenantID gets the tenant-id of the given request
 func TenantID(r *http.Request) (string, error) {
-	id := r.Header.Get(TenantHeader)
-	if id == "" {
-		msg := fmt.Sprintf("tenant header %s missing", TenantHeader)
-		return "", serror.BadRequest(nil, "missing-tenant", msg)
+	var id string
+	_, claims, _ := auth.FromContext(r.Context())
+	if claims != nil {
+		tenant, ok := claims["Tenant"].(string)
+		if ok {
+			return tenant, nil
+		}
 	}
-	return id, nil
-}
-
-// CustomerID gets the customer-id of the given request
-func CustomerID(r *http.Request) (string, error) {
-	id := r.Header.Get(CustomerHeader)
+	id = r.Header.Get(api.TenantHeaderKey)
 	if id == "" {
-		msg := fmt.Sprintf("customer header %s missing", TenantHeader)
-		return "", serror.BadRequest(nil, "missing-customer", msg)
+		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
+		return "", serror.BadRequest(nil, "missing-tenant", msg)
 	}
 	return id, nil
 }

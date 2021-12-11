@@ -1,0 +1,10 @@
+port: 8000
+sslport: 8443
+serviceURL: https://127.0.0.1:8443
+secretfile: ""
+apikey: false
+healthcheck:
+  period: 30
+logging:
+  level: debug
+  filename: ""

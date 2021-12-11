@@ -8,7 +8,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
 	"github.com/opentracing/opentracing-go"
-	clog "wkla.no-ip.biz/go-micro/logging"
+	log "github.com/willie68/go-micro/internal/logging"
 )
 
 var myhealthy bool
@@ -21,9 +21,9 @@ func check(tracer opentracing.Tracer) (bool, string) {
 	myhealthy = !myhealthy
 	message := ""
 	if myhealthy {
-		clog.Logger.Info("healthy")
+		log.Logger.Info("healthy")
 	} else {
-		clog.Logger.Info("not healthy")
+		log.Logger.Info("not healthy")
 		message = "ungesund"
 	}
 	return myhealthy, message
@@ -49,7 +49,7 @@ type Msg struct {
 // InitHealthSystem initialise the complete health system
 func InitHealthSystem(config CheckConfig, tracer opentracing.Tracer) {
 	period = config.Period
-	clog.Logger.Infof("healthcheck starting with period: %d seconds", period)
+	log.Logger.Infof("healthcheck starting with period: %d seconds", period)
 	healthmessage = "service starting"
 	healthy = false
 	doCheck(tracer)
