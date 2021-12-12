@@ -8,6 +8,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/willie68/go-micro/internal/serror"
 
 	"github.com/willie68/go-micro/internal/api"
@@ -20,8 +22,12 @@ const timeout = 1 * time.Minute
 //APIKey the apikey of this service
 var APIKey string
 
-//SystemID the systemid of this service
-var SystemID string
+var (
+	postConfigCounter = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "gomicro_post_config_total",
+		Help: "The total number of post config requests",
+	})
+)
 
 /*
 ConfigDescription describres all metadata of a config
@@ -75,6 +81,7 @@ func PostConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 	log.Printf("create store for tenant %s", tenant)
+	postConfigCounter.Inc()
 	render.Status(request, http.StatusCreated)
 	render.JSON(response, request, tenant)
 }

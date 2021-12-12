@@ -23,10 +23,12 @@ type Config struct {
 
 	Logging LoggingConfig `yaml:"logging"`
 
-	Auth Authentcation `yaml:"auth"`
-	HealthCheck HealthCheck `yaml:"healthcheck"`
+	Auth        Authentcation `yaml:"auth"`
+	HealthCheck HealthCheck   `yaml:"healthcheck"`
 
 	OpenTracing OpenTracing `yaml:"opentracing"`
+
+	Metrics Metrics `yaml:"metrics"`
 }
 
 type Authentcation struct {
@@ -51,6 +53,10 @@ type LoggingConfig struct {
 type OpenTracing struct {
 	Host     string `yaml:"host"`
 	Endpoint string `yaml:"endpoint"`
+}
+
+type Metrics struct {
+	Enable bool `yaml:"enable"`
 }
 
 var DefaultConfig = Config{
