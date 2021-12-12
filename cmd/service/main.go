@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/willie68/go-micro/internal/api"
 	"github.com/willie68/go-micro/internal/apiv1"
 	"github.com/willie68/go-micro/internal/auth"
@@ -157,9 +158,13 @@ func healthRoutes() *chi.Mux {
 		}),
 	)
 
-	router.Route("/", func(r chi.Router) {
-		r.Mount("/", health.Routes())
-	})
+	router.Route("/",
+		func(r chi.Router) {
+			r.Mount("/", health.Routes())
+			if serviceConfig.Metrics.Enable {
+				r.Mount("/metrics", promhttp.Handler())
+			}
+		})
 	return router
 }
 
