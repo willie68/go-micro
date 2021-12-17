@@ -40,7 +40,7 @@ type serviceLogger struct {
 var Logger serviceLogger
 
 /*
-InitGelf initialise gelf logging
+Init initialise logging
 */
 func (s *serviceLogger) Init() {
 	s.gelfActive = false

@@ -108,6 +108,9 @@ func apiRoutes() (*chi.Mux, error) {
 					if strings.HasSuffix(path, "/readyz") {
 						return true
 					}
+					if strings.HasSuffix(path, "/metrics") {
+						return true
+					}
 					return false
 				},
 			}),
@@ -133,6 +136,9 @@ func apiRoutes() (*chi.Mux, error) {
 	router.Route("/", func(r chi.Router) {
 		r.Mount(baseURL+"/config", apiv1.ConfigRoutes())
 		r.Mount("/health", health.Routes())
+		if serviceConfig.Metrics.Enable {
+			r.Mount("/metrics", promhttp.Handler())
+		}
 	})
 	return router, nil
 }
