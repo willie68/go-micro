@@ -42,7 +42,7 @@ var Logger serviceLogger
 /*
 InitGelf initialise gelf logging
 */
-func (s *serviceLogger) InitGelf() {
+func (s *serviceLogger) Init() {
 	s.gelfActive = false
 	if s.GelfURL != "" {
 		s.c, _ = golf.NewClient()

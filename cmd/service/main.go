@@ -328,7 +328,7 @@ func initLogging() {
 	}
 	log.Logger.GelfURL = serviceConfig.Logging.Gelfurl
 	log.Logger.GelfPort = serviceConfig.Logging.Gelfport
-	log.Logger.InitGelf()
+	log.Logger.Init()
 }
 
 func initConfig() {
