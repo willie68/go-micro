@@ -11,7 +11,7 @@ The project structure depends on this: https://github.com/golang-standards/proje
 Features:
 
 - usage of Opentracing/jaeger
--  gelf logging
+- gelf logging
 - authorization with jwt
 - cached healthcheck, healthz and readyz endpoints
 - https/ssl and http for payload and metrics/healthcheck

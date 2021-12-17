@@ -3,7 +3,7 @@ port: 8080
 # port of the https server
 sslport: 8443
 # this is the servicURL from outside
-serviceURL: http://127.0.0.1:8080
+serviceURL: https://127.0.0.1:8443
 #sercret file for storing usernames and passwords
 secretfile: /config/secret.yaml
 

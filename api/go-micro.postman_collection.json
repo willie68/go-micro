@@ -1,0 +1,184 @@
+{
+	"info": {
+		"_postman_id": "8aaf5302-3a68-4e01-be38-8ae799a769f7",
+		"name": "go-micro",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "ssl metrics",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "apikey",
+						"value": "8723a34c54a53c70071cf86dfb1d8744",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://127.0.0.1:9543/metrics",
+					"protocol": "https",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "9543",
+					"path": [
+						"metrics"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ssl health",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "apikey",
+						"value": "8723a34c54a53c70071cf86dfb1d8744",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "https://127.0.0.1:9543/health/healthz",
+					"protocol": "https",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "9543",
+					"path": [
+						"health",
+						"healthz"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ssl readiness",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "apikey",
+						"value": "8723a34c54a53c70071cf86dfb1d8744",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "https://127.0.0.1:9543/health/readyz",
+					"protocol": "https",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "9543",
+					"path": [
+						"health",
+						"readyz"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "plain metrics",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "apikey",
+						"value": "8723a34c54a53c70071cf86dfb1d8744",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "http://127.0.0.1:9580/metrics",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "9580",
+					"path": [
+						"metrics"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "plain health",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "apikey",
+						"value": "8723a34c54a53c70071cf86dfb1d8744",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "http://127.0.0.1:9580/healthz",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "9580",
+					"path": [
+						"healthz"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "plain readiness",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "apikey",
+						"value": "8723a34c54a53c70071cf86dfb1d8744",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "http://127.0.0.1:9580/readyz",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "9580",
+					"path": [
+						"readyz"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -1,9 +1,9 @@
 # port of the http server
-port: 9180 
+port: 9580 
 # port of the https server
 sslport: 9543
 # this is the servicURL from outside
-serviceURL: http://127.0.0.1:9180
+serviceURL: https://127.0.0.1:9543
 #sercret file for storing usernames and passwords
 secretfile: configs/secret.yaml
 
