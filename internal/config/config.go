@@ -23,8 +23,9 @@ type Config struct {
 
 	Logging LoggingConfig `yaml:"logging"`
 
-	Auth        Authentcation `yaml:"auth"`
 	HealthCheck HealthCheck   `yaml:"healthcheck"`
+
+	Auth        Authentcation `yaml:"auth"`
 
 	OpenTracing OpenTracing `yaml:"opentracing"`
 

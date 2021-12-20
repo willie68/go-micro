@@ -18,6 +18,8 @@ import (
 	"github.com/willie68/go-micro/internal/auth"
 	"github.com/willie68/go-micro/internal/health"
 	"github.com/willie68/go-micro/internal/serror"
+	"github.com/willie68/go-micro/internal/utils/httputils"
+	"github.com/willie68/go-micro/pkg/web"
 
 	"github.com/opentracing/opentracing-go"
 	"github.com/uber/jaeger-client-go"
@@ -111,6 +113,9 @@ func apiRoutes() (*chi.Mux, error) {
 					if strings.HasSuffix(path, "/metrics") {
 						return true
 					}
+					if strings.HasPrefix(path, "/client") {
+						return true
+					}
 					return false
 				},
 			}),
@@ -140,6 +145,8 @@ func apiRoutes() (*chi.Mux, error) {
 			r.Mount("/metrics", promhttp.Handler())
 		}
 	})
+	// adding a file server with web client asserts
+	httputils.FileServer(router, "/client", http.FS(web.WebClientAssets))
 	return router, nil
 }
 
@@ -209,6 +216,9 @@ func main() {
 	serviceConfig = config.Get()
 	initConfig()
 	initLogging()
+
+	log.Logger.Info("service is starting")
+
 	var closer io.Closer
 	Tracer, closer = initJaeger(servicename, serviceConfig.OpenTracing)
 	opentracing.SetGlobalTracer(Tracer)
