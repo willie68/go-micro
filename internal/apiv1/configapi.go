@@ -50,10 +50,19 @@ func ConfigRoutes() *chi.Mux {
 	return router
 }
 
-/*
-GetConfigEndpoint getting if a store for a tenant is initialised
-because of the automatic store creation, the value is more likely that data is stored for this tenant
-*/
+// GetConfigEndpoint getting if a store for a tenant is initialised
+// because of the automatic store creation, the value is more likely that data is stored for this tenant
+// @Summary Get a store for a tenant
+// @Tags configs
+// @Accept  json
+// @Produce  json
+// @Security api_key
+// @Param X-es-system header string true "SystemID"
+// @Param X-es-tenant header string true "Tenant"
+// @Success 200 {array} ConfigDescription "response with config as json"
+// @Failure 400 {object} serror.Err "client error information as json"
+// @Failure 500 {object} serror.Err "server error information as json"
+// @Router /config [get]
 func GetConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
@@ -69,10 +78,20 @@ func GetConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 	render.JSON(response, request, c)
 }
 
-/*
-PostConfigEndpoint create a new store for a tenant
-because of the automatic store creation, this method will always return 201
-*/
+// PostConfigEndpoint create a new store for a tenant
+// because of the automatic store creation, this method will always return 201
+// @Summary Create a new store for a tenant
+// @Tags configs
+// @Accept  json
+// @Produce  json
+// @Security api_key
+// @Param X-es-system header string true "SystemID"
+// @Param X-es-tenant header string true "Tenant"
+// @Param payload body string true "Add store"
+// @Success 201 {string} string "tenant"
+// @Failure 400 {object} serror.Err "client error information as json"
+// @Failure 500 {object} serror.Err "server error information as json"
+// @Router /config [post]
 func PostConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
@@ -86,9 +105,17 @@ func PostConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 	render.JSON(response, request, tenant)
 }
 
-/*
-DeleteConfigEndpoint deleting store for a tenant, this will automatically delete all data in the store
-*/
+// DeleteConfigEndpoint deleting store for a tenant, this will automatically delete all data in the store
+// @Summary Delete a store for a tenant
+// @Tags configs
+// @Accept  json
+// @Produce  json
+// @Security api_key
+// @Param X-es-system header string true "SystemID"
+// @Param X-es-tenant header string true "Tenant"
+// @Success 200 "ok"
+// @Failure 400 {object} serror.Err "client error information as json"
+// @Router /config [delete]
 func DeleteConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
@@ -99,9 +126,17 @@ func DeleteConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 	render.JSON(response, request, tenant)
 }
 
-/*
-GetConfigSizeEndpoint size of the store for a tenant
-*/
+// GetConfigSizeEndpoint size of the store for a tenant
+// @Summary Get size of a store for a tenant
+// @Tags configs
+// @Accept  json
+// @Produce  json
+// @Security api_key
+// @Param X-es-system header string true "SystemID"
+// @Param X-es-tenant header string true "Tenant"
+// @Success 200 {string} string "size"
+// @Failure 400 {object} serror.Err "client error information as json"
+// @Router /config/size [get]
 func GetConfigSizeEndpoint(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
