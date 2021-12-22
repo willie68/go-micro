@@ -1,0 +1,152 @@
+basePath: /api/v1
+definitions:
+  apiv1.ConfigDescription:
+    properties:
+      size:
+        type: integer
+      storeid:
+        type: string
+      tenantID:
+        type: string
+    type: object
+  serror.Serr:
+    properties:
+      code:
+        type: integer
+      key:
+        type: string
+      message:
+        type: string
+      origin:
+        type: string
+      service:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: The GoMicro service is a template for microservices written in go.
+  title: GoMicro service API
+  version: "1.0"
+paths:
+  /config:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tenant
+        in: header
+        name: tenant
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+        "400":
+          description: client error information as json
+          schema:
+            $ref: '#/definitions/serror.Serr'
+      security:
+      - api_key: []
+      summary: Delete a store for a tenant
+      tags:
+      - configs
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tenant
+        in: header
+        name: tenant
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response with config as json
+          schema:
+            items:
+              $ref: '#/definitions/apiv1.ConfigDescription'
+            type: array
+        "400":
+          description: client error information as json
+          schema:
+            $ref: '#/definitions/serror.Serr'
+        "500":
+          description: server error information as json
+          schema:
+            $ref: '#/definitions/serror.Serr'
+      security:
+      - api_key: []
+      summary: Get a store for a tenant
+      tags:
+      - configs
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tenant
+        in: header
+        name: tenant
+        required: true
+        type: string
+      - description: Add store
+        in: body
+        name: payload
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: tenant
+          schema:
+            type: string
+        "400":
+          description: client error information as json
+          schema:
+            $ref: '#/definitions/serror.Serr'
+        "500":
+          description: server error information as json
+          schema:
+            $ref: '#/definitions/serror.Serr'
+      security:
+      - api_key: []
+      summary: Create a new store for a tenant
+      tags:
+      - configs
+  /config/size:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tenant
+        in: header
+        name: tenant
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: size
+          schema:
+            type: string
+        "400":
+          description: client error information as json
+          schema:
+            $ref: '#/definitions/serror.Serr'
+      security:
+      - api_key: []
+      summary: Get size of a store for a tenant
+      tags:
+      - configs
+securityDefinitions:
+  api_key:
+    in: header
+    name: apikey
+    type: apiKey
+swagger: "2.0"

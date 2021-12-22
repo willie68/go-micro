@@ -198,6 +198,13 @@ func healthRoutes() *chi.Mux {
 	return router
 }
 
+// @title GoMicro service API
+// @version 1.0
+// @description The GoMicro service is a template for microservices written in go.
+// @BasePath /api/v1
+// @securityDefinitions.apikey api_key
+// @in header
+// @name apikey
 func main() {
 	configFolder, err := config.GetDefaultConfigFolder()
 	if err != nil {

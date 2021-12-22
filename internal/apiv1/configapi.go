@@ -55,8 +55,8 @@ func ConfigRoutes() *chi.Mux {
 // @Security api_key
 // @Param tenant header string true "Tenant"
 // @Success 200 {array} ConfigDescription "response with config as json"
-// @Failure 400 {object} serror.Err "client error information as json"
-// @Failure 500 {object} serror.Err "server error information as json"
+// @Failure 400 {object} serror.Serr "client error information as json"
+// @Failure 500 {object} serror.Serr "server error information as json"
 // @Router /config [get]
 func GetConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
@@ -83,8 +83,8 @@ func GetConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 // @Param tenant header string true "Tenant"
 // @Param payload body string true "Add store"
 // @Success 201 {string} string "tenant"
-// @Failure 400 {object} serror.Err "client error information as json"
-// @Failure 500 {object} serror.Err "server error information as json"
+// @Failure 400 {object} serror.Serr "client error information as json"
+// @Failure 500 {object} serror.Serr "server error information as json"
 // @Router /config [post]
 func PostConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
@@ -107,7 +107,7 @@ func PostConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 // @Security api_key
 // @Param tenant header string true "Tenant"
 // @Success 200 "ok"
-// @Failure 400 {object} serror.Err "client error information as json"
+// @Failure 400 {object} serror.Serr "client error information as json"
 // @Router /config [delete]
 func DeleteConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
@@ -127,7 +127,7 @@ func DeleteConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 // @Security api_key
 // @Param tenant header string true "Tenant"
 // @Success 200 {string} string "size"
-// @Failure 400 {object} serror.Err "client error information as json"
+// @Failure 400 {object} serror.Serr "client error information as json"
 // @Router /config/size [get]
 func GetConfigSizeEndpoint(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
