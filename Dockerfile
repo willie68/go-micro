@@ -79,7 +79,7 @@ CMD ["--config","/config/service.yaml"]
 EXPOSE 8080 8443
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=10s \
-  CMD wget -q -T 5 --spider http://localhost:8080/health/health
+  CMD wget -q -T 5 --spider http://localhost:8080/healthz
 
 LABEL org.opencontainers.image.title="GoMicro" \
       org.opencontainers.image.description="MCS GoMicro Template" \

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -15,9 +14,6 @@ import (
 	"github.com/willie68/go-micro/internal/api"
 	"github.com/willie68/go-micro/internal/utils/httputils"
 )
-
-// TenantHeader in this header thr right tenant should be inserted
-const timeout = 1 * time.Minute
 
 //APIKey the apikey of this service
 var APIKey string
@@ -57,8 +53,7 @@ func ConfigRoutes() *chi.Mux {
 // @Accept  json
 // @Produce  json
 // @Security api_key
-// @Param X-es-system header string true "SystemID"
-// @Param X-es-tenant header string true "Tenant"
+// @Param tenant header string true "Tenant"
 // @Success 200 {array} ConfigDescription "response with config as json"
 // @Failure 400 {object} serror.Err "client error information as json"
 // @Failure 500 {object} serror.Err "server error information as json"
@@ -85,8 +80,7 @@ func GetConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 // @Accept  json
 // @Produce  json
 // @Security api_key
-// @Param X-es-system header string true "SystemID"
-// @Param X-es-tenant header string true "Tenant"
+// @Param tenant header string true "Tenant"
 // @Param payload body string true "Add store"
 // @Success 201 {string} string "tenant"
 // @Failure 400 {object} serror.Err "client error information as json"
@@ -111,8 +105,7 @@ func PostConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 // @Accept  json
 // @Produce  json
 // @Security api_key
-// @Param X-es-system header string true "SystemID"
-// @Param X-es-tenant header string true "Tenant"
+// @Param tenant header string true "Tenant"
 // @Success 200 "ok"
 // @Failure 400 {object} serror.Err "client error information as json"
 // @Router /config [delete]
@@ -132,8 +125,7 @@ func DeleteConfigEndpoint(response http.ResponseWriter, request *http.Request) {
 // @Accept  json
 // @Produce  json
 // @Security api_key
-// @Param X-es-system header string true "SystemID"
-// @Param X-es-tenant header string true "Tenant"
+// @Param tenant header string true "Tenant"
 // @Success 200 {string} string "size"
 // @Failure 400 {object} serror.Err "client error information as json"
 // @Router /config/size [get]

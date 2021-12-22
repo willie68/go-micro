@@ -97,14 +97,22 @@ func apiRoutes() (*chi.Mux, error) {
 			},
 		}),
 	)
-
+	if serviceConfig.Metrics.Enable {
+		router.Use(
+			api.MetricsHandler(api.MetricsConfig{
+				SkipFunc: func(r *http.Request) bool {
+					return false
+				},
+			}),
+		)
+	}
 	if serviceConfig.Apikey {
 		router.Use(
 			api.SysAPIHandler(api.SysAPIConfig{
 				Apikey: apikey,
 				SkipFunc: func(r *http.Request) bool {
 					path := strings.TrimSuffix(r.URL.Path, "/")
-					if strings.HasSuffix(path, "/healthz") {
+					if strings.HasSuffix(path, "/livez") {
 						return true
 					}
 					if strings.HasSuffix(path, "/readyz") {
@@ -140,7 +148,7 @@ func apiRoutes() (*chi.Mux, error) {
 	// building the routes
 	router.Route("/", func(r chi.Router) {
 		r.Mount(baseURL+"/config", apiv1.ConfigRoutes())
-		r.Mount("/health", health.Routes())
+		r.Mount("/", health.Routes())
 		if serviceConfig.Metrics.Enable {
 			r.Mount("/metrics", promhttp.Handler())
 		}
@@ -170,6 +178,15 @@ func healthRoutes() *chi.Mux {
 			},
 		}),
 	)
+	if serviceConfig.Metrics.Enable {
+		router.Use(
+			api.MetricsHandler(api.MetricsConfig{
+				SkipFunc: func(r *http.Request) bool {
+					return false
+				},
+			}),
+		)
+	}
 
 	router.Route("/",
 		func(r chi.Router) {

@@ -9,6 +9,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const Servicename = "go-micro"
+
 // Config our service configuration
 type Config struct {
 	//port of the http server
@@ -23,9 +25,9 @@ type Config struct {
 
 	Logging LoggingConfig `yaml:"logging"`
 
-	HealthCheck HealthCheck   `yaml:"healthcheck"`
+	HealthCheck HealthCheck `yaml:"healthcheck"`
 
-	Auth        Authentcation `yaml:"auth"`
+	Auth Authentcation `yaml:"auth"`
 
 	OpenTracing OpenTracing `yaml:"opentracing"`
 
@@ -81,7 +83,7 @@ func GetDefaultConfigFolder() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	configFolder := fmt.Sprintf("%s/GoBlob", home)
+	configFolder := fmt.Sprintf("%s/%s", home, Servicename)
 	err = os.MkdirAll(configFolder, os.ModePerm)
 	if err != nil {
 		return "", err
