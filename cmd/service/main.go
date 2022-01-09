@@ -89,7 +89,7 @@ func apiRoutes() (*chi.Mux, error) {
 			SampleRate:     1,
 			SkipFunc: func(r *http.Request) bool {
 				return false
-				//return r.URL.Path == "/healthz"
+				//return r.URL.Path == "/livez"
 			},
 			Tags: map[string]interface{}{
 				"_dd.measured": 1, // datadog, turn on metrics for http.request stats
