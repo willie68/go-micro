@@ -13,7 +13,7 @@ Features:
 - usage of Opentracing/jaeger
 - gelf logging
 - authorization with jwt
-- cached healthcheck, healthz and readyz endpoints
+- cached healthcheck, livez and readyz endpoints
 - https/ssl and http for payload and metrics/healthcheck
 - metrics with Prometheus: https://prometheus.io/docs/guides/go-application/
 - Docker build with builder and target image

@@ -46,7 +46,7 @@
 					}
 				],
 				"url": {
-					"raw": "https://127.0.0.1:9543/health/healthz",
+					"raw": "https://127.0.0.1:9543/livez",
 					"protocol": "https",
 					"host": [
 						"127",
@@ -56,8 +56,7 @@
 					],
 					"port": "9543",
 					"path": [
-						"health",
-						"healthz"
+						"livez"
 					]
 				}
 			},
@@ -76,7 +75,7 @@
 					}
 				],
 				"url": {
-					"raw": "https://127.0.0.1:9543/health/readyz",
+					"raw": "https://127.0.0.1:9543/readyz",
 					"protocol": "https",
 					"host": [
 						"127",
@@ -86,7 +85,6 @@
 					],
 					"port": "9543",
 					"path": [
-						"health",
 						"readyz"
 					]
 				}
@@ -135,7 +133,7 @@
 					}
 				],
 				"url": {
-					"raw": "http://127.0.0.1:9580/healthz",
+					"raw": "http://127.0.0.1:9580/livez",
 					"protocol": "http",
 					"host": [
 						"127",
@@ -145,7 +143,7 @@
 					],
 					"port": "9580",
 					"path": [
-						"healthz"
+						"livez"
 					]
 				}
 			},
