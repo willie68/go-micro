@@ -185,7 +185,7 @@ func (s *serviceLogger) Error(msg string) {
 		if s.gelfActive {
 			golf.Err(msg)
 		}
-		log.Printf("Fatal: %s\n", msg)
+		log.Printf("Error: %s\n", msg)
 	}
 }
 
@@ -195,7 +195,7 @@ func (s *serviceLogger) Errorf(format string, va ...interface{}) {
 		if s.gelfActive {
 			golf.Errf(format, va...)
 		}
-		log.Printf("Fatal: %s\n", fmt.Sprintf(format, va...))
+		log.Printf("Error: %s\n", fmt.Sprintf(format, va...))
 	}
 }
 
