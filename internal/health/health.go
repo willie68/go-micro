@@ -105,6 +105,9 @@ func GetReadinessEndpoint(response http.ResponseWriter, req *http.Request) {
 	if t.Sub(lastChecked) > (time.Second * time.Duration(2*period)) {
 		healthy = false
 		healthmessage = "Healthcheck not running"
+		if t.Sub(lastChecked) > (time.Second * time.Duration(4*period)) {
+			panic("panic: health check is not running anymore")
+		}
 	}
 	if healthy {
 		render.Status(req, http.StatusOK)
