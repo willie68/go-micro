@@ -73,7 +73,6 @@ func apiRoutes() (*chi.Mux, error) {
 		middleware.Logger,
 		//middleware.DefaultCompress,
 		middleware.Recoverer,
-		middleware.StripSlashes,
 		cors.Handler(cors.Options{
 			// AllowedOrigins: []string{"https://foo.com"}, // Use this to allow specific origin hosts
 			AllowedOrigins: []string{"*"},
@@ -166,7 +165,6 @@ func healthRoutes() *chi.Mux {
 		middleware.Logger,
 		//middleware.DefaultCompress,
 		middleware.Recoverer,
-		middleware.StripSlashes,
 		httptracer.Tracer(Tracer, httptracer.Config{
 			ServiceName:    servicename,
 			ServiceVersion: apiVersion,
