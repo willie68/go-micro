@@ -19,6 +19,7 @@ Features:
 - Docker build with builder and target image
 - chi as the router framework
 - go 1.17
+- automatic config substitution with EnvSubst (https://github.com/drone/envsubst)
 
 ## Prometheus integration
 
