@@ -4,7 +4,7 @@ serviceURL: https://127.0.0.1:8443
 secretfile: ""
 apikey: false
 healthcheck:
-  period: 30
+  period: 60
 logging:
   level: debug
-  filename: ""
+  filename: "${logfile}"

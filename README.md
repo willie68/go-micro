@@ -19,7 +19,18 @@ Features:
 - Docker build with builder and target image
 - chi as the router framework
 - go 1.17
-- automatic config substitution with EnvSubst (https://github.com/drone/envsubst)
+- automatic config substitution 
+
+## Configuration
+
+In this template the configuration will be automatically loaded. You have the following options to set the service configuration file.
+
+- default: the service will try to load the configuration from the `<userhome>/<servicename>/service.yaml`
+- via Commandline: `-c <configfile>` will load the configuration from this file
+
+IN the configuration file you can use `${}` macros for adding environment variables for the configuration itself. This will not work on the `secret.yaml`. The `secret.yaml` (if given in the configuration) will load a partial configuration from another file. (Mainly for separating credentials from the other configuration) Be aware, you manually have to merge both configuration in the `config.mergeSecret()` function.
+
+
 
 ## Prometheus integration
 
