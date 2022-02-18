@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/imdario/mergo"
 	"gopkg.in/yaml.v3"
 )
 
@@ -147,17 +148,15 @@ func readSecret() error {
 		if err != nil {
 			return fmt.Errorf("can't load secret file: %s", err.Error())
 		}
-		var secretConfig Secret = Secret{}
+		var secretConfig map[string]interface{}
 		err = yaml.Unmarshal(data, &secretConfig)
 		if err != nil {
 			return fmt.Errorf("can't unmarshal secret file: %s", err.Error())
 		}
-		mergeSecret(secretConfig)
+		// merge secret
+		if err := mergo.Map(&config, secretConfig, mergo.WithOverride); err != nil {
+			return fmt.Errorf("can't merge secret file: %s", err.Error())
+		}
 	}
 	return nil
-}
-
-func mergeSecret(secret Secret) {
-	//	config.MongoDB.Username = secret.MongoDB.Username
-	//	config.MongoDB.Password = secret.MongoDB.Password
 }
