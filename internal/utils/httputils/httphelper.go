@@ -13,8 +13,8 @@ import (
 	"github.com/willie68/go-micro/internal/serror"
 )
 
-// Validate validator
-var Validate *validator.Validate
+// val validator
+var val *validator.Validate
 
 // TenantID gets the tenant-id of the given request
 func TenantID(r *http.Request) (string, error) {

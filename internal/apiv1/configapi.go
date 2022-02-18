@@ -15,6 +15,10 @@ import (
 	"github.com/willie68/go-micro/internal/utils/httputils"
 )
 
+const ApiVersion = "1"
+
+var baseURL = fmt.Sprintf("/api/v%s", ApiVersion)
+
 //APIKey the apikey of this service
 var APIKey string
 
@@ -37,13 +41,13 @@ type ConfigDescription struct {
 /*
 ConfigRoutes getting all routes for the config endpoint
 */
-func ConfigRoutes() *chi.Mux {
+func ConfigRoutes() (string, *chi.Mux) {
 	router := chi.NewRouter()
 	router.Post("/", PostConfig)
 	router.Get("/", GetConfig)
 	router.Delete("/", DeleteConfig)
 	router.Get("/size", GetConfigSize)
-	return router
+	return baseURL + "/config", router
 }
 
 // GetConfig getting if a store for a tenant is initialised
