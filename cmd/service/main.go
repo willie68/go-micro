@@ -83,7 +83,7 @@ func apiRoutes() (*chi.Mux, error) {
 		}),
 		httptracer.Tracer(Tracer, httptracer.Config{
 			ServiceName:    servicename,
-			ServiceVersion: apiv1.ApiVersion,
+			ServiceVersion: "V" + apiv1.ApiVersion,
 			SampleRate:     1,
 			SkipFunc: func(r *http.Request) bool {
 				return false
@@ -165,7 +165,7 @@ func healthRoutes() *chi.Mux {
 		middleware.Recoverer,
 		httptracer.Tracer(Tracer, httptracer.Config{
 			ServiceName:    servicename,
-			ServiceVersion: apiv1.ApiVersion,
+			ServiceVersion: "V" + apiv1.ApiVersion,
 			SampleRate:     1,
 			SkipFunc: func(r *http.Request) bool {
 				return false
