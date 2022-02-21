@@ -15,13 +15,6 @@ import (
 	"github.com/willie68/go-micro/internal/utils/httputils"
 )
 
-const ApiVersion = "1"
-
-var baseURL = fmt.Sprintf("/api/v%s", ApiVersion)
-
-//APIKey the apikey of this service
-var APIKey string
-
 var (
 	postConfigCounter = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "gomicro_post_config_total",
