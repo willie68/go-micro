@@ -73,3 +73,14 @@ func TestEnvSubstWrongCase(t *testing.T) {
 
 	ast.Equal("file.log", Get().Logging.Filename)
 }
+
+func TestSecretMapping(t *testing.T) {
+	ast := assert.New(t)
+
+	File = "./../../testdata/service_local_file.yaml"
+
+	Load()
+
+	ast.Equal(120, Get().HealthCheck.Period)
+
+}
