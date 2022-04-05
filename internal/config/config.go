@@ -148,7 +148,7 @@ func readSecret() error {
 		if err != nil {
 			return fmt.Errorf("can't load secret file: %s", err.Error())
 		}
-		var secretConfig map[string]interface{}
+		var secretConfig Config
 		err = yaml.Unmarshal(data, &secretConfig)
 		if err != nil {
 			return fmt.Errorf("can't unmarshal secret file: %s", err.Error())
