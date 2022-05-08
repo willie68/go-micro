@@ -142,8 +142,8 @@ func HeadReadinessEndpoint(response http.ResponseWriter, req *http.Request) {
 func checkHealthCheckTimer() {
 	t := time.Now()
 	if t.Sub(lastChecked) > (time.Second * time.Duration(2*period)) {
-		healthy = false
-		healthmessage = "health check not running"
+		readyz = false
+		message = "health check not running"
 		if t.Sub(lastChecked) > (time.Second * time.Duration(4*period)) {
 			log.Logger.Error("panic: health check is not running anymore")
 			panic("panic: health check is not running anymore")
