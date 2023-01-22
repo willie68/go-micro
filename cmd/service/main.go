@@ -9,10 +9,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/willie68/go-micro/internal/api"
 	"github.com/willie68/go-micro/internal/apiv1"
@@ -228,26 +230,22 @@ func main() {
 
 	log.Logger.Infof("starting server, config folder: %s", configFolder)
 	defer log.Logger.Close()
+
 	serror.Service = config.Servicename
 	if configFile == "" {
-		configFolder, err := config.GetDefaultConfigFolder()
+		configFile, err = getDefaultConfigfile()
 		if err != nil {
-			log.Logger.Alertf("can't load config file: %s", err.Error())
-			os.Exit(1)
+			log.Logger.Errorf("error getting default config file: %v", err)
+			panic("error getting default config file")
 		}
-		configFolder = fmt.Sprintf("%s/service/", configFolder)
-		err = os.MkdirAll(configFolder, os.ModePerm)
-		if err != nil {
-			log.Logger.Alertf("can't load config file: %s", err.Error())
-			os.Exit(1)
-		}
-		configFile = configFolder + "/service.yaml"
 	}
+
 	config.File = configFile
-	// autorestart starts here...
+	log.Logger.Infof("using config file: %s", configFile)
+
 	if err := config.Load(); err != nil {
 		log.Logger.Alertf("can't load config file: %s", err.Error())
-		os.Exit(1)
+		panic("can't load config file")
 	}
 
 	serviceConfig = config.Get()
@@ -281,7 +279,9 @@ func main() {
 	log.Logger.Infof("%s api routes", config.Servicename)
 	router, err := apiRoutes()
 	if err != nil {
-		log.Logger.Alertf("could not create api routes. %s", err.Error())
+		errstr := fmt.Sprintf("could not create api routes. %s", err.Error())
+		log.Logger.Alertf(errstr)
+		panic(errstr)
 	}
 	walkFunc := func(method string, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
 		log.Logger.Infof("%s %s", method, route)
@@ -298,60 +298,10 @@ func main() {
 	}
 
 	if ssl {
-		gc := crypt.GenerateCertificate{
-			Organization: "MCS",
-			Host:         "127.0.0.1",
-			ValidFor:     10 * 365 * 24 * time.Hour,
-			IsCA:         false,
-			EcdsaCurve:   "P384",
-			Ed25519Key:   false,
-		}
-		tlsConfig, err := gc.GenerateTLSConfig()
-		if err != nil {
-			log.Logger.Alertf("could not create tls config. %s", err.Error())
-		}
-		sslsrv = &http.Server{
-			Addr:         "0.0.0.0:" + strconv.Itoa(serviceConfig.Sslport),
-			WriteTimeout: time.Second * 15,
-			ReadTimeout:  time.Second * 15,
-			IdleTimeout:  time.Second * 60,
-			Handler:      router,
-			TLSConfig:    tlsConfig,
-		}
-		go func() {
-			log.Logger.Infof("starting https server on address: %s", sslsrv.Addr)
-			if err := sslsrv.ListenAndServeTLS("", ""); err != nil {
-				log.Logger.Alertf("error starting server: %s", err.Error())
-			}
-		}()
-		srv = &http.Server{
-			Addr:         "0.0.0.0:" + strconv.Itoa(serviceConfig.Port),
-			WriteTimeout: time.Second * 15,
-			ReadTimeout:  time.Second * 15,
-			IdleTimeout:  time.Second * 60,
-			Handler:      healthRouter,
-		}
-		go func() {
-			log.Logger.Infof("starting http server on address: %s", srv.Addr)
-			if err := srv.ListenAndServe(); err != nil {
-				log.Logger.Alertf("error starting server: %s", err.Error())
-			}
-		}()
+		startHTTPSServer(router)
+		startHTTPServer(healthRouter)
 	} else {
-		// own http server for the healthchecks
-		srv = &http.Server{
-			Addr:         "0.0.0.0:" + strconv.Itoa(serviceConfig.Port),
-			WriteTimeout: time.Second * 15,
-			ReadTimeout:  time.Second * 15,
-			IdleTimeout:  time.Second * 60,
-			Handler:      router,
-		}
-		go func() {
-			log.Logger.Infof("starting http server on address: %s", srv.Addr)
-			if err := srv.ListenAndServe(); err != nil {
-				log.Logger.Alertf("error starting server: %s", err.Error())
-			}
-		}()
+		startHTTPServer(router)
 	}
 
 	log.Logger.Info("waiting for clients")
@@ -359,23 +309,83 @@ func main() {
 	signal.Notify(c, os.Interrupt)
 	<-c
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
-	defer cancel()
-
-	err = srv.Shutdown(ctx)
-	if err != nil {
-		log.Logger.Errorf("%v", err)
-	}
-	if ssl {
-		err = sslsrv.Shutdown(ctx)
-		if err != nil {
-			log.Logger.Errorf("%v", err)
-		}
-	}
-
+	shutdownServers()
 	log.Logger.Info("finished")
 
 	os.Exit(0)
+}
+
+func shutdownServers() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Logger.Errorf("shutdown http server error: %v", err)
+	}
+	if ssl {
+		if err := sslsrv.Shutdown(ctx); err != nil {
+			log.Logger.Errorf("shutdown https server error: %v", err)
+		}
+	}
+}
+
+func startHTTPSServer(router *chi.Mux) {
+	gc := crypt.GenerateCertificate{
+		Organization: "MCS",
+		Host:         "127.0.0.1",
+		ValidFor:     10 * 365 * 24 * time.Hour,
+		IsCA:         false,
+		EcdsaCurve:   "P384",
+		Ed25519Key:   false,
+	}
+	tlsConfig, err := gc.GenerateTLSConfig()
+	if err != nil {
+		log.Logger.Alertf("could not create tls config. %s", err.Error())
+	}
+	sslsrv = &http.Server{
+		Addr:         "0.0.0.0:" + strconv.Itoa(serviceConfig.Sslport),
+		WriteTimeout: time.Second * 15,
+		ReadTimeout:  time.Second * 15,
+		IdleTimeout:  time.Second * 60,
+		Handler:      router,
+		TLSConfig:    tlsConfig,
+	}
+	go func() {
+		log.Logger.Infof("starting https server on address: %s", sslsrv.Addr)
+		if err := sslsrv.ListenAndServeTLS("", ""); err != nil {
+			log.Logger.Alertf("error starting server: %s", err.Error())
+		}
+	}()
+}
+
+func startHTTPServer(router *chi.Mux) {
+	// own http server for the healthchecks
+	srv = &http.Server{
+		Addr:         "0.0.0.0:" + strconv.Itoa(serviceConfig.Port),
+		WriteTimeout: time.Second * 15,
+		ReadTimeout:  time.Second * 15,
+		IdleTimeout:  time.Second * 60,
+		Handler:      router,
+	}
+	go func() {
+		log.Logger.Infof("starting http server on address: %s", srv.Addr)
+		if err := srv.ListenAndServe(); err != nil {
+			log.Logger.Alertf("error starting server: %s", err.Error())
+		}
+	}()
+}
+
+func getDefaultConfigfile() (string, error) {
+	configFolder, err := config.GetDefaultConfigFolder()
+	if err != nil {
+		return "", errors.Wrap(err, "can't load config file")
+	}
+	configFolder = filepath.Join(configFolder, "service")
+	err = os.MkdirAll(configFolder, os.ModePerm)
+	if err != nil {
+		return "", errors.Wrap(err, "can't load config file")
+	}
+	return filepath.Join(configFolder, "service.yaml"), nil
 }
 
 // initLogging initialize the logging, especially the gelf logger
