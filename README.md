@@ -18,8 +18,12 @@ Features:
 - metrics with Prometheus: https://prometheus.io/docs/guides/go-application/
 - Docker build with builder and target image
 - chi as the router framework
-- go 1.17
+- go 1.18
 - automatic config substitution 
+
+## Why using this and not a framework?
+
+Because you gain more flexibility. See this little repo as a starting point for writing your own microservice framework for you or your company.  
 
 ## Configuration
 

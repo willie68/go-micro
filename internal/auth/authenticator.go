@@ -1,3 +1,4 @@
+// Package auth all things related to authentication and authorization
 package auth
 
 import (
@@ -7,11 +8,13 @@ import (
 	"strings"
 )
 
+// used context key for parameter given in a std context
 var (
 	TokenCtxKey = &contextKey{"Token"}
 	ErrorCtxKey = &contextKey{"Error"}
 )
 
+// defining some common errors
 var (
 	ErrUnauthorized = errors.New("token is unauthorized")
 	ErrExpired      = errors.New("token is expired")
@@ -21,24 +24,24 @@ var (
 	ErrAlgoInvalid  = errors.New("algorithm mismatch")
 )
 
-func FromContext(ctx context.Context) (*JWT, map[string]interface{}, error) {
+// FromContext extract the JWT and a flatten claim structure from a context
+func FromContext(ctx context.Context) (*JWT, map[string]any, error) {
 	token, ok := ctx.Value(TokenCtxKey).(*JWT)
 
 	var err error
-	var claims map[string]interface{}
+	var claims map[string]any
 
-	if ok && (token != nil) {
-		claims = token.Payload
-	} else {
-		claims = map[string]interface{}{}
+	if !ok || (token == nil) {
+		claims = map[string]any{}
 		return token, claims, errors.New("token not present")
 	}
 
+	claims = token.Payload
 	err, _ = ctx.Value(ErrorCtxKey).(error)
-
 	return token, claims, err
 }
 
+// Authenticator returns a handler for authentication
 func Authenticator(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, _, err := FromContext(r.Context())
@@ -52,18 +55,19 @@ func Authenticator(next http.Handler) http.Handler {
 			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 			return
 		}
-
 		// Token is authenticated, pass it through
 		next.ServeHTTP(w, r)
 	})
 }
 
+// Verifier returns a handler for verification
 func Verifier(ja *JWTAuth) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return Verify(ja, TokenFromHeader, TokenFromCookie)(next)
 	}
 }
 
+// Verify checking a request
 func Verify(ja *JWTAuth, findTokenFns ...func(r *http.Request) string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		hfn := func(w http.ResponseWriter, r *http.Request) {
@@ -76,6 +80,7 @@ func Verify(ja *JWTAuth, findTokenFns ...func(r *http.Request) string) func(http
 	}
 }
 
+// VerifyRequest this request -> authorization
 func VerifyRequest(ja *JWTAuth, r *http.Request, findTokenFns ...func(r *http.Request) string) (*JWT, error) {
 	var tokenString string
 
@@ -95,6 +100,7 @@ func VerifyRequest(ja *JWTAuth, r *http.Request, findTokenFns ...func(r *http.Re
 	return VerifyToken(ja, tokenString)
 }
 
+// VerifyToken verify the bearer token
 func VerifyToken(ja *JWTAuth, tokenString string) (*JWT, error) {
 	// Decode & verify the token
 	token, err := DecodeJWT(tokenString)
@@ -110,14 +116,15 @@ func VerifyToken(ja *JWTAuth, tokenString string) (*JWT, error) {
 	return &token, nil
 }
 
+// NewContext creating a new context for the http functions
 func NewContext(ctx context.Context, t *JWT, err error) context.Context {
 	ctx = context.WithValue(ctx, TokenCtxKey, t)
 	ctx = context.WithValue(ctx, ErrorCtxKey, err)
 	return ctx
 }
 
-// TokenFromHeader tries to retreive the token string from the
-// "Authorization" reqeust header: "Authorization: BEARER T".
+// TokenFromHeader tries to retrieve the token string from the
+// "Authorization" request header: "Authorization: BEARER T".
 func TokenFromHeader(r *http.Request) string {
 	// Get token from authorization header.
 	bearer := r.Header.Get("Authorization")
@@ -127,22 +134,22 @@ func TokenFromHeader(r *http.Request) string {
 	return ""
 }
 
-// TokenFromQuery tries to retreive the token string from the "jwt" URI
+// TokenFromQuery tries to retrieve the token string from the "jwt" URI
 // query parameter.
 //
 // To use it, build our own middleware handler, such as:
 //
-// func Verifier(ja *JWTAuth) func(http.Handler) http.Handler {
-// 	return func(next http.Handler) http.Handler {
-// 		return Verify(ja, TokenFromQuery, TokenFromHeader, TokenFromCookie)(next)
-// 	}
-// }
+//	func Verifier(ja *JWTAuth) func(http.Handler) http.Handler {
+//		return func(next http.Handler) http.Handler {
+//			return Verify(ja, TokenFromQuery, TokenFromHeader, TokenFromCookie)(next)
+//		}
+//	}
 func TokenFromQuery(r *http.Request) string {
 	// Get token from query param named "jwt".
 	return r.URL.Query().Get("jwt")
 }
 
-// TokenFromCookie tries to retreive the token string from a cookie named
+// TokenFromCookie tries to retrieve the token string from a cookie named
 // "jwt".
 func TokenFromCookie(r *http.Request) string {
 	cookie, err := r.Cookie("jwt")
@@ -153,7 +160,7 @@ func TokenFromCookie(r *http.Request) string {
 }
 
 // contextKey is a value for use with context.WithValue. It's used as
-// a pointer so it fits in an interface{} without allocation. This technique
+// a pointer so it fits in an any without allocation. This technique
 // for defining context keys was copied from Go 1.7's new use of context in net/http.
 type contextKey struct {
 	name string

@@ -12,7 +12,8 @@ func TestLoadFromYaml(t *testing.T) {
 	ast := assert.New(t)
 	File = "./../../testdata/service_local_file.yaml"
 
-	Load()
+	err := Load()
+	ast.Nil(err)
 
 	ast.Equal(8000, Get().Port)
 	ast.Equal(8443, Get().Sslport)
@@ -53,11 +54,13 @@ func TestCfgSubst(t *testing.T) {
 func TestEnvSubstRightCase(t *testing.T) {
 	ast := assert.New(t)
 
-	os.Setenv("logfile", "file.log")
+	err := os.Setenv("logfile", "file.log")
+	ast.Nil(err)
 
 	File = "./../../testdata/service_local_file.yaml"
 
-	Load()
+	err = Load()
+	ast.Nil(err)
 
 	ast.Equal("file.log", Get().Logging.Filename)
 }
@@ -65,11 +68,13 @@ func TestEnvSubstRightCase(t *testing.T) {
 func TestEnvSubstWrongCase(t *testing.T) {
 	ast := assert.New(t)
 
-	os.Setenv("LogFile", "file.log")
+	err := os.Setenv("LogFile", "file.log")
+	ast.Nil(err)
 
 	File = "./../../testdata/service_local_file.yaml"
 
-	Load()
+	err = Load()
+	ast.Nil(err)
 
 	ast.Equal("file.log", Get().Logging.Filename)
 }
@@ -79,8 +84,8 @@ func TestSecretMapping(t *testing.T) {
 
 	File = "./../../testdata/service_local_file.yaml"
 
-	Load()
+	err := Load()
+	ast.Nil(err)
 
 	ast.Equal(120, Get().HealthCheck.Period)
-
 }

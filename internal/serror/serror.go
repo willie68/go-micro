@@ -119,7 +119,20 @@ func InternalServerError(err ...error) *Serr {
 	}, first)
 }
 
-// Checks if the error is an service error of the given code
+// Conflict not found error
+func Conflict(err ...error) *Serr {
+	var first error
+	if len(err) > 0 {
+		first = err[0]
+	}
+	return build(&Serr{
+		Msg:  fmt.Sprintf("conflict: %v", err),
+		Key:  "conflict",
+		Code: http.StatusConflict,
+	}, first)
+}
+
+// Is checks if the error is an service error of the given code
 func Is(err error, code int) bool {
 	if e, ok := err.(*Serr); ok {
 		return e.Code == code

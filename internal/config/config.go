@@ -11,6 +11,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Servicename the name of this service
 const Servicename = "go-micro"
 
 // Config our service configuration
@@ -23,22 +24,24 @@ type Config struct {
 	ServiceURL string `yaml:"serviceURL"`
 
 	SecretFile string `yaml:"secretfile"`
-	Apikey     bool   `yaml:"apikey"`
+
+	Apikey bool `yaml:"apikey"`
 
 	Logging LoggingConfig `yaml:"logging"`
 
 	HealthCheck HealthCheck `yaml:"healthcheck"`
 
-	Auth Authentcation `yaml:"auth"`
+	Auth Authentication `yaml:"auth"`
 
 	OpenTracing OpenTracing `yaml:"opentracing"`
 
 	Metrics Metrics `yaml:"metrics"`
 }
 
-type Authentcation struct {
-	Type       string                 `yaml:"type"`
-	Properties map[string]interface{} `yaml:"properties"`
+// Authentication configuration
+type Authentication struct {
+	Type       string         `yaml:"type"`
+	Properties map[string]any `yaml:"properties"`
 }
 
 // HealthCheck configuration for the health check system
@@ -46,7 +49,7 @@ type HealthCheck struct {
 	Period int `yaml:"period"`
 }
 
-// Logging configuration for the gelf logging
+// LoggingConfig configuration for the gelf logging
 type LoggingConfig struct {
 	Level    string `yaml:"level"`
 	Filename string `yaml:"filename"`
@@ -55,15 +58,18 @@ type LoggingConfig struct {
 	Gelfport int    `yaml:"gelf-port"`
 }
 
+// OpenTracing configuration
 type OpenTracing struct {
 	Host     string `yaml:"host"`
 	Endpoint string `yaml:"endpoint"`
 }
 
+// Metrics configuration
 type Metrics struct {
 	Enable bool `yaml:"enable"`
 }
 
+// DefaultConfig default configuration
 var DefaultConfig = Config{
 	Port:       8000,
 	Sslport:    8443,
@@ -93,6 +99,7 @@ func GetDefaultConfigFolder() (string, error) {
 	return configFolder, nil
 }
 
+// ReplaceConfigdir replace the configdir macro
 func ReplaceConfigdir(s string) (string, error) {
 	if strings.Contains(s, "${configdir}") {
 		configFolder, err := GetDefaultConfigFolder()

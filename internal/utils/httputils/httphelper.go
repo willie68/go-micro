@@ -16,14 +16,23 @@ import (
 // val validator
 var val *validator.Validate
 
+// Strict throwing an error if the tenant is not present in the token
+var Strict bool
 // TenantID gets the tenant-id of the given request
 func TenantID(r *http.Request) (string, error) {
+	tntID := chi.URLParam(r, api.URLParamTenantID)
+	if tntID != "" {
+		return strings.ToLower(tntID), nil
+	}
 	var id string
 	_, claims, _ := auth.FromContext(r.Context())
 	if claims != nil {
 		tenant, ok := claims["Tenant"].(string)
 		if ok {
-			return tenant, nil
+			return strings.ToLower(tenant), nil
+		}
+		if Strict {
+			return "", serror.BadRequest(nil, "missing-tenant", "no tenant claim in jwt token")
 		}
 	}
 	id = r.Header.Get(api.TenantHeaderKey)
@@ -31,17 +40,17 @@ func TenantID(r *http.Request) (string, error) {
 		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
 		return "", serror.BadRequest(nil, "missing-tenant", msg)
 	}
-	return id, nil
+	return strings.ToLower(id), nil
 }
 
 // Decode decodes and validates an object
-func Decode(r *http.Request, v interface{}) error {
+func Decode(r *http.Request, v any) error {
 	err := render.DefaultDecoder(r, v)
 	if err != nil {
-		serror.BadRequest(err, "decode-body", "could not decode body")
+		return serror.BadRequest(err, "decode-body", "could not decode body")
 	}
 	if err := val.Struct(v); err != nil {
-		serror.BadRequest(err, "validate-body", "body invalid")
+		return serror.BadRequest(err, "validate-body", "body invalid")
 	}
 	return nil
 }
@@ -57,7 +66,7 @@ func Param(r *http.Request, name string) (string, error) {
 }
 
 // Created object created
-func Created(w http.ResponseWriter, r *http.Request, id string, v interface{}) {
+func Created(w http.ResponseWriter, r *http.Request, id string, v any) {
 	// TODO add relative path to location
 	w.Header().Add("Location", fmt.Sprintf("%s", id))
 	render.Status(r, http.StatusCreated)

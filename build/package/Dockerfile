@@ -1,6 +1,6 @@
 ##### BUILDER #####
 
-FROM golang:1.17.6-alpine3.15 as builder
+FROM golang:1.18-alpine as builder
 
 ## Task: Install build deps
 
@@ -61,7 +61,7 @@ RUN set -eu +x; \
 
 ##### TARGET #####
 
-FROM alpine:3.15
+FROM alpine:3.17
 
 ARG RELEASE
 ENV IMG_VERSION="${RELEASE}"

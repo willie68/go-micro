@@ -16,7 +16,7 @@ var myhealthy bool
 /*
 This is the healtchcheck you will have to provide.
 */
-func check(tracer opentracing.Tracer) (bool, string) {
+func check(_ opentracing.Tracer) (bool, string) {
 	// TODO implement here your healthcheck.
 	myhealthy = !myhealthy
 	message := ""
@@ -29,7 +29,7 @@ func check(tracer opentracing.Tracer) (bool, string) {
 	return myhealthy, message
 }
 
-//##### template internal functions for processing the healthchecks #####
+// ##### template internal functions for processing the healthchecks #####
 var message string
 var readyz bool
 var lastChecked time.Time

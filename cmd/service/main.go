@@ -1,3 +1,4 @@
+// Package main this is the entry point into the service
 package main
 
 import (
@@ -38,11 +39,6 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-/*
-apVersion implementing api version for this service
-*/
-const servicename = "gomicro"
-
 var port int
 var sslport int
 var serviceURL string
@@ -50,7 +46,7 @@ var apikey string
 var ssl bool
 var configFile string
 var serviceConfig config.Config
-var Tracer opentracing.Tracer
+var tracer opentracing.Tracer
 var sslsrv *http.Server
 var srv *http.Server
 
@@ -65,82 +61,20 @@ func init() {
 }
 
 func apiRoutes() (*chi.Mux, error) {
+	log.Logger.Infof("baseurl : %s", apiv1.BaseURL)
 	router := chi.NewRouter()
-	router.Use(
-		render.SetContentType(render.ContentTypeJSON),
-		middleware.Logger,
-		//middleware.DefaultCompress,
-		middleware.Recoverer,
-		cors.Handler(cors.Options{
-			// AllowedOrigins: []string{"https://foo.com"}, // Use this to allow specific origin hosts
-			AllowedOrigins: []string{"*"},
-			// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
-			AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-			AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-mcs-username", "X-mcs-password", "X-mcs-profile"},
-			ExposedHeaders:   []string{"Link"},
-			AllowCredentials: true,
-			MaxAge:           300, // Maximum value not ignored by any of major browsers
-		}),
-		httptracer.Tracer(Tracer, httptracer.Config{
-			ServiceName:    servicename,
-			ServiceVersion: "V" + apiv1.ApiVersion,
-			SampleRate:     1,
-			SkipFunc: func(r *http.Request) bool {
-				return false
-				//return r.URL.Path == "/livez"
-			},
-			Tags: map[string]interface{}{
-				"_dd.measured": 1, // datadog, turn on metrics for http.request stats
-				// "_dd1.sr.eausr": 1, // datadog, event sample rate
-			},
-		}),
-	)
-	if serviceConfig.Metrics.Enable {
-		router.Use(
-			api.MetricsHandler(api.MetricsConfig{
-				SkipFunc: func(r *http.Request) bool {
-					return false
-				},
-			}),
-		)
-	}
+	setDefaultHandler(router)
+
 	if serviceConfig.Apikey {
-		router.Use(
-			api.SysAPIHandler(api.SysAPIConfig{
-				Apikey: apikey,
-				SkipFunc: func(r *http.Request) bool {
-					path := strings.TrimSuffix(r.URL.Path, "/")
-					if strings.HasSuffix(path, "/livez") {
-						return true
-					}
-					if strings.HasSuffix(path, "/readyz") {
-						return true
-					}
-					if strings.HasSuffix(path, "/metrics") {
-						return true
-					}
-					if strings.HasPrefix(path, "/client") {
-						return true
-					}
-					return false
-				},
-			}),
-		)
+		setApikeyHandler(router)
 	}
+
 	// jwt is activated, register the Authenticator and Validator
 	if strings.EqualFold(serviceConfig.Auth.Type, "jwt") {
-		jwtConfig, err := auth.ParseJWTConfig(serviceConfig.Auth)
+		err := setJWTHandler(router)
 		if err != nil {
-			return router, err
+			return nil, err
 		}
-		log.Logger.Infof("jwt config: %v", jwtConfig)
-		jwtAuth := auth.JWTAuth{
-			Config: jwtConfig,
-		}
-		router.Use(
-			auth.Verifier(&jwtAuth),
-			auth.Authenticator,
-		)
 	}
 
 	// building the routes
@@ -156,6 +90,87 @@ func apiRoutes() (*chi.Mux, error) {
 	return router, nil
 }
 
+func setJWTHandler(router *chi.Mux) error {
+	jwtConfig, err := auth.ParseJWTConfig(serviceConfig.Auth)
+	if err != nil {
+		return err
+	}
+	log.Logger.Infof("jwt config: %v", jwtConfig)
+	jwtAuth := auth.JWTAuth{
+		Config: jwtConfig,
+	}
+	router.Use(
+		auth.Verifier(&jwtAuth),
+		auth.Authenticator,
+	)
+	return nil
+}
+
+func setApikeyHandler(router *chi.Mux) {
+	router.Use(
+		api.SysAPIHandler(api.SysAPIConfig{
+			Apikey: apikey,
+			SkipFunc: func(r *http.Request) bool {
+				path := strings.TrimSuffix(r.URL.Path, "/")
+				if strings.HasSuffix(path, "/livez") {
+					return true
+				}
+				if strings.HasSuffix(path, "/readyz") {
+					return true
+				}
+				if strings.HasSuffix(path, "/metrics") {
+					return true
+				}
+				if strings.HasPrefix(path, "/client") {
+					return true
+				}
+				return false
+			},
+		}),
+	)
+}
+
+func setDefaultHandler(router *chi.Mux) {
+	router.Use(
+		render.SetContentType(render.ContentTypeJSON),
+		middleware.Logger,
+		//middleware.DefaultCompress,
+		middleware.Recoverer,
+		cors.Handler(cors.Options{
+			// AllowedOrigins: []string{"https://foo.com"}, // Use this to allow specific origin hosts
+			AllowedOrigins: []string{"*"},
+			// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+			AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-mcs-username", "X-mcs-password", "X-mcs-profile"},
+			ExposedHeaders:   []string{"Link"},
+			AllowCredentials: true,
+			MaxAge:           300, // Maximum value not ignored by any of major browsers
+		}),
+		httptracer.Tracer(tracer, httptracer.Config{
+			ServiceName:    config.Servicename,
+			ServiceVersion: "V" + apiv1.APIVersion,
+			SampleRate:     1,
+			SkipFunc: func(r *http.Request) bool {
+				return false
+				//return r.URL.Path == "/livez"
+			},
+			Tags: map[string]any{
+				"_dd.measured": 1, // datadog, turn on metrics for http.request stats
+				// "_dd1.sr.eausr": 1, // datadog, event sample rate
+			},
+		}),
+	)
+	if serviceConfig.Metrics.Enable {
+		router.Use(
+			api.MetricsHandler(api.MetricsConfig{
+				SkipFunc: func(r *http.Request) bool {
+					return false
+				},
+			}),
+		)
+	}
+}
+
 func healthRoutes() *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(
@@ -163,14 +178,14 @@ func healthRoutes() *chi.Mux {
 		middleware.Logger,
 		//middleware.DefaultCompress,
 		middleware.Recoverer,
-		httptracer.Tracer(Tracer, httptracer.Config{
-			ServiceName:    servicename,
-			ServiceVersion: "V" + apiv1.ApiVersion,
+		httptracer.Tracer(tracer, httptracer.Config{
+			ServiceName:    config.Servicename,
+			ServiceVersion: "V" + apiv1.APIVersion,
 			SampleRate:     1,
 			SkipFunc: func(r *http.Request) bool {
 				return false
 			},
-			Tags: map[string]interface{}{
+			Tags: map[string]any{
 				"_dd.measured": 1, // datadog, turn on metrics for http.request stats
 				// "_dd1.sr.eausr": 1, // datadog, event sample rate
 			},
@@ -213,7 +228,7 @@ func main() {
 
 	log.Logger.Infof("starting server, config folder: %s", configFolder)
 	defer log.Logger.Close()
-	serror.Service = servicename
+	serror.Service = config.Servicename
 	if configFile == "" {
 		configFolder, err := config.GetDefaultConfigFolder()
 		if err != nil {
@@ -242,13 +257,13 @@ func main() {
 	log.Logger.Info("service is starting")
 
 	var closer io.Closer
-	Tracer, closer = initJaeger(servicename, serviceConfig.OpenTracing)
-	opentracing.SetGlobalTracer(Tracer)
+	tracer, closer = initJaeger(config.Servicename, serviceConfig.OpenTracing)
+	opentracing.SetGlobalTracer(tracer)
 	defer closer.Close()
 
 	healthCheckConfig := health.CheckConfig(serviceConfig.HealthCheck)
 
-	health.InitHealthSystem(healthCheckConfig, Tracer)
+	health.InitHealthSystem(healthCheckConfig, tracer)
 
 	if serviceConfig.Sslport > 0 {
 		ssl = true
@@ -263,7 +278,7 @@ func main() {
 
 	log.Logger.Infof("ssl: %t", ssl)
 	log.Logger.Infof("serviceURL: %s", serviceConfig.ServiceURL)
-	log.Logger.Infof("%s api routes", servicename)
+	log.Logger.Infof("%s api routes", config.Servicename)
 	router, err := apiRoutes()
 	if err != nil {
 		log.Logger.Alertf("could not create api routes. %s", err.Error())
@@ -347,9 +362,15 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 
-	srv.Shutdown(ctx)
+	err = srv.Shutdown(ctx)
+	if err != nil {
+		log.Logger.Errorf("%v", err)
+	}
 	if ssl {
-		sslsrv.Shutdown(ctx)
+		err = sslsrv.Shutdown(ctx)
+		if err != nil {
+			log.Logger.Errorf("%v", err)
+		}
 	}
 
 	log.Logger.Info("finished")
@@ -357,6 +378,7 @@ func main() {
 	os.Exit(0)
 }
 
+// initLogging initialize the logging, especially the gelf logger
 func initLogging() {
 	log.Logger.SetLevel(serviceConfig.Logging.Level)
 	var err error
@@ -369,6 +391,7 @@ func initLogging() {
 	log.Logger.Init()
 }
 
+// initConfig override the configuration from the service.yaml with the given commandline parameters
 func initConfig() {
 	if port > 0 {
 		serviceConfig.Port = port
@@ -381,8 +404,8 @@ func initConfig() {
 	}
 }
 
-func initJaeger(servicename string, config config.OpenTracing) (opentracing.Tracer, io.Closer) {
-
+// initJaeger initialize the jaeger (opentracing) component
+func initJaeger(servicename string, cnfg config.OpenTracing) (opentracing.Tracer, io.Closer) {
 	cfg := jaegercfg.Configuration{
 		ServiceName: servicename,
 		Sampler: &jaegercfg.SamplerConfig{
@@ -391,11 +414,11 @@ func initJaeger(servicename string, config config.OpenTracing) (opentracing.Trac
 		},
 		Reporter: &jaegercfg.ReporterConfig{
 			LogSpans:           true,
-			LocalAgentHostPort: config.Host,
-			CollectorEndpoint:  config.Endpoint,
+			LocalAgentHostPort: cnfg.Host,
+			CollectorEndpoint:  cnfg.Endpoint,
 		},
 	}
-	if (config.Endpoint == "") && (config.Host == "") {
+	if (cnfg.Endpoint == "") && (cnfg.Host == "") {
 		cfg.Disabled = true
 	}
 	tracer, closer, err := cfg.NewTracer(jaegercfg.Logger(jaeger.StdLogger))
@@ -405,8 +428,9 @@ func initJaeger(servicename string, config config.OpenTracing) (opentracing.Trac
 	return tracer, closer
 }
 
+// getApikey generate an apikey based on the service name
 func getApikey() string {
-	value := fmt.Sprintf("%s_%s", servicename, "default")
+	value := fmt.Sprintf("%s_%s", config.Servicename, "default")
 	apikey := fmt.Sprintf("%x", md5.Sum([]byte(value)))
 	return strings.ToLower(apikey)
 }

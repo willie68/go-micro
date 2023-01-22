@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -37,11 +35,4 @@ func TestToken(t *testing.T) {
 	sig := jwt.Signature
 	ast.NotNil(sig)
 	ast.Equal(testTokenSignature, sig)
-}
-
-func TestRegex(t *testing.T) {
-	resourceName := "/a!b\"c§d$e%f&g/"
-	m := regexp.MustCompile("[^a-zA-Z_]")
-	resourceName = m.ReplaceAllString(resourceName, "_")
-	fmt.Println(resourceName)
 }

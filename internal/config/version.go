@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// Version version struct
 type Version struct {
 	Major   int
 	Minor   int
@@ -21,6 +22,7 @@ func (v *Version) String() string {
 	return versionStr
 }
 
+// ParseVersion parse a string into a version object
 func ParseVersion(versionStr string) (Version, error) {
 	version := Version{
 		Major:   0,
@@ -61,6 +63,7 @@ func ParseVersion(versionStr string) (Version, error) {
 	return version, nil
 }
 
+// IsGreaterThan validate if src version is greater than o
 func (v *Version) IsGreaterThan(o Version) bool {
 	if v.Major > o.Major {
 		return true
@@ -88,6 +91,7 @@ func (v *Version) IsGreaterThan(o Version) bool {
 	return false
 }
 
+// IsSmallerThan validate if src version is smaller than o
 func (v *Version) IsSmallerThan(o Version) bool {
 	if v.Major < o.Major {
 		return true
@@ -115,6 +119,7 @@ func (v *Version) IsSmallerThan(o Version) bool {
 	return false
 }
 
+// IsEqual validate if src version is equal than o
 func (v *Version) IsEqual(o Version) bool {
 	if v.Major != o.Major {
 		return false

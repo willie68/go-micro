@@ -7,7 +7,7 @@ import (
 func TestContains(t *testing.T) {
 	mySlice := []string{"Willie", "Arthur", "Till"}
 	value := Contains(mySlice, "Willie")
-	if value != true {
+	if !value {
 		t.Errorf("Willie was not in the slice")
 	}
 }

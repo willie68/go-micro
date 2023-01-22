@@ -4,9 +4,13 @@ import (
 	"fmt"
 )
 
-func GetConfigValueAsString(properties map[string]interface{}, key string) (string, error) {
+// GetConfigValueAsString getting a value as a string, if possible
+func GetConfigValueAsString(properties map[string]any, key string) (string, error) {
 	if _, ok := properties[key]; !ok {
 		return "", fmt.Errorf("missing config value for %s", key)
+	}
+	if properties[key] == nil {
+		return "", nil
 	}
 	value, ok := properties[key].(string)
 	if !ok {
@@ -15,9 +19,13 @@ func GetConfigValueAsString(properties map[string]interface{}, key string) (stri
 	return value, nil
 }
 
-func GetConfigValueAsBool(properties map[string]interface{}, key string) (bool, error) {
+// GetConfigValueAsBool getting a value as a bool, if possible
+func GetConfigValueAsBool(properties map[string]any, key string) (bool, error) {
 	if _, ok := properties[key]; !ok {
 		return false, fmt.Errorf("missing config value for %s", key)
+	}
+	if properties[key] == nil {
+		return false, nil
 	}
 	value, ok := properties[key].(bool)
 	if !ok {
@@ -26,9 +34,13 @@ func GetConfigValueAsBool(properties map[string]interface{}, key string) (bool, 
 	return value, nil
 }
 
-func GetConfigValueAsInt(properties map[string]interface{}, key string) (int64, error) {
+// GetConfigValueAsInt getting a value as a int64, if possible
+func GetConfigValueAsInt(properties map[string]any, key string) (int64, error) {
 	if _, ok := properties[key]; !ok {
 		return 0, fmt.Errorf("missing config value for %s", key)
+	}
+	if properties[key] == nil {
+		return 0, nil
 	}
 	var value int64
 	switch v := properties[key].(type) {

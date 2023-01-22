@@ -10,37 +10,53 @@ import (
 	"github.com/willie68/go-micro/internal/config"
 )
 
+// JWTAuthConfig authentication/Authorisation configuration for JWT authentification
 type JWTAuthConfig struct {
-	Validate  bool
-	TenantKey string
+	Active   bool
+	Validate bool
 }
 
+// JWT struct for the decoded jwt token
 type JWT struct {
 	Token     string
-	Header    map[string]interface{}
-	Payload   map[string]interface{}
+	Header    map[string]any
+	Payload   map[string]any
 	Signature string
 	IsValid   bool
 }
 
+// JWTAuth the jwt authentication struct
 type JWTAuth struct {
 	Config JWTAuthConfig
 }
 
-func ParseJWTConfig(cfg config.Authentcation) (JWTAuthConfig, error) {
-	jwtcfg := JWTAuthConfig{}
+// JWTConfig for the service
+var JWTConfig = JWTAuthConfig{
+	Active: false,
+}
+
+// InitJWT initialise the JWT for this service
+func InitJWT(cnfg JWTAuthConfig) JWTAuth {
+	JWTConfig = cnfg
+	return JWTAuth{
+		Config: cnfg,
+	}
+}
+
+// ParseJWTConfig building up the dynamical configuration for this
+func ParseJWTConfig(cfg config.Authentication) (JWTAuthConfig, error) {
+	jwtcfg := JWTAuthConfig{
+		Active: true,
+	}
 	var err error
 	jwtcfg.Validate, err = config.GetConfigValueAsBool(cfg.Properties, "validate")
 	if err != nil {
 		return jwtcfg, err
 	}
-	//	jwtcfg.TenantKey, err = config.GetConfigValueAsString(cfg.Properties, "tenantKey")
-	//	if err != nil {
-	//		return jwtcfg, err
-	//	}
 	return jwtcfg, nil
 }
 
+// DecodeJWT simple decode the jwt token string
 func DecodeJWT(token string) (JWT, error) {
 	jwt := JWT{
 		Token:   token,
@@ -81,8 +97,8 @@ func DecodeJWT(token string) (JWT, error) {
 	return jwt, nil
 }
 
-func jwtDecodePart(payload string) (map[string]interface{}, error) {
-	var result map[string]interface{}
+func jwtDecodePart(payload string) (map[string]any, error) {
+	var result map[string]any
 	payloadData, err := base64.URLEncoding.WithPadding(base64.NoPadding).DecodeString(payload)
 	if err != nil {
 		err = fmt.Errorf("token payload can't be decoded: %v", err)
@@ -96,7 +112,8 @@ func jwtDecodePart(payload string) (map[string]interface{}, error) {
 	return result, nil
 }
 
-func (j *JWT) Validate(cfg JWTAuthConfig) error {
+// Validate validation of the token is not implemented
+func (j *JWT) Validate(_ JWTAuthConfig) error {
 	//TODO here should be the implementation of the validation of the token
 	return nil
 }
