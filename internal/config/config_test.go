@@ -82,7 +82,7 @@ func TestEnvSubstWrongCase(t *testing.T) {
 func TestSecretMapping(t *testing.T) {
 	ast := assert.New(t)
 
-	File = "./../../testdata/service_local_file.yaml"
+	File = "./../../testdata/service_local_file_w_secret.yaml"
 
 	err := Load()
 	ast.Nil(err)
