@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -41,7 +43,7 @@ func TestRegex(t *testing.T) {
 	ast := assert.New(t)
 	resourceName := "/a!b\"c§d$e%f&g/"
 	m := regexp.MustCompile("[^a-zA-Z_]")
-	ast.Notnil(m)
+	ast.NotNil(m)
 	resourceName = m.ReplaceAllString(resourceName, "_")
 	fmt.Println(resourceName)
 }

@@ -35,7 +35,6 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/go-chi/httptracer"
 	"github.com/go-chi/render"
-	"github.com/pkg/errors"
 	"github.com/willie68/go-micro/internal/crypt"
 	log "github.com/willie68/go-micro/internal/logging"
 
@@ -121,7 +120,7 @@ func setApikeyHandler(router *chi.Mux) {
 				if strings.HasSuffix(path, "/readyz") {
 					return true
 				}
-				if strings.HasSuffix(path, "/metrics") {
+				if strings.HasSuffix(path, api.MetricsEndpoint) {
 					return true
 				}
 				if strings.HasPrefix(path, "/client") {
@@ -135,7 +134,6 @@ func setApikeyHandler(router *chi.Mux) {
 
 func setDefaultHandler(router *chi.Mux) {
 	router.Use(
-				if strings.HasSuffix(path, api.MetricsEndpoint) {
 		render.SetContentType(render.ContentTypeJSON),
 		middleware.Logger,
 		//middleware.DefaultCompress,
