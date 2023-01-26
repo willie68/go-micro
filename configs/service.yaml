@@ -1,21 +1,37 @@
 # port of the http server
 port: 8080 
-# port of the https server
+# port of the https server for payload only
 sslport: 8443
 # this is the servicURL from outside
 serviceURL: https://127.0.0.1:8443
-#sercret file for storing usernames and passwords
-secretfile: /config/secret.yaml
-
-logging:
-  level: debug
-  filename: ""
-  gelf-url: 127.0.0.1
-  gelf-port: 12201
-
+# secret file contains secrets like credentials, access key ... it has the same structure as this config and will be merged on start
+secretfile: ""
+# true to activate the usage of a apikey (normaly as http header)
+apikey: false
+#configure the healthcheck system
 healthcheck:
-    period: 30
-
+  # period in seconds to start the healtcheck
+  period: 30
 # enable/disable metrics 
 metrics:
   enable: false
+# configure the logging system
+logging:
+  level: debug
+  filename: ""
+  gelf-url:
+  gelf-port:
+# managing authentication and authorisation
+auth:
+  type: jwt
+  properties: 
+    validate: true
+    strict: true
+    tenantClaim: Tenant
+    roleClaim: Roles
+    rolemapping: 
+        object-reader:
+        object-creator:
+        object-admin:
+        tenant-admin:
+        admin:

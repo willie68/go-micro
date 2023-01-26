@@ -13,9 +13,7 @@ import (
 
 var myhealthy bool
 
-/*
-This is the healtchcheck you will have to provide.
-*/
+// check This is the healtchcheck you will have to provide
 func check(_ opentracing.Tracer) (bool, string) {
 	// TODO implement here your healthcheck.
 	myhealthy = !myhealthy
@@ -46,7 +44,7 @@ type Msg struct {
 	LastCheck string `json:"lastCheck,omitempty"`
 }
 
-// InitHealthSystem initialise the complete health system
+// InitHealthSystem initialize the complete health system
 func InitHealthSystem(config CheckConfig, tracer opentracing.Tracer) {
 	period = config.Period
 	log.Logger.Infof("healthcheck starting with period: %d seconds", period)
@@ -61,9 +59,7 @@ func InitHealthSystem(config CheckConfig, tracer opentracing.Tracer) {
 	}()
 }
 
-/*
-internal function to process the health check
-*/
+// doCheck internal function to process the health check
 func doCheck(tracer opentracing.Tracer) {
 	var msg string
 	readyz, msg = check(tracer)
@@ -75,9 +71,7 @@ func doCheck(tracer opentracing.Tracer) {
 	lastChecked = time.Now()
 }
 
-/*
-Routes getting all routes for the health endpoint
-*/
+// Routes getting all routes for the health endpoint
 func Routes() *chi.Mux {
 	router := chi.NewRouter()
 	router.Get("/livez", GetLivenessEndpoint)
@@ -87,9 +81,7 @@ func Routes() *chi.Mux {
 	return router
 }
 
-/*
-GetLivenessEndpoint liveness probe
-*/
+// GetLivenessEndpoint liveness probe
 func GetLivenessEndpoint(response http.ResponseWriter, req *http.Request) {
 	render.Status(req, http.StatusOK)
 	render.JSON(response, req, Msg{
@@ -97,17 +89,13 @@ func GetLivenessEndpoint(response http.ResponseWriter, req *http.Request) {
 	})
 }
 
-/*
-HeadLivenessEndpoint liveness probe
-*/
+// HeadLivenessEndpoint liveness probe
 func HeadLivenessEndpoint(response http.ResponseWriter, req *http.Request) {
 	render.Status(req, http.StatusOK)
 	render.NoContent(response, req)
 }
 
-/*
-GetReadinessEndpoint is this service ready for taking requests, e.g. formaly known as health checks
-*/
+// GetReadinessEndpoint is this service ready for taking requests, e.g. formerly known as health checksfunc GetReadinessEndpoint(response http.ResponseWriter, req *http.Request) {
 func GetReadinessEndpoint(response http.ResponseWriter, req *http.Request) {
 	checkHealthCheckTimer()
 	if readyz {
@@ -125,9 +113,7 @@ func GetReadinessEndpoint(response http.ResponseWriter, req *http.Request) {
 	}
 }
 
-/*
-HeadReadinessEndpoint is this service ready for taking requests, e.g. formaly known as health checks
-*/
+// HeadReadinessEndpoint is this service ready for taking requests, e.g. formaly known as health checks
 func HeadReadinessEndpoint(response http.ResponseWriter, req *http.Request) {
 	checkHealthCheckTimer()
 	if readyz {
@@ -151,9 +137,7 @@ func checkHealthCheckTimer() {
 	}
 }
 
-/*
-sendMessage sending a span message to tracer
-*/
+// sendMessage sending a span message to tracer
 func sendMessage(tracer opentracing.Tracer, message string) {
 	span := tracer.StartSpan("say-hello")
 	println(message)

@@ -11,7 +11,7 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// constants for logging levels
+// defining string constants for logging levels
 const (
 	Debug string = "DEBUG"
 	Info         = "INFO"
@@ -20,11 +20,11 @@ const (
 	Fatal        = "FATAL"
 )
 
-// Levels defining a list of levels
+// Levels array with all logging levels
 var Levels = []string{Debug, Info, Alert, Error, Fatal}
 
 // ServiceLogger main type for logging
-type serviceLogger struct {
+type ServiceLogger struct {
 	Level      string
 	LevelInt   int
 	GelfURL    string
@@ -37,10 +37,16 @@ type serviceLogger struct {
 }
 
 // Logger to use for all logging
-var Logger serviceLogger
+var Logger ServiceLogger
 
-// Init initialise logging
-func (s *serviceLogger) Init() {
+// New creating a new logger
+func New() *ServiceLogger {
+	l := &ServiceLogger{}
+	return l
+}
+
+// Init initialize logging, connect gelf, if activated, init lumberjack
+func (s *ServiceLogger) Init() {
 	s.gelfActive = false
 	if s.GelfURL != "" {
 		s.c, _ = golf.NewClient()
@@ -70,8 +76,8 @@ func (s *serviceLogger) Init() {
 	log.SetOutput(w)
 }
 
-// SetLevel setting the level of this logger
-func (s *serviceLogger) SetLevel(level string) {
+// SetLevel setting the actual logging level for this logger
+func (s *ServiceLogger) SetLevel(level string) {
 	switch strings.ToUpper(level) {
 	case Debug:
 		s.LevelInt = 0
@@ -87,7 +93,7 @@ func (s *serviceLogger) SetLevel(level string) {
 }
 
 // Debug log this message at debug level
-func (s *serviceLogger) Debug(msg string) {
+func (s *ServiceLogger) Debug(msg string) {
 	if s.LevelInt <= 0 {
 		if s.gelfActive {
 			golf.Dbg(msg)
@@ -97,7 +103,7 @@ func (s *serviceLogger) Debug(msg string) {
 }
 
 // Debugf log this message at debug level with formatting
-func (s *serviceLogger) Debugf(format string, va ...any) {
+func (s *ServiceLogger) Debugf(format string, va ...any) {
 	if s.LevelInt <= 0 {
 		if s.gelfActive {
 			golf.Dbgf(format, va...)
@@ -107,7 +113,7 @@ func (s *serviceLogger) Debugf(format string, va ...any) {
 }
 
 // Info log this message at info level
-func (s *serviceLogger) Info(msg string) {
+func (s *ServiceLogger) Info(msg string) {
 	if s.LevelInt <= 1 {
 		if s.gelfActive {
 			golf.Info(msg)
@@ -117,7 +123,7 @@ func (s *serviceLogger) Info(msg string) {
 }
 
 // Infof log this message at info level with formatting
-func (s *serviceLogger) Infof(format string, va ...any) {
+func (s *ServiceLogger) Infof(format string, va ...any) {
 	if s.LevelInt <= 1 {
 		if s.gelfActive {
 			golf.Infof(format, va...)
@@ -127,7 +133,7 @@ func (s *serviceLogger) Infof(format string, va ...any) {
 }
 
 // Alert log this message at alert level
-func (s *serviceLogger) Alert(msg string) {
+func (s *ServiceLogger) Alert(msg string) {
 	if s.LevelInt <= 2 {
 		if s.gelfActive {
 			golf.Alert(msg)
@@ -137,7 +143,7 @@ func (s *serviceLogger) Alert(msg string) {
 }
 
 // Alertf log this message at alert level with formatting.
-func (s *serviceLogger) Alertf(format string, va ...any) {
+func (s *ServiceLogger) Alertf(format string, va ...any) {
 	if s.LevelInt <= 2 {
 		if s.gelfActive {
 			golf.Alertf(format, va...)
@@ -147,7 +153,7 @@ func (s *serviceLogger) Alertf(format string, va ...any) {
 }
 
 // Fatal logs a message at level Fatal on the standard logger.
-func (s *serviceLogger) Fatal(msg string) {
+func (s *ServiceLogger) Fatal(msg string) {
 	if s.LevelInt <= 4 {
 		if s.gelfActive {
 			golf.Crit(msg)
@@ -157,7 +163,7 @@ func (s *serviceLogger) Fatal(msg string) {
 }
 
 // Fatalf logs a message at level Fatal on the standard logger with formatting.
-func (s *serviceLogger) Fatalf(format string, va ...any) {
+func (s *ServiceLogger) Fatalf(format string, va ...any) {
 	if s.LevelInt <= 4 {
 		if s.gelfActive {
 			golf.Critf(format, va...)
@@ -167,7 +173,7 @@ func (s *serviceLogger) Fatalf(format string, va ...any) {
 }
 
 // Error logs a message at level Error on the standard logger.
-func (s *serviceLogger) Error(msg string) {
+func (s *ServiceLogger) Error(msg string) {
 	if s.LevelInt <= 3 {
 		if s.gelfActive {
 			golf.Err(msg)
@@ -177,7 +183,7 @@ func (s *serviceLogger) Error(msg string) {
 }
 
 // Errorf logs a message at level Error on the standard logger with formatting.
-func (s *serviceLogger) Errorf(format string, va ...any) {
+func (s *ServiceLogger) Errorf(format string, va ...any) {
 	if s.LevelInt <= 3 {
 		if s.gelfActive {
 			golf.Errf(format, va...)
@@ -187,7 +193,7 @@ func (s *serviceLogger) Errorf(format string, va ...any) {
 }
 
 // Close this logging client
-func (s *serviceLogger) Close() {
+func (s *ServiceLogger) Close() {
 	if s.gelfActive {
 		s.c.Close()
 	}

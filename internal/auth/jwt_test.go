@@ -36,3 +36,12 @@ func TestToken(t *testing.T) {
 	ast.NotNil(sig)
 	ast.Equal(testTokenSignature, sig)
 }
+
+func TestRegex(t *testing.T) {
+	ast := assert.New(t)
+	resourceName := "/a!b\"c§d$e%f&g/"
+	m := regexp.MustCompile("[^a-zA-Z_]")
+	ast.Notnil(m)
+	resourceName = m.ReplaceAllString(resourceName, "_")
+	fmt.Println(resourceName)
+}

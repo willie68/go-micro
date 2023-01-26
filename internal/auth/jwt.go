@@ -12,8 +12,10 @@ import (
 
 // JWTAuthConfig authentication/Authorisation configuration for JWT authentification
 type JWTAuthConfig struct {
-	Active   bool
-	Validate bool
+	Active      bool
+	Validate  bool
+	TenantClaim string
+	Strict      bool
 }
 
 // JWT struct for the decoded jwt token

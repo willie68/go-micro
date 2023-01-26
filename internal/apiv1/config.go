@@ -40,10 +40,10 @@ func ConfigRoutes() (string, *chi.Mux) {
 	router.Get("/", GetConfig)
 	router.Delete("/", DeleteConfig)
 	router.Get("/size", GetConfigSize)
-	return BaseURL + "/config", router
+	return BaseURL + configSubpath, router
 }
 
-// GetConfig getting if a store for a tenant is initialised
+// GetConfig getting if a store for a tenant is initialized
 // because of the automatic store creation, the value is more likely that data is stored for this tenant
 // @Summary Get a store for a tenant
 // @Tags configs

@@ -35,6 +35,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/go-chi/httptracer"
 	"github.com/go-chi/render"
+	"github.com/pkg/errors"
 	"github.com/willie68/go-micro/internal/crypt"
 	log "github.com/willie68/go-micro/internal/logging"
 
@@ -134,6 +135,7 @@ func setApikeyHandler(router *chi.Mux) {
 
 func setDefaultHandler(router *chi.Mux) {
 	router.Use(
+				if strings.HasSuffix(path, api.MetricsEndpoint) {
 		render.SetContentType(render.ContentTypeJSON),
 		middleware.Logger,
 		//middleware.DefaultCompress,
@@ -203,13 +205,12 @@ func healthRoutes() *chi.Mux {
 		)
 	}
 
-	router.Route("/",
-		func(r chi.Router) {
-			r.Mount("/", health.Routes())
-			if serviceConfig.Metrics.Enable {
-				r.Mount("/metrics", promhttp.Handler())
-			}
-		})
+	router.Route("/", func(r chi.Router) {
+		r.Mount("/", health.Routes())
+		if serviceConfig.Metrics.Enable {
+			r.Mount(api.MetricsEndpoint, promhttp.Handler())
+		}
+	})
 	return router
 }
 
@@ -269,11 +270,9 @@ func main() {
 	}
 
 	apikey = getApikey()
-	apiv1.APIKey = apikey
 	if config.Get().Apikey {
 		log.Logger.Infof("apikey: %s", apikey)
 	}
-
 	log.Logger.Infof("ssl: %t", ssl)
 	log.Logger.Infof("serviceURL: %s", serviceConfig.ServiceURL)
 	log.Logger.Infof("%s api routes", config.Servicename)

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/drone/envsubst"
 	"github.com/imdario/mergo"
 	"gopkg.in/yaml.v3"
 )
@@ -140,7 +141,11 @@ func Load() error {
 	if err != nil {
 		return fmt.Errorf("can't load config file: %s", err.Error())
 	}
-	dataStr := os.ExpandEnv(string(data))
+	dataStr, err := envsubst.EvalEnv(string(data))
+	if err != nil {
+		return fmt.Errorf("can't substitute config file: %s", err.Error())
+	}
+
 	err = yaml.Unmarshal([]byte(dataStr), &config)
 	if err != nil {
 		return fmt.Errorf("can't unmarshal config file: %s", err.Error())

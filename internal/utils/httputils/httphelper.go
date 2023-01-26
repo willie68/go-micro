@@ -16,8 +16,12 @@ import (
 // val validator
 var val *validator.Validate
 
+// TenantClaim the claim used in the jwt claims, where the actual tenant is stored
+var TenantClaim string
+
 // Strict throwing an error if the tenant is not present in the token
 var Strict bool
+
 // TenantID gets the tenant-id of the given request
 func TenantID(r *http.Request) (string, error) {
 	tntID := chi.URLParam(r, api.URLParamTenantID)
@@ -27,7 +31,7 @@ func TenantID(r *http.Request) (string, error) {
 	var id string
 	_, claims, _ := auth.FromContext(r.Context())
 	if claims != nil {
-		tenant, ok := claims["Tenant"].(string)
+		tenant, ok := claims[TenantClaim].(string)
 		if ok {
 			return strings.ToLower(tenant), nil
 		}
