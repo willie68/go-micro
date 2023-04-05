@@ -22,6 +22,10 @@ var (
 	})
 )
 
+// ConfigHandler the config handler
+type ConfigHandler struct {
+}
+
 /*
 ConfigDescription describres all metadata of a config
 */
@@ -31,15 +35,18 @@ type ConfigDescription struct {
 	Size     int    `json:"size"`
 }
 
-/*
-ConfigRoutes getting all routes for the config endpoint
-*/
-func ConfigRoutes() (string, *chi.Mux) {
+// NewConfigHandler creates a new REST config handler
+func NewConfigHandler() api.Handler {
+	return &ConfigHandler{}
+}
+
+// Routes getting all routes for the config endpoint
+func (c *ConfigHandler) Routes() (string, *chi.Mux) {
 	router := chi.NewRouter()
-	router.Post("/", PostConfig)
-	router.Get("/", GetConfig)
-	router.Delete("/", DeleteConfig)
-	router.Get("/size", GetConfigSize)
+	router.Post("/", c.PostConfig)
+	router.Get("/", c.GetConfig)
+	router.Delete("/", c.DeleteConfig)
+	router.Get("/size", c.GetConfigSize)
 	return BaseURL + configSubpath, router
 }
 
@@ -55,19 +62,19 @@ func ConfigRoutes() (string, *chi.Mux) {
 // @Failure 400 {object} serror.Serr "client error information as json"
 // @Failure 500 {object} serror.Serr "server error information as json"
 // @Router /config [get]
-func GetConfig(response http.ResponseWriter, request *http.Request) {
+func (c *ConfigHandler) GetConfig(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
 		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
 		httputils.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
 		return
 	}
-	c := ConfigDescription{
+	cd := ConfigDescription{
 		StoreID:  "myNewStore",
 		TenantID: tenant,
 		Size:     1234567,
 	}
-	render.JSON(response, request, c)
+	render.JSON(response, request, cd)
 }
 
 // PostConfig create a new store for a tenant
@@ -83,7 +90,7 @@ func GetConfig(response http.ResponseWriter, request *http.Request) {
 // @Failure 400 {object} serror.Serr "client error information as json"
 // @Failure 500 {object} serror.Serr "server error information as json"
 // @Router /config [post]
-func PostConfig(response http.ResponseWriter, request *http.Request) {
+func (c *ConfigHandler) PostConfig(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
 		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
@@ -106,7 +113,7 @@ func PostConfig(response http.ResponseWriter, request *http.Request) {
 // @Success 200 "ok"
 // @Failure 400 {object} serror.Serr "client error information as json"
 // @Router /config [delete]
-func DeleteConfig(response http.ResponseWriter, request *http.Request) {
+func (c *ConfigHandler) DeleteConfig(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
 		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
@@ -126,7 +133,7 @@ func DeleteConfig(response http.ResponseWriter, request *http.Request) {
 // @Success 200 {string} string "size"
 // @Failure 400 {object} serror.Serr "client error information as json"
 // @Router /config/size [get]
-func GetConfigSize(response http.ResponseWriter, request *http.Request) {
+func (c *ConfigHandler) GetConfigSize(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
 		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
@@ -137,9 +144,7 @@ func GetConfigSize(response http.ResponseWriter, request *http.Request) {
 	render.JSON(response, request, tenant)
 }
 
-/*
-getTenant getting the tenant from the request
-*/
+// getTenant getting the tenant from the request
 func getTenant(req *http.Request) string {
 	return req.Header.Get(api.TenantHeaderKey)
 }
