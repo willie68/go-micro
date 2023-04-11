@@ -2,18 +2,22 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/drone/envsubst"
 	"github.com/imdario/mergo"
+	"github.com/pkg/errors"
+	"github.com/samber/do"
 	"gopkg.in/yaml.v3"
 )
 
 // Servicename the name of this service
 const Servicename = "go-micro"
+
+// DoServiceConfig the name of the injected config
+const DoServiceConfig = "service_config"
 
 // Config our service configuration
 type Config struct {
@@ -100,6 +104,20 @@ func GetDefaultConfigFolder() (string, error) {
 	return configFolder, nil
 }
 
+// GetDefaultConfigfile getting the default config file
+func GetDefaultConfigfile() (string, error) {
+	configFolder, err := GetDefaultConfigFolder()
+	if err != nil {
+		return "", errors.Wrap(err, "can't load config file")
+	}
+	configFolder = filepath.Join(configFolder, "service")
+	err = os.MkdirAll(configFolder, os.ModePerm)
+	if err != nil {
+		return "", errors.Wrap(err, "can't load config file")
+	}
+	return filepath.Join(configFolder, "service.yaml"), nil
+}
+
 // ReplaceConfigdir replace the configdir macro
 func ReplaceConfigdir(s string) (string, error) {
 	if strings.Contains(s, "${configdir}") {
@@ -121,6 +139,11 @@ func init() {
 	config = DefaultConfig
 }
 
+// Provide provide the config to the dependency injection
+func (c *Config) Provide() {
+	do.ProvideNamedValue[Config](nil, DoServiceConfig, *c)
+}
+
 // Get returns loaded config
 func Get() Config {
 	return config
@@ -137,7 +160,7 @@ func Load() error {
 	if err != nil {
 		return err
 	}
-	data, err := ioutil.ReadFile(File)
+	data, err := os.ReadFile(File)
 	if err != nil {
 		return fmt.Errorf("can't load config file: %s", err.Error())
 	}
@@ -156,7 +179,7 @@ func Load() error {
 func readSecret() error {
 	secretFile := config.SecretFile
 	if secretFile != "" {
-		data, err := ioutil.ReadFile(secretFile)
+		data, err := os.ReadFile(secretFile)
 		if err != nil {
 			return fmt.Errorf("can't load secret file: %s", err.Error())
 		}

@@ -7,9 +7,15 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/samber/do"
 	"github.com/willie68/go-micro/internal/config"
 	"github.com/willie68/go-micro/internal/crypt"
 	log "github.com/willie68/go-micro/internal/logging"
+)
+
+const (
+	// DoSHTTP naming constant for dependency injection
+	DoSHTTP = "shttp"
 )
 
 type SHttp struct {
@@ -19,12 +25,15 @@ type SHttp struct {
 	srv    *http.Server
 }
 
-func NewSHttp(cfn config.Config) SHttp {
+func NewSHttp(cfn config.Config) (*SHttp, error) {
 	sh := SHttp{
 		cfn: cfn,
 	}
 	sh.init()
-	return sh
+
+	do.ProvideNamedValue[SHttp](nil, DoSHTTP, sh)
+
+	return &sh, nil
 }
 
 func (s *SHttp) init() {

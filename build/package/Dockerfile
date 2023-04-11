@@ -1,6 +1,6 @@
 ##### BUILDER #####
 
-FROM golang:1.18-alpine as builder
+FROM golang:1.20-alpine as builder
 
 ## Task: Install build deps
 

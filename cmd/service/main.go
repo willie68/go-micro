@@ -6,12 +6,12 @@ import (
 	"io"
 	"os"
 	"os/signal"
-	"path/filepath"
 
-	"github.com/pkg/errors"
+	"github.com/samber/do"
 	"github.com/willie68/go-micro/internal/apiv1"
 	"github.com/willie68/go-micro/internal/health"
 	"github.com/willie68/go-micro/internal/serror"
+	"github.com/willie68/go-micro/internal/services"
 	"github.com/willie68/go-micro/internal/services/shttp"
 
 	"github.com/opentracing/opentracing-go"
@@ -32,7 +32,6 @@ var (
 	configFile    string
 	serviceConfig config.Config
 	tracer        opentracing.Tracer
-	sh            shttp.SHttp
 )
 
 func init() {
@@ -52,26 +51,20 @@ func init() {
 // @in header
 // @name apikey
 func main() {
-	configFolder, err := config.GetDefaultConfigFolder()
-	if err != nil {
-		panic("can't get config folder")
-	}
-
 	flag.Parse()
-
-	log.Logger.Infof("starting server, config folder: %s", configFolder)
 	defer log.Logger.Close()
 
 	serror.Service = config.Servicename
-	if configFile == "" {
-		configFile, err = getDefaultConfigfile()
+	config.File = configFile
+	if config.File == "" {
+		cfgFile, err := config.GetDefaultConfigfile()
 		if err != nil {
 			log.Logger.Errorf("error getting default config file: %v", err)
 			panic("error getting default config file")
 		}
+		config.File = cfgFile
 	}
 
-	config.File = configFile
 	log.Logger.Infof("using config file: %s", configFile)
 
 	if err := config.Load(); err != nil {
@@ -83,7 +76,7 @@ func main() {
 	initConfig()
 	initLogging()
 
-	if err := initServices(); err != nil {
+	if err := services.InitServices(serviceConfig); err != nil {
 		log.Logger.Alertf("error creating services: %v", err)
 		panic("error creating services")
 	}
@@ -91,7 +84,6 @@ func main() {
 
 	var closer io.Closer
 	tracer, closer = initJaeger(config.Servicename, serviceConfig.OpenTracing)
-	opentracing.SetGlobalTracer(tracer)
 	defer closer.Close()
 
 	healthCheckConfig := health.CheckConfig(serviceConfig.HealthCheck)
@@ -110,6 +102,7 @@ func main() {
 
 	healthRouter := apiv1.HealthRoutes(serviceConfig, tracer)
 
+	sh := do.MustInvokeNamed[shttp.SHttp](nil, shttp.DoSHTTP)
 	sh.StartServers(router, healthRouter)
 
 	log.Logger.Info("waiting for clients")
@@ -121,19 +114,6 @@ func main() {
 	log.Logger.Info("finished")
 
 	os.Exit(0)
-}
-
-func getDefaultConfigfile() (string, error) {
-	configFolder, err := config.GetDefaultConfigFolder()
-	if err != nil {
-		return "", errors.Wrap(err, "can't load config file")
-	}
-	configFolder = filepath.Join(configFolder, "service")
-	err = os.MkdirAll(configFolder, os.ModePerm)
-	if err != nil {
-		return "", errors.Wrap(err, "can't load config file")
-	}
-	return filepath.Join(configFolder, "service.yaml"), nil
 }
 
 // initLogging initialize the logging, especially the gelf logger
@@ -183,11 +163,6 @@ func initJaeger(servicename string, cnfg config.OpenTracing) (opentracing.Tracer
 	if err != nil {
 		panic(fmt.Sprintf("ERROR: cannot init Jaeger: %v\n", err))
 	}
+	opentracing.SetGlobalTracer(tracer)
 	return tracer, closer
-}
-
-func initServices() error {
-	sh = shttp.NewSHttp(serviceConfig)
-
-	return nil
 }
