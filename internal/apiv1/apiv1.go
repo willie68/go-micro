@@ -139,7 +139,9 @@ func setDefaultHandler(router *chi.Mux, cfn config.Config, tracer opentracing.Tr
 			AllowCredentials: true,
 			MaxAge:           300, // Maximum value not ignored by any of major browsers
 		}),
-		httptracer.Tracer(tracer, httptracer.Config{
+	)
+	if tracer != nil {
+		router.Use(httptracer.Tracer(tracer, httptracer.Config{
 			ServiceName:    config.Servicename,
 			ServiceVersion: "V" + APIVersion,
 			SampleRate:     1,
@@ -151,8 +153,8 @@ func setDefaultHandler(router *chi.Mux, cfn config.Config, tracer opentracing.Tr
 				"_dd.measured": 1, // datadog, turn on metrics for http.request stats
 				// "_dd1.sr.eausr": 1, // datadog, event sample rate
 			},
-		}),
-	)
+		}))
+	}
 	if cfn.Metrics.Enable {
 		router.Use(
 			api.MetricsHandler(api.MetricsConfig{
@@ -172,7 +174,9 @@ func HealthRoutes(cfn config.Config, tracer opentracing.Tracer) *chi.Mux {
 		middleware.Logger,
 		//middleware.DefaultCompress,
 		middleware.Recoverer,
-		httptracer.Tracer(tracer, httptracer.Config{
+	)
+	if tracer != nil {
+		router.Use(httptracer.Tracer(tracer, httptracer.Config{
 			ServiceName:    config.Servicename,
 			ServiceVersion: "V" + APIVersion,
 			SampleRate:     1,
@@ -183,8 +187,8 @@ func HealthRoutes(cfn config.Config, tracer opentracing.Tracer) *chi.Mux {
 				"_dd.measured": 1, // datadog, turn on metrics for http.request stats
 				// "_dd1.sr.eausr": 1, // datadog, event sample rate
 			},
-		}),
-	)
+		}))
+	}
 	if cfn.Metrics.Enable {
 		router.Use(
 			api.MetricsHandler(api.MetricsConfig{

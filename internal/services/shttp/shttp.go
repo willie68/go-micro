@@ -19,15 +19,17 @@ const (
 )
 
 type SHttp struct {
-	cfn    config.Config
-	useSSL bool
-	sslsrv *http.Server
-	srv    *http.Server
+	cfn     config.Config
+	useSSL  bool
+	sslsrv  *http.Server
+	srv     *http.Server
+	Started bool
 }
 
 func NewSHttp(cfn config.Config) (*SHttp, error) {
 	sh := SHttp{
-		cfn: cfn,
+		cfn:     cfn,
+		Started: false,
 	}
 	sh.init()
 
@@ -40,6 +42,7 @@ func (s *SHttp) init() {
 	if s.cfn.Sslport > 0 {
 		s.useSSL = true
 	}
+	s.Started = false
 }
 
 // StartServers starting all needed http servers
@@ -50,6 +53,7 @@ func (s *SHttp) StartServers(router, healthRouter *chi.Mux) {
 	} else {
 		s.startHTTPServer(router)
 	}
+	s.Started = true
 }
 
 // ShutdownServers shutting all servers down
@@ -65,6 +69,7 @@ func (s *SHttp) ShutdownServers() {
 			log.Logger.Errorf("shutdown https server error: %v", err)
 		}
 	}
+	s.Started = false
 }
 
 func (s *SHttp) startHTTPSServer(router *chi.Mux) {

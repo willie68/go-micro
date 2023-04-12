@@ -1,0 +1,27 @@
+port: 8000
+sslport: 8443
+serviceURL: https://127.0.0.1:8443
+secretfile: ""
+apikey: false
+healthcheck:
+  period: 60
+# enable/disable metrics 
+metrics:
+  enable: true
+logging:
+  level: debug
+  filename: "${logfile}"
+#  apikey: X-es-apikey
+auth:
+  type: #jwt
+  properties: 
+    validate: false
+    strict: true
+    tenantClaim: Tenant
+    roleClaim: 
+    rolemapping: 
+        object-reader: Reader
+        object-creator: Creator
+        object-admin: ObAdmin
+        tenant-admin: TnAdmin
+        admin: Admin

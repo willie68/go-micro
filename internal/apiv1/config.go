@@ -1,7 +1,9 @@
 package apiv1
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 
@@ -9,7 +11,11 @@ import (
 	"github.com/go-chi/render"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/samber/do"
+	"github.com/willie68/go-micro/internal/model"
 	"github.com/willie68/go-micro/internal/serror"
+	"github.com/willie68/go-micro/internal/services/sconfig"
+	"github.com/willie68/go-micro/pkg/pmodel"
 
 	"github.com/willie68/go-micro/internal/api"
 	"github.com/willie68/go-micro/internal/utils/httputils"
@@ -24,35 +30,55 @@ var (
 
 // ConfigHandler the config handler
 type ConfigHandler struct {
-}
-
-/*
-ConfigDescription describres all metadata of a config
-*/
-type ConfigDescription struct {
-	StoreID  string `json:"storeid"`
-	TenantID string `json:"tenantID"`
-	Size     int    `json:"size"`
+	cfgs sconfig.SConfig
 }
 
 // NewConfigHandler creates a new REST config handler
 func NewConfigHandler() api.Handler {
-	return &ConfigHandler{}
+	return &ConfigHandler{
+		cfgs: do.MustInvokeNamed[sconfig.SConfig](nil, sconfig.DoConfig),
+	}
 }
 
 // Routes getting all routes for the config endpoint
 func (c *ConfigHandler) Routes() (string, *chi.Mux) {
 	router := chi.NewRouter()
 	router.Post("/", c.PostConfig)
-	router.Get("/", c.GetConfig)
-	router.Delete("/", c.DeleteConfig)
-	router.Get("/size", c.GetConfigSize)
+	router.Get("/", c.GetConfigs)
+	router.Get("/{id}", c.GetConfig)
+	router.Delete("/{id}", c.DeleteConfig)
+	router.Get("/_own", c.GetConfigOfTenant)
 	return BaseURL + configSubpath, router
 }
 
-// GetConfig getting if a store for a tenant is initialized
-// because of the automatic store creation, the value is more likely that data is stored for this tenant
-// @Summary Get a store for a tenant
+// GetConfigs getting all configs
+// @Summary getting all configs
+// @Tags configs
+// @Accept  json
+// @Produce  json
+// @Security api_key
+// @Param tenant header string true "Tenant"
+// @Success 200 {array} ConfigDescription "response with config as json"
+// @Failure 400 {object} serror.Serr "client error information as json"
+// @Failure 500 {object} serror.Serr "server error information as json"
+// @Router /config [get]
+func (c *ConfigHandler) GetConfigs(response http.ResponseWriter, request *http.Request) {
+	tenant := getTenant(request)
+	if tenant == "" {
+		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
+		httputils.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
+		return
+	}
+	l, err := c.cfgs.List()
+	if err != nil {
+		httputils.Err(response, request, serror.Wrapc(err, http.StatusInternalServerError))
+		return
+	}
+	render.JSON(response, request, l)
+}
+
+// GetConfig getting one configs
+// @Summary getting one configs
 // @Tags configs
 // @Accept  json
 // @Produce  json
@@ -69,11 +95,17 @@ func (c *ConfigHandler) GetConfig(response http.ResponseWriter, request *http.Re
 		httputils.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
 		return
 	}
-	cd := ConfigDescription{
-		StoreID:  "myNewStore",
-		TenantID: tenant,
-		Size:     1234567,
+	n := chi.URLParam(request, "id")
+	if !c.cfgs.HasConfig(n) {
+		httputils.Err(response, request, serror.ErrNotExists)
+		return
 	}
+	cd, err := c.cfgs.GetConfig(n)
+	if err != nil {
+		httputils.Err(response, request, serror.ErrUnknowError)
+		return
+	}
+
 	render.JSON(response, request, cd)
 }
 
@@ -91,16 +123,46 @@ func (c *ConfigHandler) GetConfig(response http.ResponseWriter, request *http.Re
 // @Failure 500 {object} serror.Serr "server error information as json"
 // @Router /config [post]
 func (c *ConfigHandler) PostConfig(response http.ResponseWriter, request *http.Request) {
+	var b []byte
+	var err error
 	tenant := getTenant(request)
 	if tenant == "" {
 		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
 		httputils.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
 		return
 	}
-	log.Printf("create store for tenant %s", tenant)
+	log.Printf("create config: tenant %s", tenant)
+
+	if b, err = io.ReadAll(request.Body); err != nil {
+		httputils.Err(response, request, serror.Wrapc(err, http.StatusBadRequest))
+		return
+	}
+	var cd pmodel.ConfigDescription
+
+	err = json.Unmarshal(b, &cd)
+	if err != nil {
+		httputils.Err(response, request, serror.Wrapc(err, http.StatusBadRequest))
+		return
+	}
+	cdm := model.ConfigDescription{
+		StoreID:  cd.StoreID,
+		TenantID: cd.TenantID,
+		Size:     cd.Size,
+	}
 	postConfigCounter.Inc()
+	n, err := c.cfgs.PutConfig(cd.TenantID, cdm)
+	if err != nil {
+		httputils.Err(response, request, serror.Wrapc(err, http.StatusInternalServerError))
+		return
+	}
+	id := struct {
+		ID string `json:"id"`
+	}{
+		ID: n,
+	}
+
 	render.Status(request, http.StatusCreated)
-	render.JSON(response, request, tenant)
+	render.JSON(response, request, id)
 }
 
 // DeleteConfig deleting store for a tenant, this will automatically delete all data in the store
@@ -120,10 +182,16 @@ func (c *ConfigHandler) DeleteConfig(response http.ResponseWriter, request *http
 		httputils.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
 		return
 	}
+	n := chi.URLParam(request, "id")
+	if !c.cfgs.HasConfig(n) {
+		httputils.Err(response, request, serror.NotFound("config", n))
+		return
+	}
+	c.cfgs.DeleteConfig(n)
 	render.JSON(response, request, tenant)
 }
 
-// GetConfigSize size of the store for a tenant
+// GetConfigOfTenant config of tenant
 // @Summary Get size of a store for a tenant
 // @Tags configs
 // @Accept  json
@@ -133,15 +201,19 @@ func (c *ConfigHandler) DeleteConfig(response http.ResponseWriter, request *http
 // @Success 200 {string} string "size"
 // @Failure 400 {object} serror.Serr "client error information as json"
 // @Router /config/size [get]
-func (c *ConfigHandler) GetConfigSize(response http.ResponseWriter, request *http.Request) {
+func (c *ConfigHandler) GetConfigOfTenant(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
 		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
 		httputils.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
 		return
 	}
-
-	render.JSON(response, request, tenant)
+	cd, err := c.cfgs.GetConfig(tenant)
+	if err != nil {
+		httputils.Err(response, request, serror.ErrUnknowError)
+		return
+	}
+	render.JSON(response, request, cd)
 }
 
 // getTenant getting the tenant from the request

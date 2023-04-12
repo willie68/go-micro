@@ -92,7 +92,7 @@ func main() {
 
 	log.Logger.Infof("ssl: %t", serviceConfig.Sslport > 0)
 	log.Logger.Infof("serviceURL: %s", serviceConfig.ServiceURL)
-	log.Logger.Infof("apikey: %t", apiv1.APIKey)
+	log.Logger.Infof("apikey: %s", apiv1.APIKey)
 	router, err := apiv1.APIRoutes(serviceConfig, tracer)
 	if err != nil {
 		errstr := fmt.Sprintf("could not create api routes. %s", err.Error())
