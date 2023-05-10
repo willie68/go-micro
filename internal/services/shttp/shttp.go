@@ -84,7 +84,7 @@ func (s *SHttp) ShutdownServers() {
 }
 
 func (s *SHttp) startHTTPSServer(router *chi.Mux) {
-	gc := GenerateCertificate{
+	gc := generateCertificate{
 		Organization: "MCS",
 		Host:         "127.0.0.1",
 		ValidFor:     10 * 365 * 24 * time.Hour,
@@ -129,8 +129,8 @@ func (s *SHttp) startHTTPServer(router *chi.Mux) {
 	}()
 }
 
-// GenerateCertificate model
-type GenerateCertificate struct {
+// generateCertificate model
+type generateCertificate struct {
 	Organization string
 	Host         string
 	ValidFrom    string
@@ -141,7 +141,7 @@ type GenerateCertificate struct {
 	Ed25519Key   bool
 }
 
-func (gc *GenerateCertificate) publicKey(priv any) any {
+func (gc *generateCertificate) publicKey(priv any) any {
 	switch k := priv.(type) {
 	case *rsa.PrivateKey:
 		return &k.PublicKey
@@ -155,7 +155,7 @@ func (gc *GenerateCertificate) publicKey(priv any) any {
 }
 
 // GenerateTLSConfig generates the config
-func (gc *GenerateCertificate) GenerateTLSConfig() (*tls.Config, error) {
+func (gc *generateCertificate) GenerateTLSConfig() (*tls.Config, error) {
 	var priv any
 	var err error
 	switch gc.EcdsaCurve {
