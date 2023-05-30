@@ -16,6 +16,7 @@ import (
 	"github.com/willie68/go-micro/pkg/pmodel"
 )
 
+// Client the client to be used for other parts
 type Client struct {
 	url      string
 	tenant   string
@@ -160,7 +161,6 @@ func (c *Client) DeleteConfig(n string) (bool, error) {
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		if res.StatusCode != http.StatusNotFound {
-
 			logging.Logger.Errorf("delete bad response: %d", res.StatusCode)
 			return false, ReadErr(res)
 		}

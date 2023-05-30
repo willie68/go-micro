@@ -32,6 +32,7 @@ const (
 	DoSHTTP = "shttp"
 )
 
+// SHttp a service encapsulating http and https server
 type SHttp struct {
 	cfn     config.Config
 	useSSL  bool
@@ -40,6 +41,7 @@ type SHttp struct {
 	Started bool
 }
 
+// NewSHttp creates a new shttp service
 func NewSHttp(cfn config.Config) (*SHttp, error) {
 	sh := SHttp{
 		cfn:     cfn,
@@ -95,15 +97,19 @@ func (s *SHttp) startHTTPSServer(router *chi.Mux) {
 			log.Logger.Alertf("could not create tls config. %s", err.Error())
 		}
 	} else {
+		h := s.cfn.ServiceURL
+		ul, err := url.Parse(h)
+		if err == nil {
+			h = ul.Hostname()
+		}
 		gc := generateCertificate{
-			ServiceName:  config.Servicename,
-			Organization: "MCS",
-			CA:           s.cfn.CA.URL,
-			Host:         "127.0.0.1",
-			ValidFor:     10 * 365 * 24 * time.Hour,
-			IsCA:         false,
-			EcdsaCurve:   "P384",
-			Ed25519Key:   false,
+			ServiceName: config.Servicename,
+			CA:          s.cfn.CA.URL,
+			Host:        h,
+			ValidFor:    10 * 365 * 24 * time.Hour,
+			IsCA:        false,
+			EcdsaCurve:  "P384",
+			Ed25519Key:  false,
 		}
 		tlsConfig, err = gc.GenerateTLSConfig()
 		if err != nil {
@@ -260,6 +266,10 @@ func (gc *generateCertificate) GenerateTLSConfig() (*tls.Config, error) {
 	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: privBytes})
 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 	tlsCert, err := tls.X509KeyPair(certPEM, keyPEM)
+	if err != nil {
+		log.Logger.Fatalf("Failed to combine tls key pair: %v", err)
+		return nil, err
+	}
 
 	return &tls.Config{Certificates: []tls.Certificate{tlsCert}}, nil
 }
@@ -282,17 +292,15 @@ func (s *SHttp) GetTLSConfig() (*tls.Config, error) {
 		SignatureAlgorithm: x509.SHA256WithRSA,
 	}
 
-	hosts := strings.Split(s.cfn.ServiceURL, ",")
-	for _, h := range hosts {
-		ul, err := url.Parse(h)
-		if err == nil {
-			h = ul.Hostname()
-		}
-		if ip := net.ParseIP(h); ip != nil {
-			template.IPAddresses = append(template.IPAddresses, ip)
-		} else {
-			template.DNSNames = append(template.DNSNames, h)
-		}
+	h := s.cfn.ServiceURL
+	ul, err := url.Parse(h)
+	if err == nil {
+		h = ul.Hostname()
+	}
+	if ip := net.ParseIP(h); ip != nil {
+		template.IPAddresses = append(template.IPAddresses, ip)
+	} else {
+		template.DNSNames = append(template.DNSNames, h)
 	}
 
 	cli, err := mv.LoginClient(s.cfn.CA.AccessKey, s.cfn.CA.Secret, s.cfn.CA.URL)

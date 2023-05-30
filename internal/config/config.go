@@ -45,6 +45,7 @@ type Config struct {
 	Metrics Metrics `yaml:"metrics"`
 }
 
+// CAService the micro-vault ca service config
 type CAService struct {
 	UseCA     bool   `yaml:"useca"`
 	URL       string `yaml:"url"`

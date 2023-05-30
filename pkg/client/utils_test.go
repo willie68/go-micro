@@ -21,7 +21,6 @@ var (
 
 func StartServer() {
 	if sh == nil {
-
 		fmt.Println("starting server")
 		// loading the config file
 		config.File = "../../testdata/service_local.yaml"
