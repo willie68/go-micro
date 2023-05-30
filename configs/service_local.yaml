@@ -1,9 +1,16 @@
 # port of the http server
-port: 9580 
+port: 9480 
 # port of the https server
-sslport: 9543
+sslport: 9443
+# if you use microvault as ca service
+ca:
+    useca: true
+    url: https://127.0.0.1:9543
+    accesskey: 3fa6a4bd-74cb-42ff-be40-e5213f8e9b18
+    secret: 7d122aab1d57b0177da31829ac791587
+
 # this is the servicURL from outside
-serviceURL: https://127.0.0.1:9543
+serviceURL: https://127.0.0.1:9443
 #sercret file for storing usernames and passwords
 secretfile: configs/secret.yaml
 

@@ -10,10 +10,12 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/asn1"
 	"encoding/pem"
 	"math/big"
 	"net"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -22,6 +24,7 @@ import (
 	"github.com/samber/do"
 	"github.com/willie68/go-micro/internal/config"
 	log "github.com/willie68/go-micro/internal/logging"
+	mv "github.com/willie68/micro-vault/pkg/client"
 )
 
 const (
@@ -84,17 +87,28 @@ func (s *SHttp) ShutdownServers() {
 }
 
 func (s *SHttp) startHTTPSServer(router *chi.Mux) {
-	gc := generateCertificate{
-		Organization: "MCS",
-		Host:         "127.0.0.1",
-		ValidFor:     10 * 365 * 24 * time.Hour,
-		IsCA:         false,
-		EcdsaCurve:   "P384",
-		Ed25519Key:   false,
-	}
-	tlsConfig, err := gc.GenerateTLSConfig()
-	if err != nil {
-		log.Logger.Alertf("could not create tls config. %s", err.Error())
+	var tlsConfig *tls.Config
+	var err error
+	if s.cfn.CA.UseCA {
+		tlsConfig, err = s.GetTLSConfig()
+		if err != nil {
+			log.Logger.Alertf("could not create tls config. %s", err.Error())
+		}
+	} else {
+		gc := generateCertificate{
+			ServiceName:  config.Servicename,
+			Organization: "MCS",
+			CA:           s.cfn.CA.URL,
+			Host:         "127.0.0.1",
+			ValidFor:     10 * 365 * 24 * time.Hour,
+			IsCA:         false,
+			EcdsaCurve:   "P384",
+			Ed25519Key:   false,
+		}
+		tlsConfig, err = gc.GenerateTLSConfig()
+		if err != nil {
+			log.Logger.Alertf("could not create tls config. %s", err.Error())
+		}
 	}
 	s.sslsrv = &http.Server{
 		Addr:         "0.0.0.0:" + strconv.Itoa(s.cfn.Sslport),
@@ -131,6 +145,8 @@ func (s *SHttp) startHTTPServer(router *chi.Mux) {
 
 // generateCertificate model
 type generateCertificate struct {
+	ServiceName  string
+	CA           string
 	Organization string
 	Host         string
 	ValidFrom    string
@@ -244,6 +260,68 @@ func (gc *generateCertificate) GenerateTLSConfig() (*tls.Config, error) {
 	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: privBytes})
 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 	tlsCert, err := tls.X509KeyPair(certPEM, keyPEM)
+
+	return &tls.Config{Certificates: []tls.Certificate{tlsCert}}, nil
+}
+
+// GetTLSConfig generates the tls config, getting certificate from ca service
+func (s *SHttp) GetTLSConfig() (*tls.Config, error) {
+	var err error
+	subj := pkix.Name{
+		CommonName: config.Servicename,
+	}
+	rawSubj := subj.ToRDNSequence()
+
+	asn1Subj, err := asn1.Marshal(rawSubj)
+	if err != nil {
+		return nil, err
+	}
+
+	template := x509.CertificateRequest{
+		RawSubject:         asn1Subj,
+		SignatureAlgorithm: x509.SHA256WithRSA,
+	}
+
+	hosts := strings.Split(s.cfn.ServiceURL, ",")
+	for _, h := range hosts {
+		ul, err := url.Parse(h)
+		if err == nil {
+			h = ul.Hostname()
+		}
+		if ip := net.ParseIP(h); ip != nil {
+			template.IPAddresses = append(template.IPAddresses, ip)
+		} else {
+			template.DNSNames = append(template.DNSNames, h)
+		}
+	}
+
+	cli, err := mv.LoginClient(s.cfn.CA.AccessKey, s.cfn.CA.Secret, s.cfn.CA.URL)
+	if err != nil {
+		return nil, err
+	}
+
+	crt, err := cli.Certificate(template)
+	if err != nil {
+		return nil, err
+	}
+
+	prv, err := cli.PrivateKey()
+	if err != nil {
+		return nil, err
+	}
+
+	privBytes, err := x509.MarshalPKCS8PrivateKey(prv)
+	if err != nil {
+		log.Logger.Fatalf("Unable to marshal private key: %v", err)
+		return nil, err
+	}
+
+	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: privBytes})
+	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: crt.Raw})
+	tlsCert, err := tls.X509KeyPair(certPEM, keyPEM)
+	if err != nil {
+		return nil, err
+	}
 
 	return &tls.Config{Certificates: []tls.Certificate{tlsCert}}, nil
 }

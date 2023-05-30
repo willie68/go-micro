@@ -21,26 +21,35 @@ const DoServiceConfig = "service_config"
 
 // Config our service configuration
 type Config struct {
-	//port of the http server
+	// port of the http server
 	Port int `yaml:"port"`
-	//port of the https server
+	// port of the https server
 	Sslport int `yaml:"sslport"`
-	//this is the url how to connect to this service from outside
+	// CA service will be used, microvault
+	CA CAService `yaml:"ca"`
+	// this is the url how to connect to this service from outside
 	ServiceURL string `yaml:"serviceURL"`
-
+	// all secrets will be stored in this file, same structure as the main config file
 	SecretFile string `yaml:"secretfile"`
-
+	// if you need an API key, use this one
 	Apikey bool `yaml:"apikey"`
-
+	// configure logging to gelf logging system
 	Logging LoggingConfig `yaml:"logging"`
-
+	// special config for health checks
 	HealthCheck HealthCheck `yaml:"healthcheck"`
-
+	// use authentication via jwt
 	Auth Authentication `yaml:"auth"`
-
+	// opentelemtrie tracer can be configured here
 	OpenTracing OpenTracing `yaml:"opentracing"`
-
+	// and some metrics
 	Metrics Metrics `yaml:"metrics"`
+}
+
+type CAService struct {
+	UseCA     bool   `yaml:"useca"`
+	URL       string `yaml:"url"`
+	AccessKey string `yaml:"accesskey"`
+	Secret    string `yaml:"secret"`
 }
 
 // Authentication configuration
