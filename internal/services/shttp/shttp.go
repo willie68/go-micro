@@ -176,7 +176,7 @@ func (gc *generateCertificate) publicKey(priv any) any {
 	}
 }
 
-// GenerateTLSConfig generates the config
+// GenerateTLSConfig generates the config with self signed certificates
 func (gc *generateCertificate) GenerateTLSConfig() (*tls.Config, error) {
 	var priv any
 	var err error
@@ -308,7 +308,7 @@ func (s *SHttp) GetTLSConfig() (*tls.Config, error) {
 		return nil, err
 	}
 
-	crt, err := cli.Certificate(template)
+	crt, err := cli.CreateCertificate(template)
 	if err != nil {
 		return nil, err
 	}

@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"dario.cat/mergo"
 	"github.com/drone/envsubst"
-	"github.com/imdario/mergo"
 	"github.com/pkg/errors"
 	"github.com/samber/do"
 	"gopkg.in/yaml.v3"

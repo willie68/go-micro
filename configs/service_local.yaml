@@ -4,7 +4,7 @@ port: 9480
 sslport: 9443
 # if you use microvault as ca service
 ca:
-    useca: true
+    useca: false
     url: https://127.0.0.1:9543
     accesskey: 3fa6a4bd-74cb-42ff-be40-e5213f8e9b18
     secret: 7d122aab1d57b0177da31829ac791587
@@ -13,8 +13,11 @@ ca:
 serviceURL: https://127.0.0.1:9443
 #sercret file for storing usernames and passwords
 secretfile: configs/secret.yaml
-
+# true to activate the usage of a apikey (normaly as http header)
+apikey: false
 logging:
+    level: debug
+    filename: "${logfile}"
     gelf-url: 127.0.0.1
     gelf-port: 12201
 
