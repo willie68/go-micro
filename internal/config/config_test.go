@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/samber/do"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,6 +21,7 @@ func TestLoadFromYaml(t *testing.T) {
 
 	err := Load()
 	ast.Nil(err)
+	c := Get()
 
 	ast.Equal(8000, Get().Service.HTTP.Port)
 	ast.Equal(8443, Get().Service.HTTP.Sslport)
@@ -28,6 +30,12 @@ func TestLoadFromYaml(t *testing.T) {
 	ast.Equal(3, Get().Service.HealthSystem.StartDelay)
 	ast.Equal("", Get().SecretFile)
 	ast.Equal("https://127.0.0.1:8443", Get().Service.HTTP.ServiceURL)
+	c.Provide()
+
+	cfg := do.MustInvokeNamed[Config](nil, DoServiceConfig)
+	ast.Nil(err)
+	ast.NotNil(cfg)
+	do.MustShutdownNamed(nil, DoServiceConfig)
 }
 
 func TestDefaultConfig(t *testing.T) {
@@ -35,13 +43,13 @@ func TestDefaultConfig(t *testing.T) {
 	config = DefaultConfig
 	cnf := Get()
 
-	ast.Equal(8000, Get().Service.HTTP.Port)
-	ast.Equal(8443, Get().Service.HTTP.Sslport)
+	ast.Equal(8000, cnf.Service.HTTP.Port)
+	ast.Equal(8443, cnf.Service.HTTP.Sslport)
 
-	ast.Equal(30, Get().Service.HealthSystem.Period)
-	ast.Equal(3, Get().Service.HealthSystem.StartDelay)
-	ast.Equal("", Get().SecretFile)
-	ast.Equal("https://127.0.0.1:8443", Get().Service.HTTP.ServiceURL)
+	ast.Equal(30, cnf.Service.HealthSystem.Period)
+	ast.Equal(3, cnf.Service.HealthSystem.StartDelay)
+	ast.Equal("", cnf.SecretFile)
+	ast.Equal("https://127.0.0.1:8443", cnf.Service.HTTP.ServiceURL)
 
 	ast.Equal("INFO", cnf.Logging.Level)
 }

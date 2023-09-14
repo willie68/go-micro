@@ -13,7 +13,7 @@ import (
 	log "github.com/willie68/go-micro/internal/logging"
 )
 
-const DoSHealth = "shealth"
+const DoSHealth = "health"
 
 // Config configuration for the healthcheck system
 type Config struct {
