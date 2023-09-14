@@ -4,10 +4,14 @@ import (
 	"fmt"
 )
 
+const (
+	errMissingConfigValue = "missing config value for %s"
+)
+
 // GetConfigValueAsString getting a value as a string, if possible
 func GetConfigValueAsString(properties map[string]any, key string) (string, error) {
 	if _, ok := properties[key]; !ok {
-		return "", fmt.Errorf("missing config value for %s", key)
+		return "", fmt.Errorf(errMissingConfigValue, key)
 	}
 	if properties[key] == nil {
 		return "", nil
@@ -22,7 +26,7 @@ func GetConfigValueAsString(properties map[string]any, key string) (string, erro
 // GetConfigValueAsBool getting a value as a bool, if possible
 func GetConfigValueAsBool(properties map[string]any, key string) (bool, error) {
 	if _, ok := properties[key]; !ok {
-		return false, fmt.Errorf("missing config value for %s", key)
+		return false, fmt.Errorf(errMissingConfigValue, key)
 	}
 	if properties[key] == nil {
 		return false, nil
@@ -37,7 +41,7 @@ func GetConfigValueAsBool(properties map[string]any, key string) (bool, error) {
 // GetConfigValueAsInt getting a value as a int64, if possible
 func GetConfigValueAsInt(properties map[string]any, key string) (int64, error) {
 	if _, ok := properties[key]; !ok {
-		return 0, fmt.Errorf("missing config value for %s", key)
+		return 0, fmt.Errorf(errMissingConfigValue, key)
 	}
 	if properties[key] == nil {
 		return 0, nil

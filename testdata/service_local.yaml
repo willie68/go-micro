@@ -1,15 +1,31 @@
-port: 8000
-sslport: 8443
-serviceURL: https://127.0.0.1:8443
 secretfile: ""
 apikey: false
-ca:
+service:
+  http:
+    # port of the http server
+    port: 9000
+    # port of the https server for payload only
+    sslport: 9443
+    # this is the servicURL from outside
+    serviceURL: https://127.0.0.1:9443
+    # other dns names (used for certificate)
+    dnss: 
+      - host.docker.internal
+      - localhost
+    # other ips (used for certificate)
+    ips: 
+      - 127.0.0.1
+  #configure the healthcheck system
+  healthcheck:
+    # period in seconds to start the healtcheck
+    period: 60
+    startdelay: 3
+  ca:
     useca: false
-    url: https://127.0.0.1:9543
+    url: https://127.0.0.1:9544
     accesskey: 3fa6a4bd-74cb-42ff-be40-e5213f8e9b18
     secret: 7d122aab1d57b0177da31829ac791587
-healthcheck:
-  period: 60
+
 # enable/disable metrics 
 metrics:
   enable: true

@@ -34,7 +34,8 @@ const (
 
 // SHttp a service encapsulating http and https server
 type SHttp struct {
-	cfn     config.Config
+	cfn     config.HTTP
+	cfa     config.CAService
 	useSSL  bool
 	sslsrv  *http.Server
 	srv     *http.Server
@@ -42,9 +43,10 @@ type SHttp struct {
 }
 
 // NewSHttp creates a new shttp service
-func NewSHttp(cfn config.Config) (*SHttp, error) {
+func NewSHttp(cfn config.HTTP, cfgCa config.CAService) (*SHttp, error) {
 	sh := SHttp{
 		cfn:     cfn,
+		cfa:     cfgCa,
 		Started: false,
 	}
 	sh.init()
@@ -91,7 +93,7 @@ func (s *SHttp) ShutdownServers() {
 func (s *SHttp) startHTTPSServer(router *chi.Mux) {
 	var tlsConfig *tls.Config
 	var err error
-	if s.cfn.CA.UseCA {
+	if s.cfa.UseCA {
 		tlsConfig, err = s.GetTLSConfig()
 		if err != nil {
 			log.Logger.Alertf("could not create tls config. %s", err.Error())
@@ -104,12 +106,14 @@ func (s *SHttp) startHTTPSServer(router *chi.Mux) {
 		}
 		gc := generateCertificate{
 			ServiceName: config.Servicename,
-			CA:          s.cfn.CA.URL,
+			CA:          s.cfa.URL,
 			Host:        h,
 			ValidFor:    10 * 365 * 24 * time.Hour,
 			IsCA:        false,
 			EcdsaCurve:  "P384",
 			Ed25519Key:  false,
+			DNSnames:    s.cfn.DNSNames,
+			IPs:         s.cfn.IPAddresses,
 		}
 		tlsConfig, err = gc.GenerateTLSConfig()
 		if err != nil {
@@ -155,6 +159,8 @@ type generateCertificate struct {
 	CA           string
 	Organization string
 	Host         string
+	DNSnames     []string
+	IPs          []string
 	ValidFrom    string
 	ValidFor     time.Duration
 	IsCA         bool
@@ -303,7 +309,7 @@ func (s *SHttp) GetTLSConfig() (*tls.Config, error) {
 		template.DNSNames = append(template.DNSNames, h)
 	}
 
-	cli, err := mv.LoginClient(s.cfn.CA.AccessKey, s.cfn.CA.Secret, s.cfn.CA.URL)
+	cli, err := mv.LoginClient(s.cfa.AccessKey, s.cfa.Secret, s.cfa.URL)
 	if err != nil {
 		return nil, err
 	}

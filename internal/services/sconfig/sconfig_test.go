@@ -17,7 +17,7 @@ func TestDI(t *testing.T) {
 	_, err := NewSConfig()
 	ast.Nil(err)
 
-	sc2 := do.MustInvokeNamed[SConfig](nil, DoConfig)
+	sc2 := do.MustInvokeNamed[*SConfig](nil, DoConfig)
 	ast.NotNil(sc2)
 
 	do.MustShutdownNamed(nil, DoConfig)

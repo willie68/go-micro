@@ -21,6 +21,11 @@ import (
 	"github.com/willie68/go-micro/internal/utils/httputils"
 )
 
+const (
+	errMissingTenantKey = "missing-tenant"
+	errMissingTenantMsg = "tenant header %s missing"
+)
+
 var (
 	postConfigCounter = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "gomicro_post_config_total",
@@ -30,13 +35,13 @@ var (
 
 // ConfigHandler the config handler
 type ConfigHandler struct {
-	cfgs sconfig.SConfig
+	cfgs *sconfig.SConfig
 }
 
 // NewConfigHandler creates a new REST config handler
 func NewConfigHandler() api.Handler {
 	return &ConfigHandler{
-		cfgs: do.MustInvokeNamed[sconfig.SConfig](nil, sconfig.DoConfig),
+		cfgs: do.MustInvokeNamed[*sconfig.SConfig](nil, sconfig.DoConfig),
 	}
 }
 
@@ -65,8 +70,8 @@ func (c *ConfigHandler) Routes() (string, *chi.Mux) {
 func (c *ConfigHandler) GetConfigs(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
-		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
-		httputils.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
+		msg := fmt.Sprintf(errMissingTenantMsg, api.TenantHeaderKey)
+		httputils.Err(response, request, serror.BadRequest(nil, errMissingTenantKey, msg))
 		return
 	}
 	l, err := c.cfgs.List()
@@ -91,8 +96,8 @@ func (c *ConfigHandler) GetConfigs(response http.ResponseWriter, request *http.R
 func (c *ConfigHandler) GetConfig(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
-		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
-		httputils.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
+		msg := fmt.Sprintf(errMissingTenantMsg, api.TenantHeaderKey)
+		httputils.Err(response, request, serror.BadRequest(nil, errMissingTenantKey, msg))
 		return
 	}
 	n := chi.URLParam(request, "id")
@@ -127,8 +132,8 @@ func (c *ConfigHandler) PostConfig(response http.ResponseWriter, request *http.R
 	var err error
 	tenant := getTenant(request)
 	if tenant == "" {
-		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
-		httputils.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
+		msg := fmt.Sprintf(errMissingTenantMsg, api.TenantHeaderKey)
+		httputils.Err(response, request, serror.BadRequest(nil, errMissingTenantKey, msg))
 		return
 	}
 	log.Printf("create config: tenant %s", tenant)
@@ -178,8 +183,8 @@ func (c *ConfigHandler) PostConfig(response http.ResponseWriter, request *http.R
 func (c *ConfigHandler) DeleteConfig(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
-		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
-		httputils.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
+		msg := fmt.Sprintf(errMissingTenantMsg, api.TenantHeaderKey)
+		httputils.Err(response, request, serror.BadRequest(nil, errMissingTenantKey, msg))
 		return
 	}
 	n := chi.URLParam(request, "id")
@@ -204,8 +209,8 @@ func (c *ConfigHandler) DeleteConfig(response http.ResponseWriter, request *http
 func (c *ConfigHandler) GetConfigOfTenant(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
-		msg := fmt.Sprintf("tenant header %s missing", api.TenantHeaderKey)
-		httputils.Err(response, request, serror.BadRequest(nil, "missing-tenant", msg))
+		msg := fmt.Sprintf(errMissingTenantMsg, api.TenantHeaderKey)
+		httputils.Err(response, request, serror.BadRequest(nil, errMissingTenantKey, msg))
 		return
 	}
 	cd, err := c.cfgs.GetConfig(tenant)

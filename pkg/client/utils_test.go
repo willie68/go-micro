@@ -3,12 +3,12 @@ package client
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/samber/do"
 	"github.com/stretchr/testify/assert"
 	"github.com/willie68/go-micro/internal/apiv1"
 	"github.com/willie68/go-micro/internal/config"
-	"github.com/willie68/go-micro/internal/health"
 	"github.com/willie68/go-micro/internal/services"
 	"github.com/willie68/go-micro/internal/services/shttp"
 )
@@ -35,9 +35,6 @@ func StartServer() {
 			panic("error creating services")
 		}
 
-		healthCheckConfig := health.CheckConfig(cfg.HealthCheck)
-		health.InitHealthSystem(healthCheckConfig, nil)
-
 		s := do.MustInvokeNamed[shttp.SHttp](nil, shttp.DoSHTTP)
 		sh = &s
 	}
@@ -50,6 +47,8 @@ func StartServer() {
 
 		healthRouter := apiv1.HealthRoutes(cfg, nil)
 		sh.StartServers(router, healthRouter)
+
+		time.Sleep(1 * time.Second)
 	}
 }
 

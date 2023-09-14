@@ -13,11 +13,11 @@ import (
 
 // defining string constants for logging levels
 const (
-	Debug string = "DEBUG"
-	Info         = "INFO"
-	Alert        = "ALERT"
-	Error        = "ERROR"
-	Fatal        = "FATAL"
+	Debug = "DEBUG"
+	Info  = "INFO"
+	Alert = "ALERT"
+	Error = "ERROR"
+	Fatal = "FATAL"
 )
 
 // Levels array with all logging levels

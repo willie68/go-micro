@@ -16,10 +16,10 @@ type MetricsConfig struct {
 	SkipFunc func(r *http.Request) bool
 }
 
-var(
+var (
 	metrics map[string]prometheus.Counter = make(map[string]prometheus.Counter)
-	m = regexp.MustCompile("[^a-zA-Z_]")
-) 
+	m                                     = regexp.MustCompile("[^a-zA-Z_]")
+)
 
 // MetricsHandler creates a new directly usable handler
 func MetricsHandler(cfg MetricsConfig) func(next http.Handler) http.Handler {

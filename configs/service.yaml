@@ -1,17 +1,29 @@
-# port of the http server
-port: 8080 
-# port of the https server for payload only
-sslport: 8443
-# this is the servicURL from outside
-serviceURL: https://127.0.0.1:8443
 # secret file contains secrets like credentials, access key ... it has the same structure as this config and will be merged on start
 secretfile: ""
 # true to activate the usage of a apikey (normaly as http header)
 apikey: false
-#configure the healthcheck system
-healthcheck:
-  # period in seconds to start the healtcheck
-  period: 30
+
+service:
+  http:
+    # port of the http server
+    port: 8080
+    # port of the https server for payload only
+    sslport: 8443
+    # this is the servicURL from outside
+    serviceURL: https://localhost:8443
+    # other dns names (used for certificate)
+    dnss: 
+      - host.docker.internal
+      - localhost
+    # other ips (used for certificate)
+    ips: 
+      - 127.0.0.1
+  #configure the healthcheck system
+  healthcheck:
+    # period in seconds to start the healtcheck
+    period: 30
+    startdelay: 3
+
 # enable/disable metrics 
 metrics:
   enable: false

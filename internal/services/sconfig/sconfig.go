@@ -1,6 +1,7 @@
 package sconfig
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/samber/do"
@@ -14,15 +15,17 @@ const DoConfig = "configs"
 // SConfig config management
 type SConfig struct {
 	cfgs sync.Map
+
+	healthy bool
 }
 
 // NewSConfig creating a new config business object
-func NewSConfig() (SConfig, error) {
+func NewSConfig() (*SConfig, error) {
 	gs := SConfig{
 		cfgs: sync.Map{},
 	}
-	do.ProvideNamedValue[SConfig](nil, DoConfig, gs)
-	return gs, nil
+	do.ProvideNamedValue[*SConfig](nil, DoConfig, &gs)
+	return &gs, nil
 }
 
 // Init initialize the config management
@@ -72,6 +75,21 @@ func (s *SConfig) List() ([]string, error) {
 		return true
 	})
 	return l, nil
+}
+
+// Name needed for the health check system
+func (s *SConfig) CheckName() string {
+	return "sconfig-service"
+}
+
+// Check proceed a check and return state, true for healthy or false and an optional error, if the healthcheck fails
+func (s *SConfig) Check() (bool, error) {
+	s.healthy = !s.healthy
+	if s.healthy {
+		return true, nil
+	} else {
+		return false, errors.New("sconfig not healthy")
+	}
 }
 
 // NotImplemented throwing a not implemented error

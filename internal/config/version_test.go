@@ -6,12 +6,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	versionStr    = "1.2.3-special"
+	msgErrParsing = "Error in parsing"
+)
+
 func TestParsing(t *testing.T) {
 	ast := assert.New(t)
-	versionStr := "1.2.3-special"
 
 	version, err := ParseVersion(versionStr)
-	ast.Nil(err, "Error in parsing")
+	ast.Nil(err)
 	ast.Equal(1, version.Major, "Major version not equal")
 	ast.Equal(2, version.Minor, "Minor version not equal")
 	ast.Equal(3, version.Patch, "Patch version not equal")
@@ -20,10 +24,9 @@ func TestParsing(t *testing.T) {
 
 func TestCompareEqual(t *testing.T) {
 	ast := assert.New(t)
-	versionStr := "1.2.3-special"
 
 	version, err := ParseVersion(versionStr)
-	ast.Nil(err, "Error in parsing")
+	ast.Nil(err, msgErrParsing)
 
 	ast.False(version.IsEqual(Version{
 		Major: 2,
@@ -46,10 +49,10 @@ func TestCompareEqual(t *testing.T) {
 		Special: "Willie",
 	}))
 
-	versionStr = "1.2.3"
+	otherVersionStr := "1.2.3"
 
-	version, err = ParseVersion(versionStr)
-	ast.Nil(err, "Error in parsing")
+	version, err = ParseVersion(otherVersionStr)
+	ast.Nil(err, msgErrParsing)
 
 	version2 = Version{
 		Major: 1,
@@ -61,10 +64,10 @@ func TestCompareEqual(t *testing.T) {
 	ast.False(version.IsSmallerThan(version2))
 	ast.True(version.IsEqual(version2))
 
-	versionStr = "1.2"
+	otherVersionStr = "1.2"
 
-	version, err = ParseVersion(versionStr)
-	ast.Nil(err, "Error in parsing")
+	version, err = ParseVersion(otherVersionStr)
+	ast.Nil(err, msgErrParsing)
 
 	version2 = Version{
 		Major: 1,
@@ -75,10 +78,10 @@ func TestCompareEqual(t *testing.T) {
 	ast.False(version.IsSmallerThan(version2))
 	ast.True(version.IsEqual(version2))
 
-	versionStr = "1"
+	otherVersionStr = "1"
 
-	version, err = ParseVersion(versionStr)
-	ast.Nil(err, "Error in parsing")
+	version, err = ParseVersion(otherVersionStr)
+	ast.Nil(err, msgErrParsing)
 
 	version2 = Version{
 		Major: 1,
@@ -91,10 +94,9 @@ func TestCompareEqual(t *testing.T) {
 
 func TestCompareGreater(t *testing.T) {
 	ast := assert.New(t)
-	versionStr := "1.2.3-special"
 
 	version, err := ParseVersion(versionStr)
-	ast.Nil(err, "Error in parsing")
+	ast.Nil(err, msgErrParsing)
 
 	ast.True(version.IsGreaterThan(Version{
 		Major: 0,

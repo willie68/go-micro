@@ -16,7 +16,7 @@ var cl *Client
 func initCl() {
 	var err error
 	StartServer()
-	cl, err = NewClient("https://127.0.0.1:8443", Tenant)
+	cl, err = NewClient("https://127.0.0.1:9443", Tenant)
 	if err != nil {
 		panic(err)
 	}

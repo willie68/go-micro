@@ -17,8 +17,8 @@ import (
 	"github.com/willie68/go-micro/internal/api"
 	"github.com/willie68/go-micro/internal/auth"
 	"github.com/willie68/go-micro/internal/config"
-	"github.com/willie68/go-micro/internal/health"
 	log "github.com/willie68/go-micro/internal/logging"
+	"github.com/willie68/go-micro/internal/services/health"
 	"github.com/willie68/go-micro/internal/utils/httputils"
 	"github.com/willie68/go-micro/pkg/web"
 )
@@ -63,7 +63,8 @@ func APIRoutes(cfn config.Config, trc opentracing.Tracer) (*chi.Mux, error) {
 	// building the routes
 	router.Route("/", func(r chi.Router) {
 		r.Mount(NewConfigHandler().Routes())
-		r.Mount("/", health.Routes())
+
+		r.Mount(health.NewHealthHandler().Routes())
 		if cfn.Metrics.Enable {
 			r.Mount("/metrics", promhttp.Handler())
 		}
@@ -127,7 +128,6 @@ func setDefaultHandler(router *chi.Mux, cfn config.Config, tracer opentracing.Tr
 	router.Use(
 		render.SetContentType(render.ContentTypeJSON),
 		middleware.Logger,
-		//middleware.DefaultCompress,
 		middleware.Recoverer,
 		cors.Handler(cors.Options{
 			// AllowedOrigins: []string{"https://foo.com"}, // Use this to allow specific origin hosts
@@ -172,7 +172,6 @@ func HealthRoutes(cfn config.Config, tracer opentracing.Tracer) *chi.Mux {
 	router.Use(
 		render.SetContentType(render.ContentTypeJSON),
 		middleware.Logger,
-		//middleware.DefaultCompress,
 		middleware.Recoverer,
 	)
 	if tracer != nil {
@@ -200,7 +199,7 @@ func HealthRoutes(cfn config.Config, tracer opentracing.Tracer) *chi.Mux {
 	}
 
 	router.Route("/", func(r chi.Router) {
-		r.Mount("/", health.Routes())
+		r.Mount(health.NewHealthHandler().Routes())
 		if cfn.Metrics.Enable {
 			r.Mount(api.MetricsEndpoint, promhttp.Handler())
 		}

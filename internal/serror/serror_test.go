@@ -6,6 +6,12 @@ import (
 	"testing"
 )
 
+const (
+	service = "my-service"
+	errKey  = "my-error-key"
+	msg     = "this is a message"
+)
+
 type mySpecialError struct {
 	SomeCode    int
 	SomeMessage string
@@ -17,14 +23,14 @@ func (e *mySpecialError) Error() string {
 }
 
 func TestNew(t *testing.T) {
-	Service = "my-service"
-	e := New(500, "my-error-key", "this is a message")
+	Service = service
+	e := New(500, errKey, msg)
 	t.Log(e.Error())
 }
 
 func TestWrap(t *testing.T) {
-	Service = "my-service"
-	e := Wrap(errors.New("my-error"), "my-error-key", "this is a message")
+	Service = service
+	e := Wrap(errors.New("my-error"), errKey, msg)
 	t.Log(e.Error())
 }
 
@@ -39,7 +45,7 @@ func TestWrapper(t *testing.T) {
 		SomeCode:    404,
 		SomeMessage: "not found",
 	}
-	Service = "my-service"
-	e := Wrap(myerr, "my-error-key", "this is a message")
+	Service = service
+	e := Wrap(myerr, errKey)
 	t.Log(e.Error())
 }

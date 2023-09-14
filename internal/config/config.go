@@ -10,6 +10,7 @@ import (
 	"github.com/drone/envsubst"
 	"github.com/pkg/errors"
 	"github.com/samber/do"
+	"github.com/willie68/go-micro/internal/services/health"
 	"gopkg.in/yaml.v3"
 )
 
@@ -21,28 +22,43 @@ const DoServiceConfig = "service_config"
 
 // Config our service configuration
 type Config struct {
-	// port of the http server
-	Port int `yaml:"port"`
-	// port of the https server
-	Sslport int `yaml:"sslport"`
-	// CA service will be used, microvault
-	CA CAService `yaml:"ca"`
-	// this is the url how to connect to this service from outside
-	ServiceURL string `yaml:"serviceURL"`
 	// all secrets will be stored in this file, same structure as the main config file
 	SecretFile string `yaml:"secretfile"`
-	// if you need an API key, use this one
+	// if you need an apikey, use this one
 	Apikey bool `yaml:"apikey"`
+	// all configuration of internal services can be stored here
+	Service Service `yaml:"service"`
 	// configure logging to gelf logging system
 	Logging LoggingConfig `yaml:"logging"`
-	// special config for health checks
-	HealthCheck HealthCheck `yaml:"healthcheck"`
 	// use authentication via jwt
 	Auth Authentication `yaml:"auth"`
 	// opentelemtrie tracer can be configured here
 	OpenTracing OpenTracing `yaml:"opentracing"`
 	// and some metrics
 	Metrics Metrics `yaml:"metrics"`
+}
+
+// Service the configuration of services inside this ms
+type Service struct {
+	HTTP HTTP `yaml:"http"`
+	// special config for health checks
+	HealthSystem health.Config `yaml:"healthcheck"`
+	// CA service will be used, microvault
+	CA CAService `yaml:"ca"`
+}
+
+// HTTP configuration of the http service
+type HTTP struct {
+	// port of the http server
+	Port int `yaml:"port"`
+	// port of the https server
+	Sslport int `yaml:"sslport"`
+	// this is the url how to connect to this service from outside
+	ServiceURL string `yaml:"serviceURL"`
+	// other dns names (used for certificate)
+	DNSNames []string `yaml:"dnss"`
+	// other ips (used for certificate)
+	IPAddresses []string `yaml:"ips"`
 }
 
 // CAService the micro-vault ca service config
@@ -57,11 +73,6 @@ type CAService struct {
 type Authentication struct {
 	Type       string         `yaml:"type"`
 	Properties map[string]any `yaml:"properties"`
-}
-
-// HealthCheck configuration for the health check system
-type HealthCheck struct {
-	Period int `yaml:"period"`
 }
 
 // LoggingConfig configuration for the gelf logging
@@ -86,14 +97,19 @@ type Metrics struct {
 
 // DefaultConfig default configuration
 var DefaultConfig = Config{
-	Port:       8000,
-	Sslport:    8443,
-	ServiceURL: "https://127.0.0.1:8443",
-	SecretFile: "",
-	Apikey:     true,
-	HealthCheck: HealthCheck{
-		Period: 30,
+	Service: Service{
+		HTTP: HTTP{
+			Port:       8000,
+			Sslport:    8443,
+			ServiceURL: "https://127.0.0.1:8443",
+		},
+		HealthSystem: health.Config{
+			Period:     30,
+			StartDelay: 3,
+		},
 	},
+	Apikey:     true,
+	SecretFile: "",
 	Logging: LoggingConfig{
 		Level:    "INFO",
 		Filename: "${configdir}/logging.log",

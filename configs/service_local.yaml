@@ -1,9 +1,29 @@
-# port of the http server
-port: 9480 
-# port of the https server
-sslport: 9443
-# if you use microvault as ca service
-ca:
+#sercret file for storing usernames and passwords
+secretfile: configs/secret.yaml
+# true to activate the usage of a apikey (normaly as http header)
+apikey: false
+service:
+  http:
+    # port of the http server
+    port: 9480
+    # port of the https server for payload only
+    sslport: 9443
+    # this is the servicURL from outside
+    serviceURL: https://localhost:8443
+    # other dns names (used for certificate)
+    dnss: 
+      - host.docker.internal
+      - localhost
+    # other ips (used for certificate)
+    ips: 
+      - 127.0.0.1
+  #configure the healthcheck system
+  healthcheck:
+    # period in seconds to start the healtcheck
+    period: 30
+    startdelay: 3
+
+  ca:
     useca: false
     url: https://127.0.0.1:9543
     accesskey: 3fa6a4bd-74cb-42ff-be40-e5213f8e9b18
@@ -11,18 +31,11 @@ ca:
 
 # this is the servicURL from outside
 serviceURL: https://127.0.0.1:9443
-#sercret file for storing usernames and passwords
-secretfile: configs/secret.yaml
-# true to activate the usage of a apikey (normaly as http header)
-apikey: false
 logging:
     level: debug
     filename: "${logfile}"
     gelf-url: 127.0.0.1
     gelf-port: 12201
-
-healthcheck:
-    period: 30
 
 opentracing:
 #    host: "127.0.0.1:5776"

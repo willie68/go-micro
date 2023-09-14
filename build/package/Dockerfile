@@ -1,6 +1,6 @@
 ##### BUILDER #####
 
-FROM golang:1.20-alpine as builder
+FROM golang:1.21-alpine3.18 as builder
 
 ## Task: Install build deps
 
@@ -37,8 +37,7 @@ RUN chmod 0755 /src/gomicro-service
 
 # hadolint ignore=DL3018
 RUN set -eux; \
-    apk add --no-progress --quiet --no-cache --upgrade --virtual .run-deps \
-        tzdata
+    apk add --no-progress --quiet --no-cache --upgrade --virtual .run-deps 
 
 # hadolint ignore=DL3018,SC2183,DL4006
 RUN set -eu +x; \
@@ -61,7 +60,7 @@ RUN set -eu +x; \
 
 ##### TARGET #####
 
-FROM alpine:3.17
+FROM alpine:3.18
 
 ARG RELEASE
 ENV IMG_VERSION="${RELEASE}"

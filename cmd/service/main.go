@@ -9,7 +9,6 @@ import (
 
 	"github.com/samber/do"
 	"github.com/willie68/go-micro/internal/apiv1"
-	"github.com/willie68/go-micro/internal/health"
 	"github.com/willie68/go-micro/internal/serror"
 	"github.com/willie68/go-micro/internal/services"
 	"github.com/willie68/go-micro/internal/services/shttp"
@@ -86,12 +85,8 @@ func main() {
 	tracer, closer = initJaeger(config.Servicename, serviceConfig.OpenTracing)
 	defer closer.Close()
 
-	healthCheckConfig := health.CheckConfig(serviceConfig.HealthCheck)
-
-	health.InitHealthSystem(healthCheckConfig, tracer)
-
-	log.Logger.Infof("ssl: %t", serviceConfig.Sslport > 0)
-	log.Logger.Infof("serviceURL: %s", serviceConfig.ServiceURL)
+	log.Logger.Infof("ssl: %t", serviceConfig.Service.HTTP.Sslport > 0)
+	log.Logger.Infof("serviceURL: %s", serviceConfig.Service.HTTP.ServiceURL)
 	log.Logger.Infof("apikey: %s", apiv1.APIKey)
 	router, err := apiv1.APIRoutes(serviceConfig, tracer)
 	if err != nil {
@@ -132,14 +127,15 @@ func initLogging() {
 // initConfig override the configuration from the service.yaml with the given commandline parameters
 func initConfig() {
 	if port > 0 {
-		serviceConfig.Port = port
+		serviceConfig.Service.HTTP.Port = port
 	}
 	if sslport > 0 {
-		serviceConfig.Sslport = sslport
+		serviceConfig.Service.HTTP.Sslport = sslport
 	}
 	if serviceURL != "" {
-		serviceConfig.ServiceURL = serviceURL
+		serviceConfig.Service.HTTP.ServiceURL = serviceURL
 	}
+	serviceConfig.Provide()
 }
 
 // initJaeger initialize the jaeger (opentracing) component
