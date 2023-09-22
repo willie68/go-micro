@@ -17,7 +17,7 @@ import (
 	"github.com/willie68/go-micro/internal/api"
 	"github.com/willie68/go-micro/internal/auth"
 	"github.com/willie68/go-micro/internal/config"
-	log "github.com/willie68/go-micro/internal/logging"
+	"github.com/willie68/go-micro/internal/logging"
 	"github.com/willie68/go-micro/internal/services/health"
 	"github.com/willie68/go-micro/internal/utils/httputils"
 	"github.com/willie68/go-micro/pkg/web"
@@ -32,6 +32,8 @@ var BaseURL = fmt.Sprintf("/api/v%s", APIVersion)
 // APIKey the apikey of this service
 var APIKey string
 
+var logger = logging.New().WithName("apiv1")
+
 // defining all sub pathes for api v1
 const configSubpath = "/config"
 
@@ -44,7 +46,7 @@ func token(r *http.Request) (string, error) {
 // APIRoutes configuring the api routes for the main REST API
 func APIRoutes(cfn config.Config, trc opentracing.Tracer) (*chi.Mux, error) {
 	APIKey = getApikey()
-	log.Logger.Infof("baseurl : %s", BaseURL)
+	logger.Infof("baseurl : %s", BaseURL)
 	router := chi.NewRouter()
 	setDefaultHandler(router, cfn, trc)
 
@@ -71,15 +73,15 @@ func APIRoutes(cfn config.Config, trc opentracing.Tracer) (*chi.Mux, error) {
 	})
 	// adding a file server with web client asserts
 	httputils.FileServer(router, "/client", http.FS(web.WebClientAssets))
-	log.Logger.Infof("%s api routes", config.Servicename)
+	logger.Infof("%s api routes", config.Servicename)
 
 	walkFunc := func(method string, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
-		log.Logger.Infof("api route: %s %s", method, route)
+		logger.Infof("api route: %s %s", method, route)
 		return nil
 	}
 
 	if err := chi.Walk(router, walkFunc); err != nil {
-		log.Logger.Alertf("could not walk api routes. %s", err.Error())
+		logger.Alertf("could not walk api routes. %s", err.Error())
 	}
 	return router, nil
 }
@@ -89,7 +91,7 @@ func setJWTHandler(router *chi.Mux, cfn config.Config) error {
 	if err != nil {
 		return err
 	}
-	log.Logger.Infof("jwt config: %v", jwtConfig)
+	logger.Infof("jwt config: %v", jwtConfig)
 	jwtAuth := auth.JWTAuth{
 		Config: jwtConfig,
 	}
@@ -205,13 +207,13 @@ func HealthRoutes(cfn config.Config, tracer opentracing.Tracer) *chi.Mux {
 		}
 	})
 
-	log.Logger.Info("health api routes")
+	logger.Info("health api routes")
 	walkFunc := func(method string, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
-		log.Logger.Infof("health route: %s %s", method, route)
+		logger.Infof("health route: %s %s", method, route)
 		return nil
 	}
 	if err := chi.Walk(router, walkFunc); err != nil {
-		log.Logger.Alertf("could not walk health routes. %s", err.Error())
+		logger.Alertf("could not walk health routes. %s", err.Error())
 	}
 
 	return router

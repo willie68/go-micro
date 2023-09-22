@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -136,7 +135,7 @@ func (c *ConfigHandler) PostConfig(response http.ResponseWriter, request *http.R
 		httputils.Err(response, request, serror.BadRequest(nil, errMissingTenantKey, msg))
 		return
 	}
-	log.Printf("create config: tenant %s", tenant)
+	logger.Infof("create config: tenant %s", tenant)
 
 	if b, err = io.ReadAll(request.Body); err != nil {
 		httputils.Err(response, request, serror.Wrapc(err, http.StatusBadRequest))

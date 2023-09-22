@@ -10,10 +10,12 @@ import (
 	"github.com/go-chi/render"
 	"github.com/samber/do"
 	"github.com/willie68/go-micro/internal/api"
-	log "github.com/willie68/go-micro/internal/logging"
+	"github.com/willie68/go-micro/internal/logging"
 )
 
 const DoSHealth = "health"
+
+var logger = logging.New().WithName("health")
 
 // Config configuration for the healthcheck system
 type Config struct {
@@ -64,7 +66,7 @@ func NewHealthSystem(config Config) (*SHealth, error) {
 }
 
 func (h *SHealth) Init() error {
-	log.Logger.Infof("healthcheck starting with period: %d seconds", h.cfg.Period)
+	logger.Infof("healthcheck starting with period: %d seconds", h.cfg.Period)
 	h.messages = make([]string, 0)
 	h.messages = append(h.messages, "service starting")
 	h.readyz = false
@@ -93,7 +95,7 @@ func (h *SHealth) checkHealthCheckTimer() {
 		h.readyz = false
 		h.messages = []string{"health check not running"}
 		if t.Sub(h.lastChecked) > (time.Second * time.Duration(4*h.cfg.Period)) {
-			log.Logger.Error("panic: health check is not running anymore")
+			logger.Error("panic: health check is not running anymore")
 			panic("panic: health check is not running anymore")
 		}
 	}

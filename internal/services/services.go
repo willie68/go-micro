@@ -7,7 +7,8 @@ import (
 	"github.com/willie68/go-micro/internal/services/shttp"
 )
 
-var (
+var(
+	logger = logging.New().WithName("services")
 	healthService *health.SHealth
 )
 

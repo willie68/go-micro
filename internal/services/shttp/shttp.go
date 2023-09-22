@@ -32,6 +32,7 @@ const (
 	DoSHTTP = "shttp"
 )
 
+var logger = logging.New().WithName("shttp")
 // SHttp a service encapsulating http and https server
 type SHttp struct {
 	cfn     config.HTTP
@@ -80,11 +81,11 @@ func (s *SHttp) ShutdownServers() {
 	defer cancel()
 
 	if err := s.srv.Shutdown(ctx); err != nil {
-		log.Logger.Errorf("shutdown http server error: %v", err)
+		logger.Errorf("shutdown http server error: %v", err)
 	}
 	if s.useSSL {
 		if err := s.sslsrv.Shutdown(ctx); err != nil {
-			log.Logger.Errorf("shutdown https server error: %v", err)
+			logger.Errorf("shutdown https server error: %v", err)
 		}
 	}
 	s.Started = false
@@ -96,7 +97,7 @@ func (s *SHttp) startHTTPSServer(router *chi.Mux) {
 	if s.cfa.UseCA {
 		tlsConfig, err = s.GetTLSConfig()
 		if err != nil {
-			log.Logger.Alertf("could not create tls config. %s", err.Error())
+			logger.Alertf("could not create tls config. %s", err.Error())
 		}
 	} else {
 		h := s.cfn.ServiceURL
@@ -117,7 +118,7 @@ func (s *SHttp) startHTTPSServer(router *chi.Mux) {
 		}
 		tlsConfig, err = gc.GenerateTLSConfig()
 		if err != nil {
-			log.Logger.Alertf("could not create tls config. %s", err.Error())
+			logger.Alertf("could not create tls config. %s", err.Error())
 		}
 	}
 	s.sslsrv = &http.Server{
@@ -129,9 +130,9 @@ func (s *SHttp) startHTTPSServer(router *chi.Mux) {
 		TLSConfig:    tlsConfig,
 	}
 	go func() {
-		log.Logger.Infof("starting https server on address: %s", s.sslsrv.Addr)
+		logger.Infof("starting https server on address: %s", s.sslsrv.Addr)
 		if err := s.sslsrv.ListenAndServeTLS("", ""); err != nil {
-			log.Logger.Alertf("error starting server: %s", err.Error())
+			logger.Alertf("error starting server: %s", err.Error())
 		}
 	}()
 }
@@ -146,9 +147,9 @@ func (s *SHttp) startHTTPServer(router *chi.Mux) {
 		Handler:      router,
 	}
 	go func() {
-		log.Logger.Infof("starting http server on address: %s", s.srv.Addr)
+		logger.Infof("starting http server on address: %s", s.srv.Addr)
 		if err := s.srv.ListenAndServe(); err != nil {
-			log.Logger.Alertf("error starting server: %s", err.Error())
+			logger.Alertf("error starting server: %s", err.Error())
 		}
 	}()
 }
@@ -202,11 +203,11 @@ func (gc *generateCertificate) GenerateTLSConfig() (*tls.Config, error) {
 	case "P521":
 		priv, err = ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
 	default:
-		log.Logger.Fatalf("Unrecognized elliptic curve: %q", gc.EcdsaCurve)
+		logger.Fatalf("Unrecognized elliptic curve: %q", gc.EcdsaCurve)
 		return nil, err
 	}
 	if err != nil {
-		log.Logger.Fatalf("Failed to generate private key: %v", err)
+		logger.Fatalf("Failed to generate private key: %v", err)
 		return nil, err
 	}
 
@@ -216,7 +217,7 @@ func (gc *generateCertificate) GenerateTLSConfig() (*tls.Config, error) {
 	} else {
 		notBefore, err = time.Parse("Jan 2 15:04:05 2006", gc.ValidFrom)
 		if err != nil {
-			log.Logger.Fatalf("Failed to parse creation date: %v", err)
+			logger.Fatalf("Failed to parse creation date: %v", err)
 			return nil, err
 		}
 	}
@@ -226,7 +227,7 @@ func (gc *generateCertificate) GenerateTLSConfig() (*tls.Config, error) {
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
-		log.Logger.Fatalf("Failed to generate serial number: %v", err)
+		logger.Fatalf("Failed to generate serial number: %v", err)
 		return nil, err
 	}
 
@@ -259,13 +260,13 @@ func (gc *generateCertificate) GenerateTLSConfig() (*tls.Config, error) {
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, gc.publicKey(priv), priv)
 	if err != nil {
-		log.Logger.Fatalf("Failed to create certificate: %v", err)
+		logger.Fatalf("Failed to create certificate: %v", err)
 		return nil, err
 	}
 
 	privBytes, err := x509.MarshalPKCS8PrivateKey(priv)
 	if err != nil {
-		log.Logger.Fatalf("Unable to marshal private key: %v", err)
+		logger.Fatalf("Unable to marshal private key: %v", err)
 		return nil, err
 	}
 
@@ -273,7 +274,7 @@ func (gc *generateCertificate) GenerateTLSConfig() (*tls.Config, error) {
 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 	tlsCert, err := tls.X509KeyPair(certPEM, keyPEM)
 	if err != nil {
-		log.Logger.Fatalf("Failed to combine tls key pair: %v", err)
+		logger.Fatalf("Failed to combine tls key pair: %v", err)
 		return nil, err
 	}
 
@@ -326,7 +327,7 @@ func (s *SHttp) GetTLSConfig() (*tls.Config, error) {
 
 	privBytes, err := x509.MarshalPKCS8PrivateKey(prv)
 	if err != nil {
-		log.Logger.Fatalf("Unable to marshal private key: %v", err)
+		logger.Fatalf("Unable to marshal private key: %v", err)
 		return nil, err
 	}
 

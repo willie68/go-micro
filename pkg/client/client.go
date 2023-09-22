@@ -69,18 +69,18 @@ func (c *Client) init(u string) error {
 func (c *Client) GetConfigs() (*[]string, error) {
 	res, err := c.Get("config")
 	if err != nil {
-		logging.Logger.Errorf("get request failed: %v", err)
+		logging.Root.Errorf("get request failed: %v", err)
 		return nil, err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		logging.Logger.Errorf("get bad response: %d", res.StatusCode)
+		logging.Root.Errorf("get bad response: %d", res.StatusCode)
 		return nil, ReadErr(res)
 	}
 	var l []string
 	err = ReadJSON(res, &l)
 	if err != nil {
-		logging.Logger.Errorf("parsing response failed: %v", err)
+		logging.Root.Errorf("parsing response failed: %v", err)
 		return nil, err
 	}
 	return &l, nil
@@ -90,18 +90,18 @@ func (c *Client) GetConfigs() (*[]string, error) {
 func (c *Client) GetConfig(n string) (*pmodel.ConfigDescription, error) {
 	res, err := c.Get(fmt.Sprintf("config/%s", n))
 	if err != nil {
-		logging.Logger.Errorf("get request failed: %v", err)
+		logging.Root.Errorf("get request failed: %v", err)
 		return nil, err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		logging.Logger.Errorf("get bad response: %d", res.StatusCode)
+		logging.Root.Errorf("get bad response: %d", res.StatusCode)
 		return nil, ReadErr(res)
 	}
 	var cd pmodel.ConfigDescription
 	err = ReadJSON(res, &cd)
 	if err != nil {
-		logging.Logger.Errorf("parsing response failed: %v", err)
+		logging.Root.Errorf("parsing response failed: %v", err)
 		return nil, err
 	}
 	return &cd, nil
@@ -111,18 +111,18 @@ func (c *Client) GetConfig(n string) (*pmodel.ConfigDescription, error) {
 func (c *Client) GetMyConfig() (*pmodel.ConfigDescription, error) {
 	res, err := c.Get("config/_own")
 	if err != nil {
-		logging.Logger.Errorf("get request failed: %v", err)
+		logging.Root.Errorf("get request failed: %v", err)
 		return nil, err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		logging.Logger.Errorf("get bad response: %d", res.StatusCode)
+		logging.Root.Errorf("get bad response: %d", res.StatusCode)
 		return nil, ReadErr(res)
 	}
 	var cd pmodel.ConfigDescription
 	err = ReadJSON(res, &cd)
 	if err != nil {
-		logging.Logger.Errorf("parsing response failed: %v", err)
+		logging.Root.Errorf("parsing response failed: %v", err)
 		return nil, err
 	}
 	return &cd, nil
@@ -132,12 +132,12 @@ func (c *Client) GetMyConfig() (*pmodel.ConfigDescription, error) {
 func (c *Client) PutConfig(pcd pmodel.ConfigDescription) (string, error) {
 	res, err := c.PostJSON("config/", pcd)
 	if err != nil {
-		logging.Logger.Errorf("put request failed: %v", err)
+		logging.Root.Errorf("put request failed: %v", err)
 		return "", err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusCreated {
-		logging.Logger.Errorf("put bad response: %d", res.StatusCode)
+		logging.Root.Errorf("put bad response: %d", res.StatusCode)
 		return "", ReadErr(res)
 	}
 	cd := struct {
@@ -145,7 +145,7 @@ func (c *Client) PutConfig(pcd pmodel.ConfigDescription) (string, error) {
 	}{}
 	err = ReadJSON(res, &cd)
 	if err != nil {
-		logging.Logger.Errorf("parsing response failed: %v", err)
+		logging.Root.Errorf("parsing response failed: %v", err)
 		return "", err
 	}
 	return cd.ID, nil
@@ -155,13 +155,13 @@ func (c *Client) PutConfig(pcd pmodel.ConfigDescription) (string, error) {
 func (c *Client) DeleteConfig(n string) (bool, error) {
 	res, err := c.Delete(fmt.Sprintf("config/%s", n))
 	if err != nil {
-		logging.Logger.Errorf("delete request failed: %v", err)
+		logging.Root.Errorf("delete request failed: %v", err)
 		return false, err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		if res.StatusCode != http.StatusNotFound {
-			logging.Logger.Errorf("delete bad response: %d", res.StatusCode)
+			logging.Root.Errorf("delete bad response: %d", res.StatusCode)
 			return false, ReadErr(res)
 		}
 		return false, nil
@@ -211,23 +211,23 @@ func (c *Client) do(req *http.Request) (*http.Response, error) {
 	ul := req.URL.RequestURI()
 	res, err := c.clt.Do(req)
 	if err != nil {
-		logging.Logger.Errorf("request %s %s error: %v", req.Method, ul, err)
+		logging.Root.Errorf("request %s %s error: %v", req.Method, ul, err)
 	} else {
-		logging.Logger.Infof("request %s %s returned %s", req.Method, ul, res.Status)
+		logging.Root.Infof("request %s %s returned %s", req.Method, ul, res.Status)
 	}
 	return res, err
 }
 
 func (c *Client) newRequest(method, endpoint string, body io.Reader) (*http.Request, error) {
 	ul := fmt.Sprintf("%s/%s", c.url, endpoint)
-	logging.Logger.Debugf("creating request %s %s", method, ul)
+	logging.Root.Debugf("creating request %s %s", method, ul)
 	req, err := http.NewRequestWithContext(c.ctx, method, ul, body)
 	if err != nil {
-		logging.Logger.Errorf("cannot create request %s %s", method, ul)
+		logging.Root.Errorf("cannot create request %s %s", method, ul)
 		return nil, err
 	}
 	req.Header.Set("tenant", c.tenant)
-	logging.Logger.Debugf("request %s %s", method, ul)
+	logging.Root.Debugf("request %s %s", method, ul)
 	return req, nil
 }
 

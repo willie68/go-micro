@@ -35,7 +35,7 @@ var (
 
 func init() {
 	// variables for parameter override
-	log.Logger.Info("init service")
+	log.Root.Info("init service")
 	flag.IntVarP(&port, "port", "p", 0, "port of the http server.")
 	flag.IntVarP(&sslport, "sslport", "t", 0, "port of the https server.")
 	flag.StringVarP(&configFile, "config", "c", config.File, "this is the path and filename to the config file")
@@ -51,23 +51,23 @@ func init() {
 // @name apikey
 func main() {
 	flag.Parse()
-	defer log.Logger.Close()
+	defer log.Root.Close()
 
 	serror.Service = config.Servicename
 	config.File = configFile
 	if config.File == "" {
 		cfgFile, err := config.GetDefaultConfigfile()
 		if err != nil {
-			log.Logger.Errorf("error getting default config file: %v", err)
+			log.Root.Errorf("error getting default config file: %v", err)
 			panic("error getting default config file")
 		}
 		config.File = cfgFile
 	}
 
-	log.Logger.Infof("using config file: %s", configFile)
+	log.Root.Infof("using config file: %s", configFile)
 
 	if err := config.Load(); err != nil {
-		log.Logger.Alertf("can't load config file: %s", err.Error())
+		log.Root.Alertf("can't load config file: %s", err.Error())
 		panic("can't load config file")
 	}
 
@@ -76,22 +76,22 @@ func main() {
 	initLogging()
 
 	if err := services.InitServices(serviceConfig); err != nil {
-		log.Logger.Alertf("error creating services: %v", err)
+		log.Root.Alertf("error creating services: %v", err)
 		panic("error creating services")
 	}
-	log.Logger.Info("service is starting")
+	log.Root.Info("service is starting")
 
 	var closer io.Closer
 	tracer, closer = initJaeger(config.Servicename, serviceConfig.OpenTracing)
 	defer closer.Close()
 
-	log.Logger.Infof("ssl: %t", serviceConfig.Service.HTTP.Sslport > 0)
-	log.Logger.Infof("serviceURL: %s", serviceConfig.Service.HTTP.ServiceURL)
-	log.Logger.Infof("apikey: %s", apiv1.APIKey)
+	log.Root.Infof("ssl: %t", serviceConfig.Service.HTTP.Sslport > 0)
+	log.Root.Infof("serviceURL: %s", serviceConfig.Service.HTTP.ServiceURL)
+	log.Root.Infof("apikey: %s", apiv1.APIKey)
 	router, err := apiv1.APIRoutes(serviceConfig, tracer)
 	if err != nil {
 		errstr := fmt.Sprintf("could not create api routes. %s", err.Error())
-		log.Logger.Alertf(errstr)
+		log.Root.Alertf(errstr)
 		panic(errstr)
 	}
 
@@ -100,28 +100,25 @@ func main() {
 	sh := do.MustInvokeNamed[shttp.SHttp](nil, shttp.DoSHTTP)
 	sh.StartServers(router, healthRouter)
 
-	log.Logger.Info("waiting for clients")
+	log.Root.Info("waiting for clients")
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	<-c
 
 	sh.ShutdownServers()
-	log.Logger.Info("finished")
+	log.Root.Info("finished")
 
 	os.Exit(0)
 }
 
 // initLogging initialize the logging, especially the gelf logger
 func initLogging() {
-	log.Logger.SetLevel(serviceConfig.Logging.Level)
 	var err error
 	serviceConfig.Logging.Filename, err = config.ReplaceConfigdir(serviceConfig.Logging.Filename)
 	if err != nil {
-		log.Logger.Errorf("error on config dir: %v", err)
+		log.Root.Errorf("error on config dir: %v", err)
 	}
-	log.Logger.GelfURL = serviceConfig.Logging.Gelfurl
-	log.Logger.GelfPort = serviceConfig.Logging.Gelfport
-	log.Logger.Init()
+	log.Init(serviceConfig.Logging)
 }
 
 // initConfig override the configuration from the service.yaml with the given commandline parameters
