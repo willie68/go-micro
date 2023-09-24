@@ -235,6 +235,7 @@ func (gc *generateCertificate) GenerateTLSConfig() (*tls.Config, error) {
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			Organization: []string{gc.Organization},
+			CommonName:   gc.ServiceName,
 		},
 		NotBefore: notBefore,
 		NotAfter:  notAfter,
