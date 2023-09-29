@@ -3,7 +3,7 @@ secretfile: ""
 # true to activate the usage of a apikey (normaly as http header)
 apikey: false
 
-service:
+services:
   http:
     # port of the http server
     port: 8080

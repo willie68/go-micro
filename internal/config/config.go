@@ -28,7 +28,7 @@ type Config struct {
 	// if you need an apikey, use this one
 	Apikey bool `yaml:"apikey"`
 	// all configuration of internal services can be stored here
-	Service Service `yaml:"service"`
+	Services Services `yaml:"services"`
 	// configure logging to gelf logging system
 	Logging logging.LoggingConfig `yaml:"logging"`
 	// use authentication via jwt
@@ -39,8 +39,8 @@ type Config struct {
 	Metrics Metrics `yaml:"metrics"`
 }
 
-// Service the configuration of services inside this ms
-type Service struct {
+// Services the configuration of services inside this ms
+type Services struct {
 	HTTP HTTP `yaml:"http"`
 	// special config for health checks
 	HealthSystem health.Config `yaml:"healthcheck"`
@@ -89,7 +89,7 @@ type Metrics struct {
 
 // DefaultConfig default configuration
 var DefaultConfig = Config{
-	Service: Service{
+	Services: Services{
 		HTTP: HTTP{
 			Port:       8000,
 			Sslport:    8443,

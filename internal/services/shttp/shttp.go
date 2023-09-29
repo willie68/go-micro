@@ -23,7 +23,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/samber/do"
 	"github.com/willie68/go-micro/internal/config"
-	log "github.com/willie68/go-micro/internal/logging"
+	"github.com/willie68/go-micro/internal/logging"
 	mv "github.com/willie68/micro-vault/pkg/client"
 )
 
@@ -33,6 +33,7 @@ const (
 )
 
 var logger = logging.New().WithName("shttp")
+
 // SHttp a service encapsulating http and https server
 type SHttp struct {
 	cfn     config.HTTP

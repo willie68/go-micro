@@ -23,13 +23,13 @@ func TestLoadFromYaml(t *testing.T) {
 	ast.Nil(err)
 	c := Get()
 
-	ast.Equal(8000, Get().Service.HTTP.Port)
-	ast.Equal(8443, Get().Service.HTTP.Sslport)
+	ast.Equal(8000, Get().Services.HTTP.Port)
+	ast.Equal(8443, Get().Services.HTTP.Sslport)
 
-	ast.Equal(60, Get().Service.HealthSystem.Period)
-	ast.Equal(3, Get().Service.HealthSystem.StartDelay)
+	ast.Equal(60, Get().Services.HealthSystem.Period)
+	ast.Equal(3, Get().Services.HealthSystem.StartDelay)
 	ast.Equal("", Get().SecretFile)
-	ast.Equal("https://127.0.0.1:8443", Get().Service.HTTP.ServiceURL)
+	ast.Equal("https://127.0.0.1:8443", Get().Services.HTTP.ServiceURL)
 	c.Provide()
 
 	cfg := do.MustInvokeNamed[Config](nil, DoServiceConfig)
@@ -43,13 +43,13 @@ func TestDefaultConfig(t *testing.T) {
 	config = DefaultConfig
 	cnf := Get()
 
-	ast.Equal(8000, cnf.Service.HTTP.Port)
-	ast.Equal(8443, cnf.Service.HTTP.Sslport)
+	ast.Equal(8000, cnf.Services.HTTP.Port)
+	ast.Equal(8443, cnf.Services.HTTP.Sslport)
 
-	ast.Equal(30, cnf.Service.HealthSystem.Period)
-	ast.Equal(3, cnf.Service.HealthSystem.StartDelay)
+	ast.Equal(30, cnf.Services.HealthSystem.Period)
+	ast.Equal(3, cnf.Services.HealthSystem.StartDelay)
 	ast.Equal("", cnf.SecretFile)
-	ast.Equal("https://127.0.0.1:8443", cnf.Service.HTTP.ServiceURL)
+	ast.Equal("https://127.0.0.1:8443", cnf.Services.HTTP.ServiceURL)
 
 	ast.Equal("INFO", cnf.Logging.Level)
 }
@@ -103,5 +103,5 @@ func TestSecretMapping(t *testing.T) {
 	err := Load()
 	ast.Nil(err)
 
-	ast.Equal(120, Get().Service.HealthSystem.Period)
+	ast.Equal(120, Get().Services.HealthSystem.Period)
 }

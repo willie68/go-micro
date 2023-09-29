@@ -1,6 +1,6 @@
 secretfile: ""
 apikey: false
-service:
+services:
   http:
     # port of the http server
     port: 8000

@@ -85,8 +85,8 @@ func main() {
 	tracer, closer = initJaeger(config.Servicename, serviceConfig.OpenTracing)
 	defer closer.Close()
 
-	log.Root.Infof("ssl: %t", serviceConfig.Service.HTTP.Sslport > 0)
-	log.Root.Infof("serviceURL: %s", serviceConfig.Service.HTTP.ServiceURL)
+	log.Root.Infof("ssl: %t", serviceConfig.Services.HTTP.Sslport > 0)
+	log.Root.Infof("serviceURL: %s", serviceConfig.Services.HTTP.ServiceURL)
 	log.Root.Infof("apikey: %s", apiv1.APIKey)
 	router, err := apiv1.APIRoutes(serviceConfig, tracer)
 	if err != nil {
@@ -124,13 +124,13 @@ func initLogging() {
 // initConfig override the configuration from the service.yaml with the given commandline parameters
 func initConfig() {
 	if port > 0 {
-		serviceConfig.Service.HTTP.Port = port
+		serviceConfig.Services.HTTP.Port = port
 	}
 	if sslport > 0 {
-		serviceConfig.Service.HTTP.Sslport = sslport
+		serviceConfig.Services.HTTP.Sslport = sslport
 	}
 	if serviceURL != "" {
-		serviceConfig.Service.HTTP.ServiceURL = serviceURL
+		serviceConfig.Services.HTTP.ServiceURL = serviceURL
 	}
 	serviceConfig.Provide()
 }
