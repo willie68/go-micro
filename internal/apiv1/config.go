@@ -73,7 +73,7 @@ func (c *ConfigHandler) GetConfigs(response http.ResponseWriter, request *http.R
 		httputils.Err(response, request, serror.BadRequest(nil, errMissingTenantKey, msg))
 		return
 	}
-	l, err := c.cfgs.List()
+	l, err := c.cfgs.ListConfigs()
 	if err != nil {
 		httputils.Err(response, request, serror.Wrapc(err, http.StatusInternalServerError))
 		return

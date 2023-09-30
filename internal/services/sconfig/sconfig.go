@@ -64,8 +64,8 @@ func (s *SConfig) HasConfig(n string) bool {
 	return ok
 }
 
-// List list all names of configs
-func (s *SConfig) List() ([]string, error) {
+// ListConfigs list all names of configs
+func (s *SConfig) ListConfigs() ([]string, error) {
 	l := make([]string, 0)
 	s.cfgs.Range(func(key, value any) bool {
 		n, ok := key.(string)

@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "github.com/willie68/go-micro/pkg/protobuf/protobuf";
+
+package protobuf;
+
+service Config {
+    rpc List (ListRequest) returns (ListReply) {}
+}
+
+message ListRequest {
+    string Key = 1; 
+}
+
+message ListReply {
+    repeated string Name = 1;
+}
