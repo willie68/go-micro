@@ -88,7 +88,7 @@ func TestList(t *testing.T) {
 		ast.Nil(err)
 	}
 
-	l, err := sc.List()
+	l, err := sc.ListConfigs()
 	ast.Nil(err)
 	ast.Equal(99, len(l))
 
