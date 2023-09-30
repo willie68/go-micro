@@ -17,6 +17,9 @@ services:
     # other ips (used for certificate)
     ips: 
       - 127.0.0.1
+  grpc:
+    port: 9490
+    usessl: true
   #configure the healthcheck system
   healthcheck:
     # period in seconds to start the healtcheck

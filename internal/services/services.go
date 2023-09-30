@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/willie68/go-micro/internal/config"
 	"github.com/willie68/go-micro/internal/logging"
+	"github.com/willie68/go-micro/internal/services/grpc"
 	"github.com/willie68/go-micro/internal/services/health"
 	"github.com/willie68/go-micro/internal/services/sconfig"
 	"github.com/willie68/go-micro/internal/services/shttp"
@@ -28,6 +29,7 @@ func InitServices(cfg config.Config) error {
 
 	healthService.Register(s)
 
+	InitGRPCService(cfg)
 	return InitRESTService(cfg)
 }
 
@@ -39,6 +41,10 @@ func InitHelperServices(cfg config.Config) error {
 		return err
 	}
 	return nil
+}
+
+func InitGRPCService(cfg config.Config) {
+	grpc.NewGRPC(cfg.Services.GRPC)
 }
 
 // InitRESTService initialise REST Services

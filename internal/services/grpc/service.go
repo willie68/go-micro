@@ -75,6 +75,7 @@ func (g *SgRPC) init() error {
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	}
 	g.grpcServer = grpc.NewServer(opts...)
+	return nil
 }
 
 // GRPCServer getting the underlying GRPCServer

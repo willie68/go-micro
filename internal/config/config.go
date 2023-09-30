@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/samber/do"
 	"github.com/willie68/go-micro/internal/logging"
+	"github.com/willie68/go-micro/internal/services/grpc"
 	"github.com/willie68/go-micro/internal/services/health"
 	"gopkg.in/yaml.v3"
 )
@@ -41,7 +42,8 @@ type Config struct {
 
 // Services the configuration of services inside this ms
 type Services struct {
-	HTTP HTTP `yaml:"http"`
+	HTTP HTTP        `yaml:"http"`
+	GRPC grpc.Config `yaml:"grpc"`
 	// special config for health checks
 	HealthSystem health.Config `yaml:"healthcheck"`
 	// CA service will be used, microvault
