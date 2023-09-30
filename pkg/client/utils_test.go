@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
