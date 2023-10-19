@@ -13,8 +13,6 @@ import (
 	"github.com/willie68/go-micro/internal/logging"
 )
 
-const DoSHealth = "health"
-
 var logger = logging.New().WithName("health")
 
 // Config configuration for the healthcheck system
@@ -61,7 +59,7 @@ func NewHealthSystem(config Config) (*SHealth, error) {
 	if err != nil {
 		return nil, err
 	}
-	do.ProvideNamedValue[*SHealth](nil, DoSHealth, &shealth)
+	do.ProvideValue[*SHealth](nil, &shealth)
 	return &shealth, nil
 }
 
@@ -147,7 +145,7 @@ type Handler struct {
 
 func NewHealthHandler() api.Handler {
 	return &Handler{
-		health: do.MustInvokeNamed[*SHealth](nil, DoSHealth),
+		health: do.MustInvoke[*SHealth](nil),
 	}
 }
 

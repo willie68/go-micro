@@ -9,9 +9,6 @@ import (
 	"github.com/willie68/go-micro/internal/serror"
 )
 
-// DoConfig dependency injection key name for sconfig
-const DoConfig = "configs"
-
 // SConfig config management
 type SConfig struct {
 	cfgs sync.Map
@@ -24,7 +21,7 @@ func NewSConfig() (*SConfig, error) {
 	gs := SConfig{
 		cfgs: sync.Map{},
 	}
-	do.ProvideNamedValue[*SConfig](nil, DoConfig, &gs)
+	do.ProvideValue[*SConfig](nil, &gs)
 	return &gs, nil
 }
 

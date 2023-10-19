@@ -27,11 +27,6 @@ import (
 	mv "github.com/willie68/micro-vault/pkg/client"
 )
 
-const (
-	// DoSHTTP naming constant for dependency injection
-	DoSHTTP = "shttp"
-)
-
 var logger = logging.New().WithName("shttp")
 
 // SHttp a service encapsulating http and https server
@@ -53,7 +48,7 @@ func NewSHttp(cfn config.HTTP, cfgCa config.CAService) (*SHttp, error) {
 	}
 	sh.init()
 
-	do.ProvideNamedValue[SHttp](nil, DoSHTTP, sh)
+	do.ProvideNamedValue[SHttp](nil, sh)
 
 	return &sh, nil
 }

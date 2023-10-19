@@ -97,7 +97,7 @@ func main() {
 
 	healthRouter := apiv1.HealthRoutes(serviceConfig, tracer)
 
-	sh := do.MustInvokeNamed[shttp.SHttp](nil, shttp.DoSHTTP)
+	sh := do.MustInvoke[shttp.SHttp](nil)
 	sh.StartServers(router, healthRouter)
 
 	log.Root.Info("waiting for clients")

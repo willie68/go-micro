@@ -40,7 +40,7 @@ type ConfigHandler struct {
 // NewConfigHandler creates a new REST config handler
 func NewConfigHandler() api.Handler {
 	return &ConfigHandler{
-		cfgs: do.MustInvokeNamed[*sconfig.SConfig](nil, sconfig.DoConfig),
+		cfgs: do.MustInvoke[*sconfig.SConfig](nil),
 	}
 }
 

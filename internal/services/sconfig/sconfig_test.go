@@ -17,10 +17,10 @@ func TestDI(t *testing.T) {
 	_, err := NewSConfig()
 	ast.Nil(err)
 
-	sc2 := do.MustInvokeNamed[*SConfig](nil, DoConfig)
+	sc2 := do.MustInvoke[*SConfig](nil)
 	ast.NotNil(sc2)
 
-	do.MustShutdownNamed(nil, DoConfig)
+	do.MustShutdown[SConfig](nil)
 }
 
 func TestCRUD(t *testing.T) {
@@ -58,7 +58,7 @@ func TestCRUD(t *testing.T) {
 	ast.NotNil(err)
 	ast.Nil(cd2)
 
-	do.MustShutdownNamed(nil, DoConfig)
+	do.MustShutdown[SConfig](nil)
 }
 
 func TestNIY(t *testing.T) {
@@ -70,7 +70,7 @@ func TestNIY(t *testing.T) {
 	ast.NotNil(err)
 	ast.True(errors.Is(serror.ErrNotImplementedYet, err))
 
-	do.MustShutdownNamed(nil, DoConfig)
+	do.MustShutdown[SConfig](nil)
 }
 
 func TestList(t *testing.T) {
@@ -92,5 +92,5 @@ func TestList(t *testing.T) {
 	ast.Nil(err)
 	ast.Equal(99, len(l))
 
-	do.MustShutdownNamed(nil, DoConfig)
+	do.MustShutdown[SConfig](nil)
 }

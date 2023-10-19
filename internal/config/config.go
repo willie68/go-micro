@@ -18,9 +18,6 @@ import (
 // Servicename the name of this service
 const Servicename = "go-micro"
 
-// DoServiceConfig the name of the injected config
-const DoServiceConfig = "service_config"
-
 // Config our service configuration
 type Config struct {
 	// all secrets will be stored in this file, same structure as the main config file
@@ -159,7 +156,7 @@ func init() {
 
 // Provide provide the config to the dependency injection
 func (c *Config) Provide() {
-	do.ProvideNamedValue[Config](nil, DoServiceConfig, *c)
+	do.ProvideValue[Config](nil, *c)
 }
 
 // Get returns loaded config
