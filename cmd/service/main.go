@@ -25,21 +25,16 @@ import (
 )
 
 var (
-	port          int
-	sslport       int
-	serviceURL    string
 	configFile    string
 	serviceConfig config.Config
 	tracer        opentracing.Tracer
+	c             chan os.Signal
 )
 
 func init() {
 	// variables for parameter override
 	log.Root.Info("init service")
-	flag.IntVarP(&port, "port", "p", 0, "port of the http server.")
-	flag.IntVarP(&sslport, "sslport", "t", 0, "port of the https server.")
 	flag.StringVarP(&configFile, "config", "c", config.File, "this is the path and filename to the config file")
-	flag.StringVarP(&serviceURL, "serviceURL", "u", "", "service url from outside")
 }
 
 // @title GoMicro service API
@@ -72,7 +67,7 @@ func main() {
 	}
 
 	serviceConfig = config.Get()
-	initConfig()
+	serviceConfig.Provide()
 	initLogging()
 
 	if err := services.InitServices(serviceConfig); err != nil {
@@ -85,8 +80,8 @@ func main() {
 	tracer, closer = initJaeger(config.Servicename, serviceConfig.OpenTracing)
 	defer closer.Close()
 
-	log.Root.Infof("ssl: %t", serviceConfig.Services.HTTP.Sslport > 0)
-	log.Root.Infof("serviceURL: %s", serviceConfig.Services.HTTP.ServiceURL)
+	log.Root.Infof("ssl: %t", serviceConfig.HTTP.Sslport > 0)
+	log.Root.Infof("serviceURL: %s", serviceConfig.HTTP.ServiceURL)
 	log.Root.Infof("apikey: %s", apiv1.APIKey)
 	router, err := apiv1.APIRoutes(serviceConfig, tracer)
 	if err != nil {
@@ -101,7 +96,7 @@ func main() {
 	sh.StartServers(router, healthRouter)
 
 	log.Root.Info("waiting for clients")
-	c := make(chan os.Signal, 1)
+	c = make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	<-c
 
@@ -119,20 +114,6 @@ func initLogging() {
 		log.Root.Errorf("error on config dir: %v", err)
 	}
 	log.Init(serviceConfig.Logging)
-}
-
-// initConfig override the configuration from the service.yaml with the given commandline parameters
-func initConfig() {
-	if port > 0 {
-		serviceConfig.Services.HTTP.Port = port
-	}
-	if sslport > 0 {
-		serviceConfig.Services.HTTP.Sslport = sslport
-	}
-	if serviceURL != "" {
-		serviceConfig.Services.HTTP.ServiceURL = serviceURL
-	}
-	serviceConfig.Provide()
 }
 
 // initJaeger initialize the jaeger (opentracing) component

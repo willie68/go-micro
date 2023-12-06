@@ -3,30 +3,33 @@ package services
 import (
 	"github.com/willie68/go-micro/internal/config"
 	"github.com/willie68/go-micro/internal/logging"
+	"github.com/willie68/go-micro/internal/services/adrsvc/adrfact"
 	"github.com/willie68/go-micro/internal/services/health"
-	"github.com/willie68/go-micro/internal/services/sconfig"
 	"github.com/willie68/go-micro/internal/services/shttp"
 )
 
 var (
-	logger        = logging.New().WithName("services")
-	healthService *health.SHealth
+	logger = logging.New().WithName("services")
 )
 
 // InitServices initialise the service system
 func InitServices(cfg config.Config) error {
+	logger.Debug("initialise services")
 	err := InitHelperServices(cfg)
 	if err != nil {
 		return err
 	}
 
 	// here you can add more services
-	s, err := sconfig.NewSConfig()
+	s, err := adrfact.New(cfg.AddressStorage)
 	if err != nil {
 		return err
 	}
 
-	healthService.Register(s)
+	err = health.Register(s)
+	if err != nil {
+		return err
+	}
 
 	return InitRESTService(cfg)
 }
@@ -34,18 +37,12 @@ func InitServices(cfg config.Config) error {
 // InitHelperServices initialise the helper services like Healthsystem
 func InitHelperServices(cfg config.Config) error {
 	var err error
-	healthService, err = health.NewHealthSystem(cfg.Services.HealthSystem)
-	if err != nil {
-		return err
-	}
-	return nil
+	_, err = health.NewHealthSystem(cfg.HealthSystem)
+	return err
 }
 
 // InitRESTService initialise REST Services
 func InitRESTService(cfg config.Config) error {
-	_, err := shttp.NewSHttp(cfg.Services.HTTP, cfg.Services.CA)
-	if err != nil {
-		return err
-	}
-	return nil
+	_, err := shttp.NewSHttp(cfg.HTTP, cfg.CA)
+	return err
 }

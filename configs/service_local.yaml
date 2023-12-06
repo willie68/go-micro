@@ -2,44 +2,52 @@
 secretfile: configs/secret.yaml
 # true to activate the usage of a apikey (normaly as http header)
 apikey: false
-services:
-  http:
-    # port of the http server
-    port: 9480
-    # port of the https server for payload only
-    sslport: 9443
-    # this is the servicURL from outside
-    serviceURL: https://localhost:8443
-    # other dns names (used for certificate)
-    dnss: 
-      - host.docker.internal
-      - localhost
-    # other ips (used for certificate)
-    ips: 
-      - 127.0.0.1
-  #configure the healthcheck system
-  healthcheck:
-    # period in seconds to start the healtcheck
-    period: 30
-    startdelay: 3
+http:
+  # port of the http server
+  port: 9480
+  # port of the https server for payload only
+  sslport: 9443
+  # this is the servicURL from outside
+  serviceURL: https://localhost:8443
+  # other dns names (used for certificate)
+  dnss: 
+    - host.docker.internal
+    - localhost
+  # other ips (used for certificate)
+  ips: 
+    - 127.0.0.1
+#configure the healthcheck system
+healthcheck:
+  # period in seconds to start the healtcheck
+  period: 30
+  startdelay: 3
 
-  ca:
-    useca: false
-    url: https://127.0.0.1:9543
-    accesskey: 3fa6a4bd-74cb-42ff-be40-e5213f8e9b18
-    secret: 7d122aab1d57b0177da31829ac791587
+# using a ca for the certificate
+ca:
+  useca: false
+  url: https://127.0.0.1:9543
+  accesskey: 3fa6a4bd-74cb-42ff-be40-e5213f8e9b18
+  secret: 7d122aab1d57b0177da31829ac791587
 
-# this is the servicURL from outside
-serviceURL: https://127.0.0.1:9443
+# logging config
 logging:
     level: debug
     filename: "${logfile}"
     gelf-url: 127.0.0.1
     gelf-port: 12201
 
+# config for open telemtrie
 opentracing:
 #    host: "127.0.0.1:5776"
 #    endpoint: "http://127.0.0.1:14268/api/traces"^
 
+# activate the metrics endpoint
 metrics:
   enable: true
+
+# active the profiling
+profiling:
+  enable: true
+
+addressstorage:
+  type: "internal"

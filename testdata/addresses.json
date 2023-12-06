@@ -1,0 +1,92 @@
+[
+  {
+    "id": "1",
+    "lastname": "Smith",
+    "firstname": "John",
+    "street": "123 Main St",
+    "city": "Anytown",
+    "state": "CA",
+    "zip_code": "12345"
+  },
+  {
+    "id": "2",
+    "lastname": "Johnson",
+    "firstname": "Alice",
+    "street": "456 Oak St",
+    "city": "Sometown",
+    "state": "NY",
+    "zip_code": "67890"
+  },
+  {
+    "id": "3",
+    "lastname": "Williams",
+    "firstname": "Bob",
+    "street": "789 Pine St",
+    "city": "Anothercity",
+    "state": "TX",
+    "zip_code": "54321"
+  },
+  {
+    "id": "4",
+    "lastname": "Davis",
+    "firstname": "Emily",
+    "street": "101 Elm St",
+    "city": "Yourtown",
+    "state": "FL",
+    "zip_code": "98765"
+  },
+  {
+    "id": "5",
+    "lastname": "Brown",
+    "firstname": "Chris",
+    "street": "202 Birch St",
+    "city": "Hometown",
+    "state": "WA",
+    "zip_code": "23456"
+  },
+  {
+    "id": "6",
+    "lastname": "Miller",
+    "firstname": "Grace",
+    "street": "303 Cedar St",
+    "city": "Smalltown",
+    "state": "GA",
+    "zip_code": "87654"
+  },
+  {
+    "id": "7",
+    "lastname": "Wilson",
+    "firstname": "David",
+    "street": "404 Maple St",
+    "city": "Newtown",
+    "state": "OH",
+    "zip_code": "34567"
+  },
+  {
+    "id": "8",
+    "lastname": "Moore",
+    "firstname": "Olivia",
+    "street": "505 Walnut St",
+    "city": "Cityville",
+    "state": "IL",
+    "zip_code": "65432"
+  },
+  {
+    "id": "9",
+    "lastname": "Taylor",
+    "firstname": "Michael",
+    "street": "606 Pineapple St",
+    "city": "Tropicaltown",
+    "state": "FL",
+    "zip_code": "12345"
+  },
+  {
+    "id": "10",
+    "lastname": "Anderson",
+    "firstname": "Sophia",
+    "street": "707 Cherry St",
+    "city": "Cherryville",
+    "state": "NC",
+    "zip_code": "67890"
+  }
+]

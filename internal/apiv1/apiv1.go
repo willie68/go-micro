@@ -35,7 +35,7 @@ var APIKey string
 var logger = logging.New().WithName("apiv1")
 
 // defining all sub pathes for api v1
-const configSubpath = "/config"
+const addressesSubpath = "/addresses"
 
 func token(r *http.Request) (string, error) {
 	tk := r.Header.Get("Authorization")
@@ -64,7 +64,7 @@ func APIRoutes(cfn config.Config, trc opentracing.Tracer) (*chi.Mux, error) {
 
 	// building the routes
 	router.Route("/", func(r chi.Router) {
-		r.Mount(NewConfigHandler().Routes())
+		r.Mount(NewAdrHandler().Routes())
 
 		r.Mount(health.NewHealthHandler().Routes())
 		if cfn.Metrics.Enable {
@@ -204,6 +204,10 @@ func HealthRoutes(cfn config.Config, tracer opentracing.Tracer) *chi.Mux {
 		r.Mount(health.NewHealthHandler().Routes())
 		if cfn.Metrics.Enable {
 			r.Mount(api.MetricsEndpoint, promhttp.Handler())
+		}
+		if cfn.Profiling.Enable {
+			// Define the routes for serving profiling data
+			r.Mount("/debug", middleware.Profiler())
 		}
 	})
 

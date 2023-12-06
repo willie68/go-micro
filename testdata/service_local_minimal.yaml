@@ -1,0 +1,16 @@
+secretfile: ""
+http:
+  port: 8000
+  sslport: 8543
+  serviceURL: https://localhost:8543
+  servicename: "auditor-service"
+healthcheck:
+  period: 60
+  startdelay: 3
+metrics:
+  enable: true
+logging:
+  gelf-url: ${GELFURL}
+  gelf-port: 12202
+addressstorage:
+  type: "internal"

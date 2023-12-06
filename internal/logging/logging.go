@@ -11,8 +11,8 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// LoggingConfig configuration for the gelf logging
-type LoggingConfig struct {
+// Config configuration for the gelf logging
+type Config struct {
 	Level    string `yaml:"level"`
 	Filename string `yaml:"filename"`
 
@@ -32,7 +32,7 @@ const (
 // Levels defining a list of levels
 var Levels = []string{Debug, Info, Alert, Error, Fatal}
 
-// ServiceLogger main type for logging
+// Logger main type for logging
 type Logger struct {
 	Level      string
 	LevelInt   int
@@ -55,13 +55,15 @@ func init() {
 	Root.name = "Root"
 }
 
-func Init(cfg LoggingConfig) {
+// Init initialise the service logger
+func Init(cfg Config) {
 	Root.SetLevel(cfg.Level)
 	Root.GelfURL = cfg.Gelfurl
 	Root.GelfPort = cfg.Gelfport
 	Root.Init()
 }
 
+// New creating a new logger instance
 func New() *Logger {
 	var lo *golf.Logger
 	if Root.gelfActive {
@@ -119,6 +121,7 @@ func (s *Logger) dail() {
 	}
 }
 
+// WithLevel setting the level of the logger
 func (s *Logger) WithLevel(level string) *Logger {
 	s.SetLevel(level)
 	return s
@@ -140,10 +143,12 @@ func (s *Logger) SetLevel(level string) {
 	}
 }
 
+// SetName setting the logger name
 func (s *Logger) SetName(name string) {
 	s.name = name
 }
 
+// WithName setting the logger name
 func (s *Logger) WithName(name string) *Logger {
 	s.SetName(name)
 	return s

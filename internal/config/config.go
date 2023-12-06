@@ -11,7 +11,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/samber/do"
 	"github.com/willie68/go-micro/internal/logging"
+	"github.com/willie68/go-micro/internal/services/adrsvc"
+	"github.com/willie68/go-micro/internal/services/caservice"
 	"github.com/willie68/go-micro/internal/services/health"
+	"github.com/willie68/go-micro/internal/services/shttp"
 	"gopkg.in/yaml.v3"
 )
 
@@ -24,47 +27,24 @@ type Config struct {
 	SecretFile string `yaml:"secretfile"`
 	// if you need an apikey, use this one
 	Apikey bool `yaml:"apikey"`
-	// all configuration of internal services can be stored here
-	Services Services `yaml:"services"`
 	// configure logging to gelf logging system
-	Logging logging.LoggingConfig `yaml:"logging"`
+	Logging logging.Config `yaml:"logging"`
 	// use authentication via jwt
 	Auth Authentication `yaml:"auth"`
 	// opentelemtrie tracer can be configured here
 	OpenTracing OpenTracing `yaml:"opentracing"`
 	// and some metrics
 	Metrics Metrics `yaml:"metrics"`
-}
-
-// Services the configuration of services inside this ms
-type Services struct {
-	HTTP HTTP `yaml:"http"`
+	// HTTP REST Service
+	HTTP shttp.Config `yaml:"http"`
 	// special config for health checks
 	HealthSystem health.Config `yaml:"healthcheck"`
 	// CA service will be used, microvault
-	CA CAService `yaml:"ca"`
-}
-
-// HTTP configuration of the http service
-type HTTP struct {
-	// port of the http server
-	Port int `yaml:"port"`
-	// port of the https server
-	Sslport int `yaml:"sslport"`
-	// this is the url how to connect to this service from outside
-	ServiceURL string `yaml:"serviceURL"`
-	// other dns names (used for certificate)
-	DNSNames []string `yaml:"dnss"`
-	// other ips (used for certificate)
-	IPAddresses []string `yaml:"ips"`
-}
-
-// CAService the micro-vault ca service config
-type CAService struct {
-	UseCA     bool   `yaml:"useca"`
-	URL       string `yaml:"url"`
-	AccessKey string `yaml:"accesskey"`
-	Secret    string `yaml:"secret"`
+	CA caservice.Config `yaml:"ca"`
+	// Enable Profiling option
+	Profiling Profiling `yaml:"profiling"`
+	// This is the demo address storage config
+	AddressStorage adrsvc.Config `yaml:"addressstorage"`
 }
 
 // Authentication configuration
@@ -84,22 +64,25 @@ type Metrics struct {
 	Enable bool `yaml:"enable"`
 }
 
+// Profiling configuration
+type Profiling struct {
+	Enable bool `yaml:"enable"`
+}
+
 // DefaultConfig default configuration
 var DefaultConfig = Config{
-	Services: Services{
-		HTTP: HTTP{
-			Port:       8000,
-			Sslport:    8443,
-			ServiceURL: "https://127.0.0.1:8443",
-		},
-		HealthSystem: health.Config{
-			Period:     30,
-			StartDelay: 3,
-		},
+	HTTP: shttp.Config{
+		Port:       8000,
+		Sslport:    8443,
+		ServiceURL: "https://127.0.0.1:8443",
+	},
+	HealthSystem: health.Config{
+		Period:     30,
+		StartDelay: 3,
 	},
 	Apikey:     true,
 	SecretFile: "",
-	Logging: logging.LoggingConfig{
+	Logging: logging.Config{
 		Level:    "INFO",
 		Filename: "${configdir}/logging.log",
 	},

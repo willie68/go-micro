@@ -3,36 +3,41 @@ secretfile: ""
 # true to activate the usage of a apikey (normaly as http header)
 apikey: false
 
-services:
-  http:
-    # port of the http server
-    port: 8080
-    # port of the https server for payload only
-    sslport: 8443
-    # this is the servicURL from outside
-    serviceURL: https://localhost:8443
-    # other dns names (used for certificate)
-    dnss: 
-      - host.docker.internal
-      - localhost
-    # other ips (used for certificate)
-    ips: 
-      - 127.0.0.1
-  #configure the healthcheck system
-  healthcheck:
-    # period in seconds to start the healtcheck
-    period: 30
-    startdelay: 3
+# http service definition
+http:
+  # name of this service
+  servicename: go-micro
+  # port of the http server
+  port: 8080
+  # port of the https server for payload only
+  sslport: 8443
+  # this is the servicURL from outside
+  serviceURL: https://localhost:8443
+  # other dns names (used for certificate)
+  dnss: 
+    - host.docker.internal
+    - localhost
+  # other ips (used for certificate)
+  ips: 
+    - 127.0.0.1
+
+#configure the healthcheck system
+healthcheck:
+  # period in seconds to start the healtcheck
+  period: 30
+  startdelay: 3
 
 # enable/disable metrics 
 metrics:
   enable: false
+
 # configure the logging system
 logging:
   level: debug
   filename: ""
   gelf-url:
   gelf-port:
+
 # managing authentication and authorisation
 auth:
   type: jwt
@@ -47,3 +52,10 @@ auth:
         object-admin:
         tenant-admin:
         admin:
+
+# active the profiling
+profiling:
+  enable: false
+
+addressstorage:
+  type: "internal"

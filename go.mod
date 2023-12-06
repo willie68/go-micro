@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	dario.cat/mergo v1.0.0
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/aphistic/golf v0.0.0-20180712155816-02c07f170c5a
 	github.com/drone/envsubst v1.0.3
 	github.com/go-chi/chi/v5 v5.0.10
@@ -11,15 +12,17 @@ require (
 	github.com/go-chi/httptracer v0.3.0
 	github.com/go-chi/render v1.0.3
 	github.com/go-playground/validator/v10 v10.15.4
-	github.com/google/uuid v1.3.1
+	github.com/go-sql-driver/mysql v1.7.1
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.16.0
+	github.com/rs/xid v1.5.0
 	github.com/samber/do v1.6.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
 	github.com/swaggo/swag v1.16.2
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
+	github.com/undefinedlabs/go-mpatch v1.0.7
 	github.com/willie68/micro-vault v0.0.0-20230914133328-9e686a0034c7
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
@@ -41,6 +44,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/google/uuid v1.3.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.1 // indirect
@@ -58,12 +62,13 @@ require (
 	github.com/prometheus/procfs v0.11.1 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/sergi/go-diff v1.0.0 // indirect
+	github.com/stretchr/objx v0.5.1 // indirect
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	go.uber.org/atomic v1.11.0 // indirect
-	golang.org/x/crypto v0.13.0 // indirect
-	golang.org/x/net v0.15.0 // indirect
-	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/crypto v0.14.0 // indirect
+	golang.org/x/net v0.16.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
-	golang.org/x/tools v0.11.0 // indirect
+	golang.org/x/tools v0.14.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 )

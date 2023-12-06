@@ -11,9 +11,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/samber/do"
-	"github.com/willie68/go-micro/internal/model"
 	"github.com/willie68/go-micro/internal/serror"
-	"github.com/willie68/go-micro/internal/services/sconfig"
+	"github.com/willie68/go-micro/internal/services/adrsvc"
 	"github.com/willie68/go-micro/pkg/pmodel"
 
 	"github.com/willie68/go-micro/internal/api"
@@ -26,38 +25,37 @@ const (
 )
 
 var (
-	postConfigCounter = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "gomicro_post_config_total",
-		Help: "The total number of post config requests",
+	postAdrCounter = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "gomicro_post_adr_total",
+		Help: "The total number of address requests",
 	})
 )
 
-// ConfigHandler the config handler
-type ConfigHandler struct {
-	cfgs *sconfig.SConfig
+// AdrHandler the address handler
+type AdrHandler struct {
+	adrstg adrsvc.AddressStorage
 }
 
-// NewConfigHandler creates a new REST config handler
-func NewConfigHandler() api.Handler {
-	return &ConfigHandler{
-		cfgs: do.MustInvoke[*sconfig.SConfig](nil),
+// NewAdrHandler creates a new REST address handler
+func NewAdrHandler() api.Handler {
+	return &AdrHandler{
+		adrstg: do.MustInvoke[adrsvc.AddressStorage](nil),
 	}
 }
 
 // Routes getting all routes for the config endpoint
-func (c *ConfigHandler) Routes() (string, *chi.Mux) {
+func (c *AdrHandler) Routes() (string, *chi.Mux) {
 	router := chi.NewRouter()
-	router.Post("/", c.PostConfig)
-	router.Get("/", c.GetConfigs)
-	router.Get("/{id}", c.GetConfig)
-	router.Delete("/{id}", c.DeleteConfig)
-	router.Get("/_own", c.GetConfigOfTenant)
-	return BaseURL + configSubpath, router
+	router.Post("/", c.PostAddress)
+	router.Get("/", c.GetAddresses)
+	router.Get("/{id}", c.GetAddress)
+	router.Delete("/{id}", c.DeleteAddress)
+	return BaseURL + addressesSubpath, router
 }
 
-// GetConfigs getting all configs
-// @Summary getting all configs
-// @Tags configs
+// GetAddresses getting all addresses
+// @Summary getting all addresses
+// @Tags addresses
 // @Accept  json
 // @Produce  json
 // @Security api_key
@@ -66,14 +64,14 @@ func (c *ConfigHandler) Routes() (string, *chi.Mux) {
 // @Failure 400 {object} serror.Serr "client error information as json"
 // @Failure 500 {object} serror.Serr "server error information as json"
 // @Router /config [get]
-func (c *ConfigHandler) GetConfigs(response http.ResponseWriter, request *http.Request) {
+func (c *AdrHandler) GetAddresses(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
 		msg := fmt.Sprintf(errMissingTenantMsg, api.TenantHeaderKey)
 		httputils.Err(response, request, serror.BadRequest(nil, errMissingTenantKey, msg))
 		return
 	}
-	l, err := c.cfgs.ListConfigs()
+	l, err := c.adrstg.Addresses()
 	if err != nil {
 		httputils.Err(response, request, serror.Wrapc(err, http.StatusInternalServerError))
 		return
@@ -81,9 +79,9 @@ func (c *ConfigHandler) GetConfigs(response http.ResponseWriter, request *http.R
 	render.JSON(response, request, l)
 }
 
-// GetConfig getting one configs
-// @Summary getting one configs
-// @Tags configs
+// GetAddress getting one address
+// @Summary getting one address
+// @Tags addresses
 // @Accept  json
 // @Produce  json
 // @Security api_key
@@ -92,7 +90,7 @@ func (c *ConfigHandler) GetConfigs(response http.ResponseWriter, request *http.R
 // @Failure 400 {object} serror.Serr "client error information as json"
 // @Failure 500 {object} serror.Serr "server error information as json"
 // @Router /config [get]
-func (c *ConfigHandler) GetConfig(response http.ResponseWriter, request *http.Request) {
+func (c *AdrHandler) GetAddress(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
 		msg := fmt.Sprintf(errMissingTenantMsg, api.TenantHeaderKey)
@@ -100,22 +98,21 @@ func (c *ConfigHandler) GetConfig(response http.ResponseWriter, request *http.Re
 		return
 	}
 	n := chi.URLParam(request, "id")
-	if !c.cfgs.HasConfig(n) {
+	if !c.adrstg.Has(n) {
 		httputils.Err(response, request, serror.ErrNotExists)
 		return
 	}
-	cd, err := c.cfgs.GetConfig(n)
+	adr, err := c.adrstg.Read(n)
 	if err != nil {
 		httputils.Err(response, request, serror.ErrUnknowError)
 		return
 	}
 
-	render.JSON(response, request, cd)
+	render.JSON(response, request, adr)
 }
 
-// PostConfig create a new store for a tenant
-// because of the automatic store creation, this method will always return 201
-// @Summary Create a new store for a tenant
+// PostAddress create a new address, this method will always return 201
+// @Summary Create a new address
 // @Tags configs
 // @Accept  json
 // @Produce  json
@@ -126,7 +123,7 @@ func (c *ConfigHandler) GetConfig(response http.ResponseWriter, request *http.Re
 // @Failure 400 {object} serror.Serr "client error information as json"
 // @Failure 500 {object} serror.Serr "server error information as json"
 // @Router /config [post]
-func (c *ConfigHandler) PostConfig(response http.ResponseWriter, request *http.Request) {
+func (c *AdrHandler) PostAddress(response http.ResponseWriter, request *http.Request) {
 	var b []byte
 	var err error
 	tenant := getTenant(request)
@@ -141,20 +138,15 @@ func (c *ConfigHandler) PostConfig(response http.ResponseWriter, request *http.R
 		httputils.Err(response, request, serror.Wrapc(err, http.StatusBadRequest))
 		return
 	}
-	var cd pmodel.ConfigDescription
+	var adr pmodel.Address
 
-	err = json.Unmarshal(b, &cd)
+	err = json.Unmarshal(b, &adr)
 	if err != nil {
 		httputils.Err(response, request, serror.Wrapc(err, http.StatusBadRequest))
 		return
 	}
-	cdm := model.ConfigDescription{
-		StoreID:  cd.StoreID,
-		TenantID: cd.TenantID,
-		Size:     cd.Size,
-	}
-	postConfigCounter.Inc()
-	n, err := c.cfgs.PutConfig(cd.TenantID, cdm)
+	postAdrCounter.Inc()
+	n, err := c.adrstg.Create(adr)
 	if err != nil {
 		httputils.Err(response, request, serror.Wrapc(err, http.StatusInternalServerError))
 		return
@@ -169,9 +161,9 @@ func (c *ConfigHandler) PostConfig(response http.ResponseWriter, request *http.R
 	render.JSON(response, request, id)
 }
 
-// DeleteConfig deleting store for a tenant, this will automatically delete all data in the store
-// @Summary Delete a store for a tenant
-// @Tags configs
+// DeleteAddress deleting address
+// @Summary Delete a address
+// @Tags  addresses
 // @Accept  json
 // @Produce  json
 // @Security api_key
@@ -179,7 +171,7 @@ func (c *ConfigHandler) PostConfig(response http.ResponseWriter, request *http.R
 // @Success 200 "ok"
 // @Failure 400 {object} serror.Serr "client error information as json"
 // @Router /config [delete]
-func (c *ConfigHandler) DeleteConfig(response http.ResponseWriter, request *http.Request) {
+func (c *AdrHandler) DeleteAddress(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
 		msg := fmt.Sprintf(errMissingTenantMsg, api.TenantHeaderKey)
@@ -187,37 +179,16 @@ func (c *ConfigHandler) DeleteConfig(response http.ResponseWriter, request *http
 		return
 	}
 	n := chi.URLParam(request, "id")
-	if !c.cfgs.HasConfig(n) {
-		httputils.Err(response, request, serror.NotFound("config", n))
+	if !c.adrstg.Has(n) {
+		httputils.Err(response, request, serror.NotFound("address", n))
 		return
 	}
-	c.cfgs.DeleteConfig(n)
-	render.JSON(response, request, tenant)
-}
-
-// GetConfigOfTenant config of tenant
-// @Summary Get size of a store for a tenant
-// @Tags configs
-// @Accept  json
-// @Produce  json
-// @Security api_key
-// @Param tenant header string true "Tenant"
-// @Success 200 {string} string "size"
-// @Failure 400 {object} serror.Serr "client error information as json"
-// @Router /config/size [get]
-func (c *ConfigHandler) GetConfigOfTenant(response http.ResponseWriter, request *http.Request) {
-	tenant := getTenant(request)
-	if tenant == "" {
-		msg := fmt.Sprintf(errMissingTenantMsg, api.TenantHeaderKey)
-		httputils.Err(response, request, serror.BadRequest(nil, errMissingTenantKey, msg))
-		return
-	}
-	cd, err := c.cfgs.GetConfig(tenant)
+	err := c.adrstg.Delete(n)
 	if err != nil {
-		httputils.Err(response, request, serror.ErrUnknowError)
+		httputils.Err(response, request, serror.Wrapc(err, http.StatusInternalServerError))
 		return
 	}
-	render.JSON(response, request, cd)
+	render.JSON(response, request, tenant)
 }
 
 // getTenant getting the tenant from the request

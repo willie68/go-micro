@@ -26,45 +26,44 @@ func TestClientCRUD(t *testing.T) {
 	initCl()
 	ast := assert.New(t)
 
-	cd := pmodel.ConfigDescription{
-		StoreID:  "myNewStore",
-		TenantID: Tenant,
-		Size:     1234567,
+	cd := pmodel.Address{
+		Name:      "Smith",
+		Firstname: "John",
+		Street:    "123 Main St",
+		City:      "Anytown",
+		State:     "CA",
+		ZipCode:   "12345",
 	}
 
-	id, err := cl.PutConfig(cd)
+	id, err := cl.CreateAddress(cd)
 	ast.Nil(err)
-	ast.Equal(cd.TenantID, id)
+	ast.NotEmpty(id)
 
-	cd1, err := cl.GetConfig(cd.TenantID)
-	ast.Nil(err)
-	ast.NotNil(cd1)
-
-	ast.Equal("myNewStore", cd1.StoreID)
-	ast.Equal(1234567, cd1.Size)
-	ast.Equal(Tenant, cd1.TenantID)
-
-	cd1, err = cl.GetMyConfig()
+	cd1, err := cl.GetAddress(id)
 	ast.Nil(err)
 	ast.NotNil(cd1)
 
-	ast.Equal("myNewStore", cd1.StoreID)
-	ast.Equal(1234567, cd1.Size)
-	ast.Equal(Tenant, cd1.TenantID)
+	ast.Equal(id, cd1.ID)
+	ast.Equal(cd.Name, cd1.Name)
+	ast.Equal(cd.Firstname, cd1.Firstname)
+	ast.Equal(cd.City, cd1.City)
+	ast.Equal(cd.State, cd1.State)
+	ast.Equal(cd.Street, cd1.Street)
+	ast.Equal(cd.ZipCode, cd1.ZipCode)
 
-	l, err := cl.GetConfigs()
+	l, err := cl.GetAddresses()
 	ast.Nil(err)
 	ast.Equal(1, len(*l))
 
-	ok, err := cl.DeleteConfig(cd.TenantID)
+	ok, err := cl.DeleteAddress(id)
 	ast.Nil(err)
 	ast.True(ok)
 
-	cd1, err = cl.GetConfig(cd.TenantID)
+	cd1, err = cl.GetAddress(id)
 	ast.NotNil(err)
 	ast.Nil(cd1)
 
-	ok, err = cl.DeleteConfig(cd.TenantID)
+	ok, err = cl.DeleteAddress(id)
 	ast.Nil(err)
 	ast.False(ok)
 }

@@ -65,9 +65,9 @@ func (c *Client) init(u string) error {
 	return nil
 }
 
-// GetConfigs getting all config names
-func (c *Client) GetConfigs() (*[]string, error) {
-	res, err := c.Get("config")
+// GetAddresses getting all config names
+func (c *Client) GetAddresses() (*[]pmodel.Address, error) {
+	res, err := c.Get("addresses")
 	if err != nil {
 		logging.Root.Errorf("get request failed: %v", err)
 		return nil, err
@@ -77,7 +77,7 @@ func (c *Client) GetConfigs() (*[]string, error) {
 		logging.Root.Errorf("get bad response: %d", res.StatusCode)
 		return nil, ReadErr(res)
 	}
-	var l []string
+	var l []pmodel.Address
 	err = ReadJSON(res, &l)
 	if err != nil {
 		logging.Root.Errorf("parsing response failed: %v", err)
@@ -86,9 +86,9 @@ func (c *Client) GetConfigs() (*[]string, error) {
 	return &l, nil
 }
 
-// GetConfig getting the config description of a name
-func (c *Client) GetConfig(n string) (*pmodel.ConfigDescription, error) {
-	res, err := c.Get(fmt.Sprintf("config/%s", n))
+// GetAddress getting the address of a id
+func (c *Client) GetAddress(n string) (*pmodel.Address, error) {
+	res, err := c.Get(fmt.Sprintf("addresses/%s", n))
 	if err != nil {
 		logging.Root.Errorf("get request failed: %v", err)
 		return nil, err
@@ -98,7 +98,7 @@ func (c *Client) GetConfig(n string) (*pmodel.ConfigDescription, error) {
 		logging.Root.Errorf("get bad response: %d", res.StatusCode)
 		return nil, ReadErr(res)
 	}
-	var cd pmodel.ConfigDescription
+	var cd pmodel.Address
 	err = ReadJSON(res, &cd)
 	if err != nil {
 		logging.Root.Errorf("parsing response failed: %v", err)
@@ -107,30 +107,9 @@ func (c *Client) GetConfig(n string) (*pmodel.ConfigDescription, error) {
 	return &cd, nil
 }
 
-// GetMyConfig getting the config size of me
-func (c *Client) GetMyConfig() (*pmodel.ConfigDescription, error) {
-	res, err := c.Get("config/_own")
-	if err != nil {
-		logging.Root.Errorf("get request failed: %v", err)
-		return nil, err
-	}
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		logging.Root.Errorf("get bad response: %d", res.StatusCode)
-		return nil, ReadErr(res)
-	}
-	var cd pmodel.ConfigDescription
-	err = ReadJSON(res, &cd)
-	if err != nil {
-		logging.Root.Errorf("parsing response failed: %v", err)
-		return nil, err
-	}
-	return &cd, nil
-}
-
-// PutConfig getting the config description of a name
-func (c *Client) PutConfig(pcd pmodel.ConfigDescription) (string, error) {
-	res, err := c.PostJSON("config/", pcd)
+// CreateAddress create the address
+func (c *Client) CreateAddress(pcd pmodel.Address) (string, error) {
+	res, err := c.PostJSON("addresses/", pcd)
 	if err != nil {
 		logging.Root.Errorf("put request failed: %v", err)
 		return "", err
@@ -151,9 +130,9 @@ func (c *Client) PutConfig(pcd pmodel.ConfigDescription) (string, error) {
 	return cd.ID, nil
 }
 
-// DeleteConfig getting the config description of a name
-func (c *Client) DeleteConfig(n string) (bool, error) {
-	res, err := c.Delete(fmt.Sprintf("config/%s", n))
+// DeleteAddress getting the address
+func (c *Client) DeleteAddress(n string) (bool, error) {
+	res, err := c.Delete(fmt.Sprintf("addresses/%s", n))
 	if err != nil {
 		logging.Root.Errorf("delete request failed: %v", err)
 		return false, err

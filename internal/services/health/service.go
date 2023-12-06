@@ -15,22 +15,7 @@ import (
 
 var logger = logging.New().WithName("health")
 
-// Config configuration for the healthcheck system
-type Config struct {
-	// Period in seconds, when all health services should run
-	Period int `yaml:"period"`
-	// StartDelay an optional starting delay, after starting the service
-	StartDelay int `yaml:"startdelay"`
-}
-
-type Check interface {
-	// CheckName shoulld return the name of this healthcheck. The name should be unique.
-	CheckName() string
-	// Check proceed a check and return state, true for healthy or false and an optional error, if the healthcheck fails
-	Check() (bool, error)
-}
-
-// SHealthCheck this is the healthcheck service
+// SHealth this is the healthcheck service
 type SHealth struct {
 	cfg         Config
 	healthy     bool
@@ -41,7 +26,7 @@ type SHealth struct {
 	reg         sync.Mutex
 }
 
-// Msg a health message
+// Message a health message
 type Message struct {
 	Messages  []string `json:"messages"`
 	LastCheck string   `json:"lastCheck,omitempty"`
@@ -63,6 +48,7 @@ func NewHealthSystem(config Config) (*SHealth, error) {
 	return &shealth, nil
 }
 
+// Init initialise the health system
 func (h *SHealth) Init() error {
 	logger.Infof("healthcheck starting with period: %d seconds", h.cfg.Period)
 	h.messages = make([]string, 0)
@@ -99,8 +85,11 @@ func (h *SHealth) checkHealthCheckTimer() {
 	}
 }
 
+// Register register a new healthcheck. If a healthcheck with the same name is already present, this will be overwritten
+// Otherwise the new healthcheck will be appended
 func (h *SHealth) Register(check Check) {
 	h.reg.Lock()
+	defer h.reg.Unlock()
 	for x, c := range h.checks {
 		if c.CheckName() == check.CheckName() {
 			h.checks[x] = check
@@ -108,9 +97,23 @@ func (h *SHealth) Register(check Check) {
 		}
 	}
 	h.checks = append(h.checks, check)
-	defer h.reg.Unlock()
 }
 
+// Unregister unregister a healthcheck. Return true if the healthcheck can be unregistered otherwise false
+func (h *SHealth) Unregister(checkname string) bool {
+	h.reg.Lock()
+	defer h.reg.Unlock()
+	for x := len(h.checks) - 1; x >= 0; x-- {
+		c := h.checks[x]
+		if c.CheckName() == checkname {
+			h.checks = append(h.checks[:x], h.checks[x+1:]...)
+			return true
+		}
+	}
+	return false
+}
+
+// Message return a health message from the last healthcheck
 func (h *SHealth) Message() Message {
 	return Message{
 		LastCheck: h.lastChecked.String(),
@@ -143,6 +146,7 @@ type Handler struct {
 	health *SHealth
 }
 
+// NewHealthHandler creates a new healthhandler for a REST interface
 func NewHealthHandler() api.Handler {
 	return &Handler{
 		health: do.MustInvoke[*SHealth](nil),
