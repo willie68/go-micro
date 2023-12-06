@@ -2,9 +2,336 @@
 	"info": {
 		"_postman_id": "8aaf5302-3a68-4e01-be38-8ae799a769f7",
 		"name": "go-micro",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "3528888"
 	},
 	"item": [
+		{
+			"name": "List",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJSUzI1NiIsImtpZCI6IkNZdlk4a0F4cXd4WnpLMHdEUnNGWlNkdXYxMTRzR0xQVTFVR0hrX3NsRmsiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOlsibWljcm92YXVsdC1hZG1pbnMiXSwiZXhwIjoxNjk0NDQxMDk4LCJpYXQiOjE2OTQ0NDAxOTgsImp0aSI6ImI0MDFkOWU2ZjJkMDQyMjY5OTZhMGUwZmQ0YzhlNzgxIiwicm9sZXMiOlsibXYtYWRtaW4iXX0.Iyk1VXUmhpNuT9R0gSel5Qq_YvzxhlfEhZ5HHznd_wcDSkxaOxFDvpzvoT3PFtWrHZ9e2tTXABrTh8NUKbo72xhXBnkXFrFRQsRl9_umxD6OlfFpihavsdby3gXyYRWdW996f4e_6RuTs7A4TaDl2dfoS3Swf6FPjJvgTX3xLeZksN_YBlm-ASYgd3SHMkAMsnMU_4gKIRCgerdVxUioTxIQeg8sA34nWQebUa4RdMEHAko3V8_Jepe_bg6BjGsVkcojk1XHdcMvlE4TymXvYzux-heCsHgyANTofjMtsR0vuqHARJ3nTlEfbLiQICNcY0H0G1Y4fxmLtm_TbMQwmviS49AmyIztFYI3MG0WUI3HekJVybBeescrXvJwDE8GrA4nFUB4gKH6nRBk5LpnLCpAgFe-aFWF1Y8yeoXwFug3cFFgNKYaEgBhKuY4ehxfV2vlJjYvogcCzTdtdRmJ0glHWjjziH_cVsKSu1KsqbLE-l4D1KWbdLOM72NTb2BMZmkwp-LrbtJXqBC2pKkoWGQ41Nt8OsDkjxJ_JuOayifkN5cgu0pQLndyODKQ6GxUMa2zpwWMU-omiiu5NJbjxKMteDmja894rLRl8g0H3pmHlq_T38fd2VYESxECtC5kiL4snwvw2F6yaECYVUoS0DYQymrLWGZ9NGTbxvN2CIM",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "tenant",
+						"value": "MCS",
+						"type": "text"
+					},
+					{
+						"key": "apikey",
+						"value": "52eecc9e30183639d68ba837c28369ac",
+						"equals": true
+					},
+					{
+						"key": "system",
+						"value": "easy1",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://127.0.0.1:9543/api/v1/addresses/",
+					"protocol": "https",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "9543",
+					"path": [
+						"api",
+						"v1",
+						"addresses",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJSUzI1NiIsImtpZCI6IkNZdlk4a0F4cXd4WnpLMHdEUnNGWlNkdXYxMTRzR0xQVTFVR0hrX3NsRmsiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOlsibWljcm92YXVsdC1hZG1pbnMiXSwiZXhwIjoxNjk0NDQxMDk4LCJpYXQiOjE2OTQ0NDAxOTgsImp0aSI6ImI0MDFkOWU2ZjJkMDQyMjY5OTZhMGUwZmQ0YzhlNzgxIiwicm9sZXMiOlsibXYtYWRtaW4iXX0.Iyk1VXUmhpNuT9R0gSel5Qq_YvzxhlfEhZ5HHznd_wcDSkxaOxFDvpzvoT3PFtWrHZ9e2tTXABrTh8NUKbo72xhXBnkXFrFRQsRl9_umxD6OlfFpihavsdby3gXyYRWdW996f4e_6RuTs7A4TaDl2dfoS3Swf6FPjJvgTX3xLeZksN_YBlm-ASYgd3SHMkAMsnMU_4gKIRCgerdVxUioTxIQeg8sA34nWQebUa4RdMEHAko3V8_Jepe_bg6BjGsVkcojk1XHdcMvlE4TymXvYzux-heCsHgyANTofjMtsR0vuqHARJ3nTlEfbLiQICNcY0H0G1Y4fxmLtm_TbMQwmviS49AmyIztFYI3MG0WUI3HekJVybBeescrXvJwDE8GrA4nFUB4gKH6nRBk5LpnLCpAgFe-aFWF1Y8yeoXwFug3cFFgNKYaEgBhKuY4ehxfV2vlJjYvogcCzTdtdRmJ0glHWjjziH_cVsKSu1KsqbLE-l4D1KWbdLOM72NTb2BMZmkwp-LrbtJXqBC2pKkoWGQ41Nt8OsDkjxJ_JuOayifkN5cgu0pQLndyODKQ6GxUMa2zpwWMU-omiiu5NJbjxKMteDmja894rLRl8g0H3pmHlq_T38fd2VYESxECtC5kiL4snwvw2F6yaECYVUoS0DYQymrLWGZ9NGTbxvN2CIM",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-es-tenant",
+						"value": "MCS",
+						"type": "text"
+					},
+					{
+						"key": "apikey",
+						"value": "52eecc9e30183639d68ba837c28369ac",
+						"equals": true
+					},
+					{
+						"key": "system",
+						"value": "easy1",
+						"type": "text"
+					},
+					{
+						"key": "tenant",
+						"value": "MCS",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n        \"name\": \"Schluck\",\r\n        \"firstname\": \"Karl Heinz\",\r\n        \"street\": \"Hochstraße 7\",\r\n        \"city\": \"Hattingen\",\r\n        \"state\": \"Germany\",\r\n        \"zip_code\": \"45527\"\r\n    }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://127.0.0.1:9543/api/v1/addresses/4",
+					"protocol": "https",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "9543",
+					"path": [
+						"api",
+						"v1",
+						"addresses",
+						"4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJSUzI1NiIsImtpZCI6IkNZdlk4a0F4cXd4WnpLMHdEUnNGWlNkdXYxMTRzR0xQVTFVR0hrX3NsRmsiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOlsibWljcm92YXVsdC1hZG1pbnMiXSwiZXhwIjoxNjk0NDQxMDk4LCJpYXQiOjE2OTQ0NDAxOTgsImp0aSI6ImI0MDFkOWU2ZjJkMDQyMjY5OTZhMGUwZmQ0YzhlNzgxIiwicm9sZXMiOlsibXYtYWRtaW4iXX0.Iyk1VXUmhpNuT9R0gSel5Qq_YvzxhlfEhZ5HHznd_wcDSkxaOxFDvpzvoT3PFtWrHZ9e2tTXABrTh8NUKbo72xhXBnkXFrFRQsRl9_umxD6OlfFpihavsdby3gXyYRWdW996f4e_6RuTs7A4TaDl2dfoS3Swf6FPjJvgTX3xLeZksN_YBlm-ASYgd3SHMkAMsnMU_4gKIRCgerdVxUioTxIQeg8sA34nWQebUa4RdMEHAko3V8_Jepe_bg6BjGsVkcojk1XHdcMvlE4TymXvYzux-heCsHgyANTofjMtsR0vuqHARJ3nTlEfbLiQICNcY0H0G1Y4fxmLtm_TbMQwmviS49AmyIztFYI3MG0WUI3HekJVybBeescrXvJwDE8GrA4nFUB4gKH6nRBk5LpnLCpAgFe-aFWF1Y8yeoXwFug3cFFgNKYaEgBhKuY4ehxfV2vlJjYvogcCzTdtdRmJ0glHWjjziH_cVsKSu1KsqbLE-l4D1KWbdLOM72NTb2BMZmkwp-LrbtJXqBC2pKkoWGQ41Nt8OsDkjxJ_JuOayifkN5cgu0pQLndyODKQ6GxUMa2zpwWMU-omiiu5NJbjxKMteDmja894rLRl8g0H3pmHlq_T38fd2VYESxECtC5kiL4snwvw2F6yaECYVUoS0DYQymrLWGZ9NGTbxvN2CIM",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "X-es-tenant",
+						"value": "MCS",
+						"type": "text"
+					},
+					{
+						"key": "apikey",
+						"value": "52eecc9e30183639d68ba837c28369ac",
+						"equals": true
+					},
+					{
+						"key": "system",
+						"value": "easy1",
+						"type": "text"
+					},
+					{
+						"key": "tenant",
+						"value": "MCS",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n        \"name\": \"Schluck\",\r\n        \"firstname\": \"Karl Heinz\",\r\n        \"street\": \"Hochstraße 7\",\r\n        \"city\": \"Hattingen\",\r\n        \"state\": \"Germany\",\r\n        \"zip_code\": \"45527\"\r\n    }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://127.0.0.1:9543/api/v1/addresses/6",
+					"protocol": "https",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "9543",
+					"path": [
+						"api",
+						"v1",
+						"addresses",
+						"6"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJSUzI1NiIsImtpZCI6IkNZdlk4a0F4cXd4WnpLMHdEUnNGWlNkdXYxMTRzR0xQVTFVR0hrX3NsRmsiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOlsibWljcm92YXVsdC1hZG1pbnMiXSwiZXhwIjoxNjk0NDQxMDk4LCJpYXQiOjE2OTQ0NDAxOTgsImp0aSI6ImI0MDFkOWU2ZjJkMDQyMjY5OTZhMGUwZmQ0YzhlNzgxIiwicm9sZXMiOlsibXYtYWRtaW4iXX0.Iyk1VXUmhpNuT9R0gSel5Qq_YvzxhlfEhZ5HHznd_wcDSkxaOxFDvpzvoT3PFtWrHZ9e2tTXABrTh8NUKbo72xhXBnkXFrFRQsRl9_umxD6OlfFpihavsdby3gXyYRWdW996f4e_6RuTs7A4TaDl2dfoS3Swf6FPjJvgTX3xLeZksN_YBlm-ASYgd3SHMkAMsnMU_4gKIRCgerdVxUioTxIQeg8sA34nWQebUa4RdMEHAko3V8_Jepe_bg6BjGsVkcojk1XHdcMvlE4TymXvYzux-heCsHgyANTofjMtsR0vuqHARJ3nTlEfbLiQICNcY0H0G1Y4fxmLtm_TbMQwmviS49AmyIztFYI3MG0WUI3HekJVybBeescrXvJwDE8GrA4nFUB4gKH6nRBk5LpnLCpAgFe-aFWF1Y8yeoXwFug3cFFgNKYaEgBhKuY4ehxfV2vlJjYvogcCzTdtdRmJ0glHWjjziH_cVsKSu1KsqbLE-l4D1KWbdLOM72NTb2BMZmkwp-LrbtJXqBC2pKkoWGQ41Nt8OsDkjxJ_JuOayifkN5cgu0pQLndyODKQ6GxUMa2zpwWMU-omiiu5NJbjxKMteDmja894rLRl8g0H3pmHlq_T38fd2VYESxECtC5kiL4snwvw2F6yaECYVUoS0DYQymrLWGZ9NGTbxvN2CIM",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-es-tenant",
+						"value": "MCS",
+						"type": "text"
+					},
+					{
+						"key": "apikey",
+						"value": "52eecc9e30183639d68ba837c28369ac",
+						"equals": true
+					},
+					{
+						"key": "system",
+						"value": "easy1",
+						"type": "text"
+					},
+					{
+						"key": "tenant",
+						"value": "MCS",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n        \"name\": \"Schluck\",\r\n        \"firstname\": \"Karl Heinz\",\r\n        \"street\": \"Hochstraße 7\",\r\n        \"city\": \"Hattingen\",\r\n        \"state\": \"Germany\",\r\n        \"zip_code\": \"45527\"\r\n    }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://127.0.0.1:9543/api/v1/addresses/",
+					"protocol": "https",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "9543",
+					"path": [
+						"api",
+						"v1",
+						"addresses",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJSUzI1NiIsImtpZCI6IkNZdlk4a0F4cXd4WnpLMHdEUnNGWlNkdXYxMTRzR0xQVTFVR0hrX3NsRmsiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOlsibWljcm92YXVsdC1hZG1pbnMiXSwiZXhwIjoxNjk0NDQxMDk4LCJpYXQiOjE2OTQ0NDAxOTgsImp0aSI6ImI0MDFkOWU2ZjJkMDQyMjY5OTZhMGUwZmQ0YzhlNzgxIiwicm9sZXMiOlsibXYtYWRtaW4iXX0.Iyk1VXUmhpNuT9R0gSel5Qq_YvzxhlfEhZ5HHznd_wcDSkxaOxFDvpzvoT3PFtWrHZ9e2tTXABrTh8NUKbo72xhXBnkXFrFRQsRl9_umxD6OlfFpihavsdby3gXyYRWdW996f4e_6RuTs7A4TaDl2dfoS3Swf6FPjJvgTX3xLeZksN_YBlm-ASYgd3SHMkAMsnMU_4gKIRCgerdVxUioTxIQeg8sA34nWQebUa4RdMEHAko3V8_Jepe_bg6BjGsVkcojk1XHdcMvlE4TymXvYzux-heCsHgyANTofjMtsR0vuqHARJ3nTlEfbLiQICNcY0H0G1Y4fxmLtm_TbMQwmviS49AmyIztFYI3MG0WUI3HekJVybBeescrXvJwDE8GrA4nFUB4gKH6nRBk5LpnLCpAgFe-aFWF1Y8yeoXwFug3cFFgNKYaEgBhKuY4ehxfV2vlJjYvogcCzTdtdRmJ0glHWjjziH_cVsKSu1KsqbLE-l4D1KWbdLOM72NTb2BMZmkwp-LrbtJXqBC2pKkoWGQ41Nt8OsDkjxJ_JuOayifkN5cgu0pQLndyODKQ6GxUMa2zpwWMU-omiiu5NJbjxKMteDmja894rLRl8g0H3pmHlq_T38fd2VYESxECtC5kiL4snwvw2F6yaECYVUoS0DYQymrLWGZ9NGTbxvN2CIM",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-es-tenant",
+						"value": "MCS",
+						"type": "text"
+					},
+					{
+						"key": "apikey",
+						"value": "52eecc9e30183639d68ba837c28369ac",
+						"equals": true
+					},
+					{
+						"key": "system",
+						"value": "easy1",
+						"type": "text"
+					},
+					{
+						"key": "tenant",
+						"value": "MCS",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\": \"7\",\r\n    \"name\": \"Schluck\",\r\n    \"firstname\": \"Karl Heinz\",\r\n    \"street\": \"Hochstraße 7\",\r\n    \"city\": \"Hattingen\",\r\n    \"state\": \"Germany\",\r\n    \"zip_code\": \"45530\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://127.0.0.1:9543/api/v1/addresses/7",
+					"protocol": "https",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "9543",
+					"path": [
+						"api",
+						"v1",
+						"addresses",
+						"7"
+					]
+				}
+			},
+			"response": []
+		},
 		{
 			"name": "ssl metrics",
 			"request": {
@@ -34,7 +361,7 @@
 			"response": []
 		},
 		{
-			"name": "ssl health",
+			"name": "ssl liveness",
 			"request": {
 				"method": "GET",
 				"header": [
@@ -104,7 +431,7 @@
 					}
 				],
 				"url": {
-					"raw": "http://127.0.0.1:9580/metrics",
+					"raw": "http://127.0.0.1:9080/metrics",
 					"protocol": "http",
 					"host": [
 						"127",
@@ -112,7 +439,7 @@
 						"0",
 						"1"
 					],
-					"port": "9580",
+					"port": "9080",
 					"path": [
 						"metrics"
 					]
@@ -121,7 +448,7 @@
 			"response": []
 		},
 		{
-			"name": "plain health",
+			"name": "plain liveness",
 			"request": {
 				"method": "GET",
 				"header": [
@@ -133,7 +460,7 @@
 					}
 				],
 				"url": {
-					"raw": "http://127.0.0.1:9580/livez",
+					"raw": "http://127.0.0.1:9080/livez",
 					"protocol": "http",
 					"host": [
 						"127",
@@ -141,7 +468,7 @@
 						"0",
 						"1"
 					],
-					"port": "9580",
+					"port": "9080",
 					"path": [
 						"livez"
 					]
@@ -162,7 +489,7 @@
 					}
 				],
 				"url": {
-					"raw": "http://127.0.0.1:9580/readyz",
+					"raw": "http://127.0.0.1:9080/readyz",
 					"protocol": "http",
 					"host": [
 						"127",
@@ -170,7 +497,7 @@
 						"0",
 						"1"
 					],
-					"port": "9580",
+					"port": "9080",
 					"path": [
 						"readyz"
 					]
