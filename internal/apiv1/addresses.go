@@ -49,6 +49,7 @@ func (c *AdrHandler) Routes() (string, *chi.Mux) {
 	router.Post("/", c.PostAddress)
 	router.Get("/", c.GetAddresses)
 	router.Get("/{id}", c.GetAddress)
+	router.Post("/{id}", c.UpdateAddress)
 	router.Delete("/{id}", c.DeleteAddress)
 	return BaseURL + addressesSubpath, router
 }
@@ -161,6 +162,50 @@ func (c *AdrHandler) PostAddress(response http.ResponseWriter, request *http.Req
 	render.JSON(response, request, id)
 }
 
+// UpdateAddress update an address, this method will always return 201
+// @Summary Create a new address
+// @Tags configs
+// @Accept  json
+// @Produce  json
+// @Security api_key
+// @Param tenant header string true "Tenant"
+// @Param payload body string true "Add store"
+// @Success 201 {string} string "tenant"
+// @Failure 400 {object} serror.Serr "client error information as json"
+// @Failure 500 {object} serror.Serr "server error information as json"
+// @Router /addresses/{id} [post]
+func (c *AdrHandler) UpdateAddress(response http.ResponseWriter, request *http.Request) {
+	var b []byte
+	var err error
+	tenant := getTenant(request)
+	if tenant == "" {
+		msg := fmt.Sprintf(errMissingTenantMsg, api.TenantHeaderKey)
+		httputils.Err(response, request, serror.BadRequest(nil, errMissingTenantKey, msg))
+		return
+	}
+	logger.Infof("create config: tenant %s", tenant)
+
+	if b, err = io.ReadAll(request.Body); err != nil {
+		httputils.Err(response, request, serror.Wrapc(err, http.StatusBadRequest))
+		return
+	}
+	var adr pmodel.Address
+
+	err = json.Unmarshal(b, &adr)
+	if err != nil {
+		httputils.Err(response, request, serror.Wrapc(err, http.StatusBadRequest))
+		return
+	}
+	postAdrCounter.Inc()
+	err = c.adrstg.Update(adr)
+	if err != nil {
+		httputils.Err(response, request, serror.Wrapc(err, http.StatusInternalServerError))
+		return
+	}
+	render.Status(request, http.StatusCreated)
+	render.JSON(response, request, adr)
+}
+
 // DeleteAddress deleting address
 // @Summary Delete a address
 // @Tags  addresses
@@ -183,12 +228,17 @@ func (c *AdrHandler) DeleteAddress(response http.ResponseWriter, request *http.R
 		httputils.Err(response, request, serror.NotFound("address", n))
 		return
 	}
-	err := c.adrstg.Delete(n)
+	adr, err := c.adrstg.Read(n)
 	if err != nil {
 		httputils.Err(response, request, serror.Wrapc(err, http.StatusInternalServerError))
 		return
 	}
-	render.JSON(response, request, tenant)
+	err = c.adrstg.Delete(n)
+	if err != nil {
+		httputils.Err(response, request, serror.Wrapc(err, http.StatusInternalServerError))
+		return
+	}
+	render.JSON(response, request, adr)
 }
 
 // getTenant getting the tenant from the request

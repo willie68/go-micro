@@ -1,0 +1,71 @@
+# secret file contains secrets like credentials, access key ... it has the same structure as this config and will be merged on start
+secretfile: ""
+# true to activate the usage of a apikey (normaly as http header)
+apikey: false
+
+# http service definition
+http:
+  # name of this service
+  servicename: go-micro
+  # port of the http server
+  port: 9080
+  # port of the https server for payload only
+  sslport: 9543
+  # this is the servicURL from outside
+  serviceURL: https://localhost:9543
+  # other dns names (used for certificate)
+  dnss: 
+    - host.docker.internal
+    - localhost
+  # other ips (used for certificate)
+  ips: 
+    - 127.0.0.1
+
+#configure the healthcheck system
+healthcheck:
+  # period in seconds to start the healtcheck
+  period: 30
+  startdelay: 3
+
+# enable/disable metrics 
+metrics:
+  enable: true
+
+# configure the logging system
+logging:
+  level: debug
+  filename: ""
+  gelf-url:
+  gelf-port:
+
+# managing authentication and authorisation
+auth:
+  type: jwt
+  properties: 
+    validate: true
+    strict: true
+    tenantClaim: Tenant
+    roleClaim: Roles
+    rolemapping: 
+        object-reader:
+        object-creator:
+        object-admin:
+        tenant-admin:
+        admin:
+
+# active the profiling
+profiling:
+  enable: false
+
+addressstorage:
+  type: "mysql"
+  connection:
+    host: 127.0.0.1
+    # mariadb: the database to connect to
+    database: golang
+    # mariadb: the table used for this service
+    table: address
+    # mariadb: username for the connection
+    username: address
+    # mariadb: password for the connection
+    password: address
