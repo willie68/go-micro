@@ -13,7 +13,10 @@ func TestMain(t *testing.T) {
 	ast := assert.New(t)
 	configFile = "../../testdata/service_local_minimal.yaml"
 
-	fakeExit := func(int) {}
+	fakeExit := func(int) {
+		// fake function does nothing
+	}
+
 	p := utils.PatchOSExit(t, fakeExit)
 	defer p.Unpatch()
 

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// Serr error model
+// Serr service error model
 type Serr struct {
 	Code   int    `json:"code"`
 	Key    string `json:"key"`

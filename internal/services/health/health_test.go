@@ -49,7 +49,7 @@ func InitHealth(ast *assert.Assertions) {
 }
 
 func ShutdownHealth() {
-	do.Shutdown[*SHealth](nil)
+	_ = do.Shutdown[*SHealth](nil)
 	hs = nil
 }
 
