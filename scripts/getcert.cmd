@@ -1,2 +1,2 @@
-mvcli login --url https://127.0.0.1:9543 -a 3fa6a4bd-74cb-42ff-be40-e5213f8e9b18 -s 7d122aab1d57b0177da31829ac791587
+mvcli login --url https://127.0.0.1:9543 -a 3e86b377-89e2-4859-a55f-466c8564575c -s e13862c737028d8f6ee91dd03d1fed0a
 mvcli get certificate

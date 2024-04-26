@@ -14,4 +14,8 @@ type Config struct {
 	IPAddresses []string `yaml:"ips"`
 	// Servicename for the certificate
 	Servicename string `yaml:"servicename"`
+	// path and name to the certificate
+	Certificate string `yaml:"certificate"`
+	// path and name to the private key
+	Key string `yaml:"key"`
 }

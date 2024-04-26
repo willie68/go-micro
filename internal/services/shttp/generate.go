@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	mv "github.com/willie68/micro-vault/pkg/client"
 )
 
@@ -230,6 +231,15 @@ func (s *SHttp) GetTLSConfig() (*tls.Config, error) {
 	tlsCert, err := tls.X509KeyPair(certPEM, keyPEM)
 	if err != nil {
 		return nil, err
+	}
+
+	return &tls.Config{Certificates: []tls.Certificate{tlsCert}}, nil
+}
+
+func (s *SHttp) TLSFromFiles() (*tls.Config, error) {
+	tlsCert, err := tls.LoadX509KeyPair(s.cfn.Certificate, s.cfn.Key)
+	if err != nil {
+		return nil, errors.Wrap(err, "error creating X509 Pair")
 	}
 
 	return &tls.Config{Certificates: []tls.Certificate{tlsCert}}, nil

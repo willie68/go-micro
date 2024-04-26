@@ -81,27 +81,39 @@ func (s *SHttp) startHTTPSServer(router *chi.Mux) {
 		tlsConfig, err = s.GetTLSConfig()
 		if err != nil {
 			logger.Alertf("could not create tls config. %s", err.Error())
+			panic(-1)
 		}
 	} else {
-		h := s.cfn.ServiceURL
-		ul, err := url.Parse(h)
-		if err == nil {
-			h = ul.Hostname()
-		}
-		gc := generateCertificate{
-			ServiceName: s.cfa.Servicename,
-			CA:          s.cfa.URL,
-			Host:        h,
-			ValidFor:    10 * 365 * 24 * time.Hour,
-			IsCA:        false,
-			EcdsaCurve:  "P384",
-			Ed25519Key:  false,
-			DNSnames:    s.cfn.DNSNames,
-			IPs:         s.cfn.IPAddresses,
-		}
-		tlsConfig, err = gc.GenerateTLSConfig()
-		if err != nil {
-			logger.Alertf("could not create tls config. %s", err.Error())
+		if s.cfn.Certificate != "" && s.cfn.Key != "" {
+			// using the files provided by config
+			tlsConfig, err = s.TLSFromFiles()
+			if err != nil {
+				logger.Alertf("could not create tls config. %s", err.Error())
+				panic(-1)
+			}
+		} else {
+			// generating our own certificate
+			h := s.cfn.ServiceURL
+			ul, err := url.Parse(h)
+			if err == nil {
+				h = ul.Hostname()
+			}
+			gc := generateCertificate{
+				ServiceName: s.cfa.Servicename,
+				CA:          s.cfa.URL,
+				Host:        h,
+				ValidFor:    10 * 365 * 24 * time.Hour,
+				IsCA:        false,
+				EcdsaCurve:  "P384",
+				Ed25519Key:  false,
+				DNSnames:    s.cfn.DNSNames,
+				IPs:         s.cfn.IPAddresses,
+			}
+			tlsConfig, err = gc.GenerateTLSConfig()
+			if err != nil {
+				logger.Alertf("could not create tls config. %s", err.Error())
+				panic(-1)
+			}
 		}
 	}
 	s.sslsrv = &http.Server{
