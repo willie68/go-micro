@@ -18,7 +18,7 @@ Features:
 - metrics with Prometheus: https://prometheus.io/docs/guides/go-application/
 - Docker build with builder and target image
 - chi as the router framework
-- go 1.18
+- go 1.21
 - automatic config substitution 
 
 ## Why using this and not a framework?
