@@ -1,6 +1,6 @@
 ##### BUILDER #####
 
-FROM golang:1.21-alpine3.18 as builder
+FROM golang:1.21-alpine3.19 as builder
 
 ## Task: Install build deps
 
@@ -60,12 +60,12 @@ RUN set -eu +x; \
 
 ##### TARGET #####
 
-FROM alpine:3.18
+FROM alpine:3.19
 
 ARG RELEASE
 ENV IMG_VERSION="${RELEASE}"
 
-COPY --from=builder /src/gomicro-service /usr/local/bin/
+COPY --from=builder /src/gomicro-service /
 COPY --from=builder /src/configs/service.yaml /config/
 COPY --from=builder /src/configs/secret.yaml /config/
 COPY --from=builder /usr/share/rundeps /usr/share/rundeps
@@ -73,7 +73,7 @@ COPY --from=builder /usr/share/rundeps /usr/share/rundeps
 RUN set -eux; \
     xargs -a /usr/share/rundeps apk add --no-progress --quiet --no-cache --upgrade --virtual .run-deps
 
-ENTRYPOINT ["/usr/local/bin/gomicro-service"]
+ENTRYPOINT ["/gomicro-service"]
 CMD ["--config","/config/service.yaml"]
 
 EXPOSE 8080 8443
@@ -88,5 +88,5 @@ LABEL org.opencontainers.image.title="GoMicro" \
       org.opencontainers.image.vendor="MCS (www.rcarduino.de)" \
       org.opencontainers.image.authors="info@wk-music.de" \
       maintainer="MCS" \
-      NAME="gomicro"
+      NAME="gomicro-service"
 

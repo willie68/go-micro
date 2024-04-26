@@ -128,3 +128,15 @@ func (a *AdrMdb) Check() (bool, error) {
 	}
 	return true, nil
 }
+
+// Init this service
+func (a *AdrMdb) Init() error {
+	// Nothing to do here
+	return nil
+}
+
+// Shutdown this service
+func (a *AdrMdb) Shutdown() error {
+	// Nothing to do here
+	return nil
+}

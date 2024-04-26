@@ -13,10 +13,22 @@ import (
 	"github.com/willie68/go-micro/internal/logging"
 )
 
+//go:generate mockery --name=SHealth --outpkg=servicemocks --filename=service.go --with-expecter
+type SHealth interface {
+	Healthy() bool
+	Readyz() bool
+	LastChecked() time.Time
+	Message() Message
+	Register(check Check)
+	Unregister(checkname string) bool
+
+	CheckHealthCheckTimer()
+}
+
 var logger = logging.New().WithName("health")
 
-// SHealth this is the healthcheck service
-type SHealth struct {
+// Service  this is the healthcheck service
+type Service struct {
 	cfg         Config
 	healthy     bool
 	readyz      bool
@@ -26,6 +38,8 @@ type SHealth struct {
 	reg         sync.Mutex
 }
 
+var _ SHealth = &Service{}
+
 // Message a health message
 type Message struct {
 	Messages  []string `json:"messages"`
@@ -33,8 +47,8 @@ type Message struct {
 }
 
 // NewHealthSystem initialize the complete health system
-func NewHealthSystem(config Config) (*SHealth, error) {
-	shealth := SHealth{
+func NewHealthSystem(config Config) (SHealth, error) {
+	shealth := Service{
 		cfg:     config,
 		healthy: false,
 		checks:  make([]Check, 0),
@@ -44,12 +58,12 @@ func NewHealthSystem(config Config) (*SHealth, error) {
 	if err != nil {
 		return nil, err
 	}
-	do.ProvideValue[*SHealth](nil, &shealth)
+	do.ProvideValue[SHealth](nil, &shealth)
 	return &shealth, nil
 }
 
 // Init initialise the health system
-func (h *SHealth) Init() error {
+func (h *Service) Init() error {
 	logger.Infof("healthcheck starting with period: %d seconds", h.cfg.Period)
 	h.messages = make([]string, 0)
 	h.messages = append(h.messages, "service starting")
@@ -73,7 +87,7 @@ func (h *SHealth) Init() error {
 }
 
 // checking if the health system (namly the timer task) is working or stopped
-func (h *SHealth) checkHealthCheckTimer() {
+func (h *Service) CheckHealthCheckTimer() {
 	t := time.Now()
 	if t.Sub(h.lastChecked) > (time.Second * time.Duration(2*h.cfg.Period)) {
 		h.readyz = false
@@ -87,7 +101,7 @@ func (h *SHealth) checkHealthCheckTimer() {
 
 // Register register a new healthcheck. If a healthcheck with the same name is already present, this will be overwritten
 // Otherwise the new healthcheck will be appended
-func (h *SHealth) Register(check Check) {
+func (h *Service) Register(check Check) {
 	h.reg.Lock()
 	defer h.reg.Unlock()
 	for x, c := range h.checks {
@@ -100,7 +114,7 @@ func (h *SHealth) Register(check Check) {
 }
 
 // Unregister unregister a healthcheck. Return true if the healthcheck can be unregistered otherwise false
-func (h *SHealth) Unregister(checkname string) bool {
+func (h *Service) Unregister(checkname string) bool {
 	h.reg.Lock()
 	defer h.reg.Unlock()
 	for x := len(h.checks) - 1; x >= 0; x-- {
@@ -114,7 +128,7 @@ func (h *SHealth) Unregister(checkname string) bool {
 }
 
 // Message return a health message from the last healthcheck
-func (h *SHealth) Message() Message {
+func (h *Service) Message() Message {
 	return Message{
 		LastCheck: h.lastChecked.String(),
 		Messages:  h.messages,
@@ -122,7 +136,7 @@ func (h *SHealth) Message() Message {
 }
 
 // doCheck internal function to process the health check
-func (h *SHealth) doCheck() {
+func (h *Service) doCheck() {
 	h.lastChecked = time.Now()
 	h.messages = make([]string, 0)
 	healthy := true
@@ -141,15 +155,30 @@ func (h *SHealth) doCheck() {
 	}
 }
 
+// Healthy return the actual health state
+func (h *Service) Healthy() bool {
+	return h.healthy
+}
+
+// Healthy return the actual health state
+func (h *Service) Readyz() bool {
+	return h.readyz
+}
+
+// Healthy return the actual health state
+func (h *Service) LastChecked() time.Time {
+	return h.lastChecked
+}
+
 // Handler is the default handler factory for HTTP requests against the healthsystem
 type Handler struct {
-	health *SHealth
+	health SHealth
 }
 
 // NewHealthHandler creates a new healthhandler for a REST interface
 func NewHealthHandler() api.Handler {
 	return &Handler{
-		health: do.MustInvoke[*SHealth](nil),
+		health: do.MustInvoke[SHealth](nil),
 	}
 }
 
@@ -165,7 +194,7 @@ func (h *Handler) Routes() (string, *chi.Mux) {
 
 // GetLivenessEndpoint liveness probe
 func (h *Handler) GetLivenessEndpoint(response http.ResponseWriter, req *http.Request) {
-	if h.health.healthy {
+	if h.health.Healthy() {
 		render.Status(req, http.StatusOK)
 	} else {
 		render.Status(req, http.StatusServiceUnavailable)
@@ -175,7 +204,7 @@ func (h *Handler) GetLivenessEndpoint(response http.ResponseWriter, req *http.Re
 
 // HeadLivenessEndpoint liveness probe
 func (h *Handler) HeadLivenessEndpoint(response http.ResponseWriter, req *http.Request) {
-	if h.health.healthy {
+	if h.health.Healthy() {
 		render.Status(req, http.StatusOK)
 	} else {
 		render.Status(req, http.StatusServiceUnavailable)
@@ -185,12 +214,12 @@ func (h *Handler) HeadLivenessEndpoint(response http.ResponseWriter, req *http.R
 
 // GetReadinessEndpoint is this service ready for taking requests, e.g. formerly known as health checksfunc GetReadinessEndpoint(response http.ResponseWriter, req *http.Request) {
 func (h *Handler) GetReadinessEndpoint(response http.ResponseWriter, req *http.Request) {
-	h.health.checkHealthCheckTimer()
-	if h.health.readyz {
+	h.health.CheckHealthCheckTimer()
+	if h.health.Readyz() {
 		render.Status(req, http.StatusOK)
 		render.JSON(response, req, Message{
 			Messages:  []string{"main: service up and running"},
-			LastCheck: h.health.lastChecked.String(),
+			LastCheck: h.health.LastChecked().String(),
 		})
 	} else {
 		render.Status(req, http.StatusServiceUnavailable)
@@ -200,8 +229,8 @@ func (h *Handler) GetReadinessEndpoint(response http.ResponseWriter, req *http.R
 
 // HeadReadinessEndpoint is this service ready for taking requests, e.g. formaly known as health checks
 func (h *Handler) HeadReadinessEndpoint(response http.ResponseWriter, req *http.Request) {
-	h.health.checkHealthCheckTimer()
-	if h.health.readyz {
+	h.health.CheckHealthCheckTimer()
+	if h.health.Readyz() {
 		render.Status(req, http.StatusOK)
 	} else {
 		render.Status(req, http.StatusServiceUnavailable)

@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	hs *SHealth
+	hs SHealth
 
 	_ Check = &MyCheck{}
 )
@@ -49,7 +49,7 @@ func InitHealth(ast *assert.Assertions) {
 }
 
 func ShutdownHealth() {
-	_ = do.Shutdown[*SHealth](nil)
+	_ = do.Shutdown[SHealth](nil)
 	hs = nil
 }
 
@@ -58,7 +58,7 @@ func TestHealthBase(t *testing.T) {
 
 	InitHealth(ast)
 
-	hsdi, err := do.Invoke[*SHealth](nil)
+	hsdi, err := do.Invoke[SHealth](nil)
 	ast.Nil(err)
 	ast.NotNil(hsdi)
 
@@ -76,9 +76,9 @@ func TestHealthBase(t *testing.T) {
 	ast.True(chk.fired)
 	ast.Equal(1, chk.times)
 
-	hs.checkHealthCheckTimer()
-	ast.True(hs.readyz)
-	ast.Equal(0, len(hs.messages))
+	hs.CheckHealthCheckTimer()
+	ast.True(hs.Readyz())
+	ast.Equal(0, len(hs.Message().Messages))
 
 	ok := hs.Unregister(chk.name)
 	ast.True(ok)
@@ -91,8 +91,10 @@ func TestMessage(t *testing.T) {
 
 	n := time.Now()
 	InitHealth(ast)
-	hs.lastChecked = n
-	hs.messages = make([]string, 0)
+	h, ok := hs.(*Service)
+	ast.True(ok)
+	h.lastChecked = n
+	h.messages = make([]string, 0)
 	msg := hs.Message()
 	ast.Equal(n.String(), msg.LastCheck)
 	ast.Equal(0, len(msg.Messages))
@@ -105,7 +107,7 @@ func TestHealthUnhealthy(t *testing.T) {
 
 	InitHealth(ast)
 
-	hsdi, err := do.Invoke[*SHealth](nil)
+	hsdi, err := do.Invoke[SHealth](nil)
 	ast.Nil(err)
 	ast.NotNil(hsdi)
 

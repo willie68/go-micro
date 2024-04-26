@@ -17,7 +17,7 @@ type Check interface {
 // Register register a new healthcheck. If a healthcheck with the same name is already present, this will be overwritten
 // Otherwise the new healthcheck will be appended
 func Register(check Check) error {
-	sh := do.MustInvoke[*SHealth](nil)
+	sh := do.MustInvoke[SHealth](nil)
 	if sh == nil {
 		return errors.New("can't get the health system service, not correctly initialised?")
 	}
@@ -27,7 +27,7 @@ func Register(check Check) error {
 
 // Unregister unregister a healthcheck. Return true if the healthcheck can be unregistered otherwise false
 func Unregister(checkname string) error {
-	sh := do.MustInvoke[*SHealth](nil)
+	sh := do.MustInvoke[SHealth](nil)
 	if sh == nil {
 		return errors.New("can't get the health system service, not correctly initialised?")
 	}

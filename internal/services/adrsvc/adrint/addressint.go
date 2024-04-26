@@ -85,3 +85,15 @@ func (a *AdrInt) CheckName() string {
 func (a *AdrInt) Check() (bool, error) {
 	return true, nil
 }
+
+// Init this service
+func (a *AdrInt) Init() error {
+	// Nothing to do here
+	return nil
+}
+
+// Shutdown this service
+func (a *AdrInt) Shutdown() error {
+	// Nothing to do here
+	return nil
+}
