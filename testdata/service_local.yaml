@@ -1,6 +1,6 @@
 secretfile: ""
-apikey: false
 http:
+  servicename: go-micro
   # port of the http server
   port: 9000
   # port of the https server for payload only
@@ -32,7 +32,6 @@ logging:
   filename: "${logfile}"
 profiling:
   enable: false
-#  apikey: X-es-apikey
 auth:
   type: #jwt
   properties: 

@@ -30,11 +30,6 @@
 						"type": "text"
 					},
 					{
-						"key": "apikey",
-						"value": "52eecc9e30183639d68ba837c28369ac",
-						"equals": true
-					},
-					{
 						"key": "system",
 						"value": "easy1",
 						"type": "text"
@@ -91,11 +86,6 @@
 						"key": "X-es-tenant",
 						"value": "MCS",
 						"type": "text"
-					},
-					{
-						"key": "apikey",
-						"value": "52eecc9e30183639d68ba837c28369ac",
-						"equals": true
 					},
 					{
 						"key": "system",
@@ -158,11 +148,6 @@
 						"type": "text"
 					},
 					{
-						"key": "apikey",
-						"value": "52eecc9e30183639d68ba837c28369ac",
-						"equals": true
-					},
-					{
 						"key": "system",
 						"value": "easy1",
 						"type": "text"
@@ -221,11 +206,6 @@
 						"key": "X-es-tenant",
 						"value": "MCS",
 						"type": "text"
-					},
-					{
-						"key": "apikey",
-						"value": "52eecc9e30183639d68ba837c28369ac",
-						"equals": true
 					},
 					{
 						"key": "system",
@@ -288,11 +268,6 @@
 						"type": "text"
 					},
 					{
-						"key": "apikey",
-						"value": "52eecc9e30183639d68ba837c28369ac",
-						"equals": true
-					},
-					{
 						"key": "system",
 						"value": "easy1",
 						"type": "text"
@@ -337,11 +312,6 @@
 			"request": {
 				"method": "GET",
 				"header": [
-					{
-						"key": "apikey",
-						"value": "8723a34c54a53c70071cf86dfb1d8744",
-						"type": "text"
-					}
 				],
 				"url": {
 					"raw": "https://127.0.0.1:9543/metrics",
@@ -365,12 +335,6 @@
 			"request": {
 				"method": "GET",
 				"header": [
-					{
-						"key": "apikey",
-						"value": "8723a34c54a53c70071cf86dfb1d8744",
-						"type": "text",
-						"disabled": true
-					}
 				],
 				"url": {
 					"raw": "https://127.0.0.1:9543/livez",
@@ -394,12 +358,6 @@
 			"request": {
 				"method": "GET",
 				"header": [
-					{
-						"key": "apikey",
-						"value": "8723a34c54a53c70071cf86dfb1d8744",
-						"type": "text",
-						"disabled": true
-					}
 				],
 				"url": {
 					"raw": "https://127.0.0.1:9543/readyz",
@@ -423,12 +381,6 @@
 			"request": {
 				"method": "GET",
 				"header": [
-					{
-						"key": "apikey",
-						"value": "8723a34c54a53c70071cf86dfb1d8744",
-						"type": "text",
-						"disabled": true
-					}
 				],
 				"url": {
 					"raw": "http://127.0.0.1:9080/metrics",
@@ -452,12 +404,6 @@
 			"request": {
 				"method": "GET",
 				"header": [
-					{
-						"key": "apikey",
-						"value": "8723a34c54a53c70071cf86dfb1d8744",
-						"type": "text",
-						"disabled": true
-					}
 				],
 				"url": {
 					"raw": "http://127.0.0.1:9080/livez",
@@ -481,12 +427,6 @@
 			"request": {
 				"method": "GET",
 				"header": [
-					{
-						"key": "apikey",
-						"value": "8723a34c54a53c70071cf86dfb1d8744",
-						"type": "text",
-						"disabled": true
-					}
 				],
 				"url": {
 					"raw": "http://127.0.0.1:9080/readyz",

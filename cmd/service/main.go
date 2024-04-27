@@ -41,9 +41,7 @@ func init() {
 // @version 1.0
 // @description The GoMicro service is a template for microservices written in go.
 // @BasePath /api/v1
-// @securityDefinitions.apikey api_key
 // @in header
-// @name apikey
 func main() {
 	flag.Parse()
 	defer log.Root.Close()
@@ -82,7 +80,6 @@ func main() {
 
 	log.Root.Infof("ssl: %t", serviceConfig.HTTP.Sslport > 0)
 	log.Root.Infof("serviceURL: %s", serviceConfig.HTTP.ServiceURL)
-	log.Root.Infof("apikey: %s", apiv1.APIKey)
 	router, err := apiv1.APIRoutes(serviceConfig, tracer)
 	if err != nil {
 		errstr := fmt.Sprintf("could not create api routes. %s", err.Error())

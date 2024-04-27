@@ -1,8 +1,6 @@
 # secret file contains secrets like credentials, access key ... it has the same structure as this config and will be merged on start
 secretfile: ""
-# true to activate the usage of a apikey (normaly as http header)
-apikey: false
-
+  
 # http service definition
 http:
   # name of this service

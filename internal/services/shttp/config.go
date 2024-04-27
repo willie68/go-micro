@@ -2,6 +2,8 @@ package shttp
 
 // Config configuration of the http service
 type Config struct {
+	// Servicename for the certificate
+	Servicename string `yaml:"servicename"`
 	// port of the http server
 	Port int `yaml:"port"`
 	// port of the https server
@@ -12,8 +14,6 @@ type Config struct {
 	DNSNames []string `yaml:"dnss"`
 	// other ips (used for certificate)
 	IPAddresses []string `yaml:"ips"`
-	// Servicename for the certificate
-	Servicename string `yaml:"servicename"`
 	// path and name to the certificate
 	Certificate string `yaml:"certificate"`
 	// path and name to the private key

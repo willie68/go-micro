@@ -1,7 +1,6 @@
 package apiv1
 
 import (
-	"crypto/md5"
 	"fmt"
 	"net/http"
 	"strings"
@@ -29,9 +28,6 @@ const APIVersion = "1"
 // BaseURL is the url all endpoints will be available under
 var BaseURL = fmt.Sprintf("/api/v%s", APIVersion)
 
-// APIKey the apikey of this service
-var APIKey string
-
 var logger = logging.New().WithName("apiv1")
 
 // defining all sub pathes for api v1
@@ -45,14 +41,9 @@ func token(r *http.Request) (string, error) {
 
 // APIRoutes configuring the api routes for the main REST API
 func APIRoutes(cfn config.Config, trc opentracing.Tracer) (*chi.Mux, error) {
-	APIKey = getApikey()
 	logger.Infof("baseurl : %s", BaseURL)
 	router := chi.NewRouter()
 	setDefaultHandler(router, cfn, trc)
-
-	if cfn.Apikey {
-		setApikeyHandler(router)
-	}
 
 	// jwt is activated, register the Authenticator and Validator
 	if strings.EqualFold(cfn.Auth.Type, "jwt") {
@@ -100,30 +91,6 @@ func setJWTHandler(router *chi.Mux, cfn config.Config) error {
 		auth.Authenticator,
 	)
 	return nil
-}
-
-func setApikeyHandler(router *chi.Mux) {
-	router.Use(
-		api.SysAPIHandler(api.SysAPIConfig{
-			Apikey: APIKey,
-			SkipFunc: func(r *http.Request) bool {
-				path := strings.TrimSuffix(r.URL.Path, "/")
-				if strings.HasSuffix(path, "/livez") {
-					return true
-				}
-				if strings.HasSuffix(path, "/readyz") {
-					return true
-				}
-				if strings.HasSuffix(path, api.MetricsEndpoint) {
-					return true
-				}
-				if strings.HasPrefix(path, "/client") {
-					return true
-				}
-				return false
-			},
-		}),
-	)
 }
 
 func setDefaultHandler(router *chi.Mux, cfn config.Config, tracer opentracing.Tracer) {
@@ -221,11 +188,4 @@ func HealthRoutes(cfn config.Config, tracer opentracing.Tracer) *chi.Mux {
 	}
 
 	return router
-}
-
-// getApikey generate an apikey based on the service name
-func getApikey() string {
-	value := fmt.Sprintf("%s_%s", config.Servicename, "default")
-	apikey := fmt.Sprintf("%x", md5.Sum([]byte(value)))
-	return strings.ToLower(apikey)
 }

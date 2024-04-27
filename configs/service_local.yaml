@@ -1,8 +1,8 @@
 #sercret file for storing usernames and passwords
 secretfile: configs/secret.yaml
-# true to activate the usage of a apikey (normaly as http header)
-apikey: false
+
 http:
+  servicename: go-micro
   # port of the http server
   port: 9480
   # port of the https server for payload only
@@ -16,6 +16,10 @@ http:
   # other ips (used for certificate)
   ips: 
     - 127.0.0.1
+  # path and name of the certificate
+  certificate: ./testdata/certificate/cert.pem
+  # path and name of the private key 
+  key: ./testdata/certificate/key.pem
 #configure the healthcheck system
 healthcheck:
   # period in seconds to start the healtcheck

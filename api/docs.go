@@ -246,11 +246,6 @@ var doc = `{
         }
     },
     "securityDefinitions": {
-        "api_key": {
-            "type": "apiKey",
-            "name": "apikey",
-            "in": "header"
-        }
     }
 }`
 

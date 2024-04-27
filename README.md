@@ -34,9 +34,19 @@ In this template the configuration will be automatically loaded. You have the fo
 
 IN the configuration file you can use `${}` macros for adding environment variables for the configuration itself. This will not work on the `secret.yaml`. The `secret.yaml` (if given in the configuration) will load a partial configuration from another file. (Mainly for separating credentials from the other configuration) Be aware, you manually have to merge both configuration in the `config.mergeSecret()` function.
 
+### Secrets
 
+Die Konfiguration kann in 2 Teile aufgespalten werden. Einmal in die normale Konfiguration. Zusätzlich können bestimmte Teile z.B. Credentials in eine 2.Datei ausgelagert werden. Diese können dann über einen anderen Mechanismus (z.B. per Kubernetes secret store) zur Verfügung gestellt werden. Die Struktur muss identisch sein. Diese 2. Datei wird dann über den Eintrag secretfile in der config.yaml referenziert. Beim Servicestart werden alle Werte über die Werte der config.yaml geladen.
 
-## Prometheus integration
+```yaml
+secretfile: "./config/secret.yaml"
+```
+
+### Enviroment
+
+Werte der config Dateien können durch Enviroment Variablen ersetzt werden. Dazu werden {$name} im String ersetzt mit den entsprechenden Werten von aktuelle Umgebungsvariablen. Verweise auf undefinierte Variablen werden durch einen leeren String ersetzt. 
+
+### Prometheus integration
 
 You can switch on the prometheus integration simply by adding 
 
@@ -47,7 +57,7 @@ metrics:
 
 to the service config.
 
-### How to add a new counter?
+#### How to add a new counter?
 
 Simply on the class, where you want to add a new counter (or something else) make a new variable with:
 

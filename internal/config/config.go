@@ -25,8 +25,6 @@ const Servicename = "go-micro"
 type Config struct {
 	// all secrets will be stored in this file, same structure as the main config file
 	SecretFile string `yaml:"secretfile"`
-	// if you need an apikey, use this one
-	Apikey bool `yaml:"apikey"`
 	// configure logging to gelf logging system
 	Logging logging.Config `yaml:"logging"`
 	// use authentication via jwt
@@ -72,15 +70,15 @@ type Profiling struct {
 // DefaultConfig default configuration
 var DefaultConfig = Config{
 	HTTP: shttp.Config{
-		Port:       8000,
-		Sslport:    8443,
-		ServiceURL: "https://127.0.0.1:8443",
+		Servicename: "go-micro",
+		Port:        8000,
+		Sslport:     8443,
+		ServiceURL:  "https://127.0.0.1:8443",
 	},
 	HealthSystem: health.Config{
 		Period:     30,
 		StartDelay: 3,
 	},
-	Apikey:     true,
 	SecretFile: "",
 	Logging: logging.Config{
 		Level:    "INFO",
