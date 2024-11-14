@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/httptracer"
 	"github.com/go-chi/render"
 	"github.com/opentracing/opentracing-go"
+	httpSwagger "github.com/swaggo/http-swagger"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/willie68/go-micro/internal/api"
@@ -61,7 +62,11 @@ func APIRoutes(cfn config.Config, trc opentracing.Tracer) (*chi.Mux, error) {
 		if cfn.Metrics.Enable {
 			r.Mount("/metrics", promhttp.Handler())
 		}
+
 	})
+	router.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"), //The url pointing to API definition
+	))
 	// adding a file server with web client asserts
 	httputils.FileServer(router, "/client", http.FS(web.WebClientAssets))
 	logger.Infof("%s api routes", config.Servicename)

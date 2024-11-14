@@ -43,7 +43,7 @@ func NewAdrHandler() api.Handler {
 	}
 }
 
-// Routes getting all routes for the config endpoint
+// Routes getting all routes for the address endpoint
 func (c *AdrHandler) Routes() (string, *chi.Mux) {
 	router := chi.NewRouter()
 	router.Post("/", c.PostAddress)
@@ -55,16 +55,17 @@ func (c *AdrHandler) Routes() (string, *chi.Mux) {
 }
 
 // GetAddresses getting all addresses
-// @Summary getting all addresses
-// @Tags addresses
-// @Accept  json
-// @Produce  json
-// @Security api_key
-// @Param tenant header string true "Tenant"
-// @Success 200 {array} ConfigDescription "response with config as json"
-// @Failure 400 {object} serror.Serr "client error information as json"
-// @Failure 500 {object} serror.Serr "server error information as json"
-// @Router /config [get]
+//
+//	@Summary	getting all addresses
+//	@Tags		addresses
+//	@Accept		json
+//	@Produce	json
+//	@Security	api_key
+//	@Param		tenant	header		string				true	"Tenant"
+//	@Success	200		{array}		pmodel.Address		"response with list of addresses as json"
+//	@Failure	400		{object}	serror.Serr			"client error information as json"
+//	@Failure	500		{object}	serror.Serr			"server error information as json"
+//	@Router		/addresses [get]
 func (c *AdrHandler) GetAddresses(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
@@ -81,16 +82,17 @@ func (c *AdrHandler) GetAddresses(response http.ResponseWriter, request *http.Re
 }
 
 // GetAddress getting one address
-// @Summary getting one address
-// @Tags addresses
-// @Accept  json
-// @Produce  json
-// @Security api_key
-// @Param tenant header string true "Tenant"
-// @Success 200 {array} ConfigDescription "response with config as json"
-// @Failure 400 {object} serror.Serr "client error information as json"
-// @Failure 500 {object} serror.Serr "server error information as json"
-// @Router /config [get]
+//
+//	@Summary	getting one address
+//	@Tags		addresses
+//	@Accept		json
+//	@Produce	json
+//	@Security	api_key
+//	@Param		tenant	header		string				true	"Tenant"
+//	@Success	200		{array}		pmodel.Address		"response with the address with id as json"
+//	@Failure	400		{object}	serror.Serr			"client error information as json"
+//	@Failure	500		{object}	serror.Serr			"server error information as json"
+//	@Router		/addresses/{id} [get]
 func (c *AdrHandler) GetAddress(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {
@@ -113,17 +115,18 @@ func (c *AdrHandler) GetAddress(response http.ResponseWriter, request *http.Requ
 }
 
 // PostAddress create a new address, this method will always return 201
-// @Summary Create a new address
-// @Tags configs
-// @Accept  json
-// @Produce  json
-// @Security api_key
-// @Param tenant header string true "Tenant"
-// @Param payload body string true "Add store"
-// @Success 201 {string} string "tenant"
-// @Failure 400 {object} serror.Serr "client error information as json"
-// @Failure 500 {object} serror.Serr "server error information as json"
-// @Router /config [post]
+//
+//	@Summary	Create a new address
+//	@Tags		addresses
+//	@Accept		json
+//	@Produce	json
+//	@Security	api_key
+//	@Param		tenant	header		string		true	"Tenant"
+//	@Param		payload	body		pmodel.Address		true	"address to be added"
+//	@Success	201		{string}	string		"tenant"
+//	@Failure	400		{object}	serror.Serr	"client error information as json"
+//	@Failure	500		{object}	serror.Serr	"server error information as json"
+//	@Router		/addresses [post]
 func (c *AdrHandler) PostAddress(response http.ResponseWriter, request *http.Request) {
 	var b []byte
 	var err error
@@ -163,17 +166,18 @@ func (c *AdrHandler) PostAddress(response http.ResponseWriter, request *http.Req
 }
 
 // UpdateAddress update an address, this method will always return 201
-// @Summary Create a new address
-// @Tags configs
-// @Accept  json
-// @Produce  json
-// @Security api_key
-// @Param tenant header string true "Tenant"
-// @Param payload body string true "Add store"
-// @Success 201 {string} string "tenant"
-// @Failure 400 {object} serror.Serr "client error information as json"
-// @Failure 500 {object} serror.Serr "server error information as json"
-// @Router /addresses/{id} [post]
+//
+//	@Summary	Create a new address
+//	@Tags		addresses
+//	@Accept		json
+//	@Produce	json
+//	@Security	api_key
+//	@Param		tenant	header		string		true	"Tenant"
+//	@Param		payload	body		string		true	"Add store"
+//	@Success	201		{string}	string		"tenant"
+//	@Failure	400		{object}	serror.Serr	"client error information as json"
+//	@Failure	500		{object}	serror.Serr	"server error information as json"
+//	@Router		/addresses/{id} [post]
 func (c *AdrHandler) UpdateAddress(response http.ResponseWriter, request *http.Request) {
 	var b []byte
 	var err error
@@ -207,15 +211,16 @@ func (c *AdrHandler) UpdateAddress(response http.ResponseWriter, request *http.R
 }
 
 // DeleteAddress deleting address
-// @Summary Delete a address
-// @Tags  addresses
-// @Accept  json
-// @Produce  json
-// @Security api_key
-// @Param tenant header string true "Tenant"
-// @Success 200 "ok"
-// @Failure 400 {object} serror.Serr "client error information as json"
-// @Router /config [delete]
+//
+//	@Summary	Delete a address
+//	@Tags		addresses
+//	@Accept		json
+//	@Produce	json
+//	@Security	api_key
+//	@Param		tenant	header	string	true	"Tenant"
+//	@Success	200		"ok"
+//	@Failure	400		{object}	serror.Serr	"client error information as json"
+//	@Router		/addresses/{id} [delete]
 func (c *AdrHandler) DeleteAddress(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
 	if tenant == "" {

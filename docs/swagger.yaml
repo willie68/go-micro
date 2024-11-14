@@ -1,12 +1,20 @@
 basePath: /api/v1
 definitions:
-  apiv1.ConfigDescription:
+  pmodel.Address:
     properties:
-      size:
-        type: integer
-      storeid:
+      city:
         type: string
-      tenantID:
+      firstname:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      state:
+        type: string
+      street:
+        type: string
+      zip_code:
         type: string
     type: object
   serror.Serr:
@@ -28,7 +36,74 @@ info:
   title: GoMicro service API
   version: "1.0"
 paths:
-  /config:
+  /addresses:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tenant
+        in: header
+        name: tenant
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response with list of addresses as json
+          schema:
+            items:
+              $ref: '#/definitions/pmodel.Address'
+            type: array
+        "400":
+          description: client error information as json
+          schema:
+            $ref: '#/definitions/serror.Serr'
+        "500":
+          description: server error information as json
+          schema:
+            $ref: '#/definitions/serror.Serr'
+      security:
+      - api_key: []
+      summary: getting all addresses
+      tags:
+      - addresses
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tenant
+        in: header
+        name: tenant
+        required: true
+        type: string
+      - description: address to be added
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/pmodel.Address'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: tenant
+          schema:
+            type: string
+        "400":
+          description: client error information as json
+          schema:
+            $ref: '#/definitions/serror.Serr'
+        "500":
+          description: server error information as json
+          schema:
+            $ref: '#/definitions/serror.Serr'
+      security:
+      - api_key: []
+      summary: Create a new address
+      tags:
+      - addresses
+  /addresses/{id}:
     delete:
       consumes:
       - application/json
@@ -49,9 +124,9 @@ paths:
             $ref: '#/definitions/serror.Serr'
       security:
       - api_key: []
-      summary: Delete a store for a tenant
+      summary: Delete a address
       tags:
-      - configs
+      - addresses
     get:
       consumes:
       - application/json
@@ -65,10 +140,10 @@ paths:
       - application/json
       responses:
         "200":
-          description: response with config as json
+          description: response with the address with id as json
           schema:
             items:
-              $ref: '#/definitions/apiv1.ConfigDescription'
+              $ref: '#/definitions/pmodel.Address'
             type: array
         "400":
           description: client error information as json
@@ -80,9 +155,9 @@ paths:
             $ref: '#/definitions/serror.Serr'
       security:
       - api_key: []
-      summary: Get a store for a tenant
+      summary: getting one address
       tags:
-      - configs
+      - addresses
     post:
       consumes:
       - application/json
@@ -115,34 +190,7 @@ paths:
             $ref: '#/definitions/serror.Serr'
       security:
       - api_key: []
-      summary: Create a new store for a tenant
+      summary: Create a new address
       tags:
-      - configs
-  /config/size:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: Tenant
-        in: header
-        name: tenant
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: size
-          schema:
-            type: string
-        "400":
-          description: client error information as json
-          schema:
-            $ref: '#/definitions/serror.Serr'
-      security:
-      - api_key: []
-      summary: Get size of a store for a tenant
-      tags:
-      - configs
-securityDefinitions:
+      - addresses
 swagger: "2.0"

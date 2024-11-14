@@ -8,6 +8,7 @@ import (
 	"os/signal"
 
 	"github.com/samber/do"
+	_ "github.com/willie68/go-micro/docs"
 	"github.com/willie68/go-micro/internal/apiv1"
 	"github.com/willie68/go-micro/internal/serror"
 	"github.com/willie68/go-micro/internal/services"
@@ -37,11 +38,11 @@ func init() {
 	flag.StringVarP(&configFile, "config", "c", config.File, "this is the path and filename to the config file")
 }
 
-// @title GoMicro service API
-// @version 1.0
-// @description The GoMicro service is a template for microservices written in go.
-// @BasePath /api/v1
-// @in header
+// @title			GoMicro service API
+// @version		1.0
+// @description	The GoMicro service is a template for microservices written in go.
+// @BasePath		/api/v1
+// @in				header
 func main() {
 	flag.Parse()
 	defer log.Root.Close()
