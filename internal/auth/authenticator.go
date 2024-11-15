@@ -12,6 +12,7 @@ import (
 var (
 	TokenCtxKey = &contextKey{"Token"}
 	ErrorCtxKey = &contextKey{"Error"}
+	CheckCtxKey = &contextKey{"Check"}
 )
 
 // defining some common errors
@@ -44,6 +45,14 @@ func FromContext(ctx context.Context) (*JWT, map[string]any, error) {
 // Authenticator returns a handler for authentication
 func Authenticator(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		nocheck, ok := r.Context().Value(CheckCtxKey).(bool)
+		if ok {
+			if nocheck {
+				// this request has not to be checked
+				next.ServeHTTP(w, r)
+				return
+			}
+		}
 		token, _, err := FromContext(r.Context())
 
 		if err != nil {
@@ -72,8 +81,15 @@ func Verify(ja *JWTAuth, findTokenFns ...func(r *http.Request) string) func(http
 	return func(next http.Handler) http.Handler {
 		hfn := func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
+			path := r.URL.Path
+			noCheck := false
+			for _, p := range ja.Config.IgnorePages {
+				if strings.HasPrefix(path, p) {
+					noCheck = true
+				}
+			}
 			token, err := VerifyRequest(ja, r, findTokenFns...)
-			ctx = NewContext(ctx, token, err)
+			ctx = NewContext(ctx, token, err, noCheck)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 		return http.HandlerFunc(hfn)
@@ -108,7 +124,7 @@ func VerifyToken(ja *JWTAuth, tokenString string) (*JWT, error) {
 		return &token, err
 	}
 
-	if err := token.Validate(ja.Config); err != nil {
+	if err := token.Validate(ja); err != nil {
 		return &token, err
 	}
 
@@ -117,9 +133,10 @@ func VerifyToken(ja *JWTAuth, tokenString string) (*JWT, error) {
 }
 
 // NewContext creating a new context for the http functions
-func NewContext(ctx context.Context, t *JWT, err error) context.Context {
+func NewContext(ctx context.Context, t *JWT, err error, noCheck bool) context.Context {
 	ctx = context.WithValue(ctx, TokenCtxKey, t)
 	ctx = context.WithValue(ctx, ErrorCtxKey, err)
+	ctx = context.WithValue(ctx, CheckCtxKey, noCheck)
 	return ctx
 }
 

@@ -15,26 +15,26 @@ const testTokenSignature = "DfqG7q0jhutoK_gAE_2UNnlc1b5YxdBiLd2dz5Kf4jmPSrr11oAW
 
 func TestToken(t *testing.T) {
 	ast := assert.New(t)
-	jwt, err := DecodeJWT(testToken)
+	jt, err := DecodeJWT(testToken)
 	if err != nil {
 		t.Logf("error occured: %v", err)
 		t.Fail()
 	}
-	ast.NotNil(jwt)
-	ast.NotNil(jwt.Token)
+	ast.NotNil(jt)
+	ast.NotNil(jt.Token)
 
-	header := jwt.Header
+	header := jt.Header
 	ast.NotNil(header)
 	ast.Equal("RS256", header["alg"])
 	ast.Equal("JWT", header["typ"])
 
-	payload := jwt.Payload
+	payload := jt.Payload
 	ast.NotNil(payload)
 	ast.Equal("83e94672-94f8-4760-a63f-ce0f069a1351", payload["sub"])
 	ast.Equal("Wilfriedd Klaas", payload["name"])
 	ast.Equal(float64(1619853483), payload["iat"])
 
-	sig := jwt.Signature
+	sig := jt.Signature
 	ast.NotNil(sig)
 	ast.Equal(testTokenSignature, sig)
 }

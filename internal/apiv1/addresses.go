@@ -61,10 +61,10 @@ func (c *AdrHandler) Routes() (string, *chi.Mux) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	api_key
-//	@Param		tenant	header		string				true	"Tenant"
-//	@Success	200		{array}		pmodel.Address		"response with list of addresses as json"
-//	@Failure	400		{object}	serror.Serr			"client error information as json"
-//	@Failure	500		{object}	serror.Serr			"server error information as json"
+//	@Param		tenant	header		string			true	"Tenant"
+//	@Success	200		{array}		pmodel.Address	"response with list of addresses as json"
+//	@Failure	400		{object}	serror.Serr		"client error information as json"
+//	@Failure	500		{object}	serror.Serr		"server error information as json"
 //	@Router		/addresses [get]
 func (c *AdrHandler) GetAddresses(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
@@ -88,10 +88,11 @@ func (c *AdrHandler) GetAddresses(response http.ResponseWriter, request *http.Re
 //	@Accept		json
 //	@Produce	json
 //	@Security	api_key
-//	@Param		tenant	header		string				true	"Tenant"
-//	@Success	200		{array}		pmodel.Address		"response with the address with id as json"
-//	@Failure	400		{object}	serror.Serr			"client error information as json"
-//	@Failure	500		{object}	serror.Serr			"server error information as json"
+//	@Param		tenant	header		string			true	"Tenant"
+//	@Param		id		path		string			true	"ID"
+//	@Success	200		{array}		pmodel.Address	"response with the address with id as json"
+//	@Failure	400		{object}	serror.Serr		"client error information as json"
+//	@Failure	500		{object}	serror.Serr		"server error information as json"
 //	@Router		/addresses/{id} [get]
 func (c *AdrHandler) GetAddress(response http.ResponseWriter, request *http.Request) {
 	tenant := getTenant(request)
@@ -121,11 +122,11 @@ func (c *AdrHandler) GetAddress(response http.ResponseWriter, request *http.Requ
 //	@Accept		json
 //	@Produce	json
 //	@Security	api_key
-//	@Param		tenant	header		string		true	"Tenant"
-//	@Param		payload	body		pmodel.Address		true	"address to be added"
-//	@Success	201		{string}	string		"tenant"
-//	@Failure	400		{object}	serror.Serr	"client error information as json"
-//	@Failure	500		{object}	serror.Serr	"server error information as json"
+//	@Param		tenant	header		string			true	"Tenant"
+//	@Param		payload	body		pmodel.Address	true	"address to be added"
+//	@Success	201		{string}	string			"tenant"
+//	@Failure	400		{object}	serror.Serr		"client error information as json"
+//	@Failure	500		{object}	serror.Serr		"server error information as json"
 //	@Router		/addresses [post]
 func (c *AdrHandler) PostAddress(response http.ResponseWriter, request *http.Request) {
 	var b []byte

@@ -136,6 +136,11 @@ paths:
         name: tenant
         required: true
         type: string
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:

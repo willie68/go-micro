@@ -16,6 +16,7 @@ type JWTAuthConfig struct {
 	Validate    bool
 	TenantClaim string
 	Strict      bool
+	IgnorePages []string
 }
 
 // JWT struct for the decoded jwt token
@@ -37,7 +38,7 @@ var JWTConfig = JWTAuthConfig{
 	Active: false,
 }
 
-// InitJWT initialise the JWT for this service
+// InitJWT initialize the JWT for this service
 func InitJWT(cnfg JWTAuthConfig) JWTAuth {
 	JWTConfig = cnfg
 	return JWTAuth{
@@ -49,6 +50,7 @@ func InitJWT(cnfg JWTAuthConfig) JWTAuth {
 func ParseJWTConfig(cfg config.Authentication) (JWTAuthConfig, error) {
 	jwtcfg := JWTAuthConfig{
 		Active: true,
+		IgnorePages: make([]string, 0),
 	}
 	var err error
 	jwtcfg.Validate, err = config.GetConfigValueAsBool(cfg.Properties, "validate")
@@ -60,7 +62,7 @@ func ParseJWTConfig(cfg config.Authentication) (JWTAuthConfig, error) {
 
 // DecodeJWT simple decode the jwt token string
 func DecodeJWT(token string) (JWT, error) {
-	jwt := JWT{
+	jt := JWT{
 		Token:   token,
 		IsValid: false,
 	}
@@ -77,26 +79,26 @@ func DecodeJWT(token string) (JWT, error) {
 	jwtParts := strings.Split(token, ".")
 	if len(jwtParts) < 2 {
 		err := errors.New("token missing payload part")
-		return jwt, err
+		return jt, err
 	}
 	var err error
 
-	jwt.Header, err = jwtDecodePart(jwtParts[0])
+	jt.Header, err = jwtDecodePart(jwtParts[0])
 	if err != nil {
 		err = fmt.Errorf("token header parse error, %v", err)
-		return jwt, err
+		return jt, err
 	}
 
-	jwt.Payload, err = jwtDecodePart(jwtParts[1])
+	jt.Payload, err = jwtDecodePart(jwtParts[1])
 	if err != nil {
 		err = fmt.Errorf("token payload parse error, %v", err)
-		return jwt, err
+		return jt, err
 	}
 	if len(jwtParts) > 2 {
-		jwt.Signature = jwtParts[2]
+		jt.Signature = jwtParts[2]
 	}
-	jwt.IsValid = true
-	return jwt, nil
+	jt.IsValid = true
+	return jt, nil
 }
 
 func jwtDecodePart(payload string) (map[string]any, error) {
@@ -115,7 +117,7 @@ func jwtDecodePart(payload string) (map[string]any, error) {
 }
 
 // Validate validation of the token is not implemented
-func (j *JWT) Validate(_ JWTAuthConfig) error {
+func (j *JWT) Validate(_ *JWTAuth) error {
 	//TODO here should be the implementation of the validation of the token
 	return nil
 }

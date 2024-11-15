@@ -63,7 +63,7 @@ FROM alpine:3.20
 ARG RELEASE
 ENV IMG_VERSION="${RELEASE}"
 
-COPY --from=builder /src/gomicro-service /
+COPY --from=builder /src/gomicro-service /usr/local/bin/
 COPY --from=builder /src/configs/service.yaml /config/
 COPY --from=builder /src/configs/secret.yaml /config/
 COPY --from=builder /usr/share/rundeps /usr/share/rundeps
@@ -71,7 +71,7 @@ COPY --from=builder /usr/share/rundeps /usr/share/rundeps
 RUN set -eux; \
     xargs -a /usr/share/rundeps apk add --no-progress --quiet --no-cache --upgrade --virtual .run-deps
 
-ENTRYPOINT ["/gomicro-service"]
+ENTRYPOINT ["/usr/local/bin/gomicro-service"]
 CMD ["--config","/config/service.yaml"]
 
 EXPOSE 8080 8443
