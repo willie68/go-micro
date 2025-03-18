@@ -84,7 +84,7 @@ func main() {
 	router, err := apiv1.APIRoutes(serviceConfig, tracer)
 	if err != nil {
 		errstr := fmt.Sprintf("could not create api routes. %s", err.Error())
-		log.Root.Alertf(errstr)
+		log.Root.Alert(errstr)
 		panic(errstr)
 	}
 

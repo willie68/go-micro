@@ -18,7 +18,7 @@ Features:
 - metrics with Prometheus: https://prometheus.io/docs/guides/go-application/
 - Docker build with builder and target image
 - chi as the router framework
-- go 1.23
+- go 1.24
 - automatic config substitution 
 
 ## Why using this and not a framework?
@@ -32,11 +32,11 @@ In this template the configuration will be automatically loaded. You have the fo
 - default: the service will try to load the configuration from the `<userhome>/<servicename>/service.yaml`
 - via Commandline: `-c <configfile>` will load the configuration from this file
 
-IN the configuration file you can use `${}` macros for adding environment variables for the configuration itself. This will not work on the `secret.yaml`. The `secret.yaml` (if given in the configuration) will load a partial configuration from another file. (Mainly for separating credentials from the other configuration) Be aware, you manually have to merge both configuration in the `config.mergeSecret()` function.
+In the configuration file you can use `${}` macros for adding environment variables for the configuration itself. 
 
 ### Secrets
 
-Die Konfiguration kann in 2 Teile aufgespalten werden. Einmal in die normale Konfiguration. Zusätzlich können bestimmte Teile z.B. Credentials in eine 2.Datei ausgelagert werden. Diese können dann über einen anderen Mechanismus (z.B. per Kubernetes secret store) zur Verfügung gestellt werden. Die Struktur muss identisch sein. Diese 2. Datei wird dann über den Eintrag secretfile in der config.yaml referenziert. Beim Servicestart werden alle Werte über die Werte der config.yaml geladen.
+The configuration can be split into two parts: one for the normal configuration. Additionally, certain parts, such as credentials, can be stored in a second file. (Without the possibility to use ${} macros.) These can then be made available via another mechanism (e.g., via the Kubernetes secret store). The structure must be identical. This second file is then referenced via the "secretfile" entry in the config.yaml file. When the service starts, first the config.yaml will be loaded, the macros will be processed and than the secret file (if present) will be loaded into the config.
 
 ```yaml
 secretfile: "./config/secret.yaml"
@@ -44,7 +44,7 @@ secretfile: "./config/secret.yaml"
 
 ### Enviroment
 
-Werte der config Dateien können durch Enviroment Variablen ersetzt werden. Dazu werden {$name} im String ersetzt mit den entsprechenden Werten von aktuelle Umgebungsvariablen. Verweise auf undefinierte Variablen werden durch einen leeren String ersetzt. 
+Values of config files can be replaced with environment variables. To do this, ${name} in the string is replaced with the corresponding values of the current environment variables. References to undefined variables are replaced with an empty string. (see [drone/envsubst](https://github.com/drone/envsubst))
 
 ### Prometheus integration
 
@@ -78,4 +78,4 @@ In the code where to count the events simply do an
 postConfigCounter.Inc()
 ```
 
- Thats all. More examples here: https://prometheus.io/docs/guides/go-application/
+ That's all. More examples here: https://prometheus.io/docs/guides/go-application/
