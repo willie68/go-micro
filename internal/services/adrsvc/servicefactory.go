@@ -1,15 +1,14 @@
-package adrfact
+package adrsvc
 
 import (
 	"github.com/samber/do/v2"
-	"github.com/willie68/go-micro/internal/services/adrsvc"
 	"github.com/willie68/go-micro/internal/services/adrsvc/adrint"
 	"github.com/willie68/go-micro/internal/services/adrsvc/adrmysql"
-	"github.com/willie68/go-micro/internal/services/health"
+	"github.com/willie68/go-micro/internal/services/adrsvc/common"
 )
 
 // New create a new storage servcice based on the configuration
-func New(inj do.Injector, cfn adrsvc.Config) error {
+func New(inj do.Injector, cfn common.Config) error {
 	switch cfn.Type {
 	case "internal":
 		adrstg, err := adrint.NewAdrInt()
@@ -17,8 +16,6 @@ func New(inj do.Injector, cfn adrsvc.Config) error {
 			return err
 		}
 		do.ProvideValue(inj, adrstg)
-
-		err = health.Register(inj, adrstg)
 		return err
 	case "mysql":
 		c := adrmysql.Config{
@@ -33,9 +30,7 @@ func New(inj do.Injector, cfn adrsvc.Config) error {
 			return err
 		}
 		do.ProvideValue(inj, sqlstg)
-
-		err = health.Register(inj, sqlstg)
 		return err
 	}
-	return adrsvc.ErrNotFound
+	return common.ErrNotFound
 }

@@ -14,18 +14,18 @@ type Check interface {
 	Check() (bool, error)
 }
 
-type RegisterCheck interface {
+type Registerer interface {
 	Register(check Check)
 }
 
-type UnregisterCheck interface {
+type Unregisterer interface {
 	Unregister(checkname string) bool
 }
 
 // Register register a new healthcheck. If a healthcheck with the same name is already present, this will be overwritten
 // Otherwise the new healthcheck will be appended
 func Register(inj do.Injector, check Check) error {
-	sh := do.MustInvokeAs[RegisterCheck](inj)
+	sh := do.MustInvokeAs[Registerer](inj)
 	if sh == nil {
 		return errors.New("can't get the health system service, not correctly initialised?")
 	}
@@ -35,7 +35,7 @@ func Register(inj do.Injector, check Check) error {
 
 // Unregister unregister a healthcheck. Return true if the healthcheck can be unregistered otherwise false
 func Unregister(inj do.Injector, checkname string) error {
-	sh := do.MustInvokeAs[UnregisterCheck](inj)
+	sh := do.MustInvokeAs[Unregisterer](inj)
 	if sh == nil {
 		return errors.New("can't get the health system service, not correctly initialised?")
 	}

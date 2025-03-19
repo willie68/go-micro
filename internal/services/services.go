@@ -4,7 +4,7 @@ import (
 	"github.com/samber/do/v2"
 	"github.com/willie68/go-micro/internal/config"
 	"github.com/willie68/go-micro/internal/logging"
-	"github.com/willie68/go-micro/internal/services/adrsvc/adrfact"
+	"github.com/willie68/go-micro/internal/services/adrsvc"
 	"github.com/willie68/go-micro/internal/services/health"
 	"github.com/willie68/go-micro/internal/services/shttp"
 )
@@ -12,6 +12,12 @@ import (
 var (
 	logger = logging.New().WithName("services")
 )
+
+// Service is the standard service interface
+type Service interface {
+	Init() error
+	Shutdown() error
+}
 
 // InitServices initialise the service system
 func InitServices(inj do.Injector, cfg config.Config) error {
@@ -22,7 +28,7 @@ func InitServices(inj do.Injector, cfg config.Config) error {
 	}
 
 	// here you can add more services
-	err = adrfact.New(inj, cfg.AddressStorage)
+	err = adrsvc.New(inj, cfg.AddressStorage)
 	if err != nil {
 		return err
 	}
@@ -41,4 +47,8 @@ func InitHelperServices(inj do.Injector, cfg config.Config) error {
 func InitRESTService(inj do.Injector, cfg config.Config) error {
 	_, err := shttp.NewSHttp(inj, cfg.HTTP, cfg.CA)
 	return err
+}
+
+func ShutdownServices(inj do.Injector) {
+	inj.Shutdown()
 }

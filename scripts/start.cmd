@@ -1,1 +1,1 @@
-gomicro-service.exe -c ./config/service_local.yaml
+gomicro-service.exe -c ./configs/service_local.yaml

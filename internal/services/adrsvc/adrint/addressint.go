@@ -5,7 +5,7 @@ import (
 	// needed declaration
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/rs/xid"
-	"github.com/willie68/go-micro/internal/services/adrsvc"
+	"github.com/willie68/go-micro/internal/services/adrsvc/common"
 	"github.com/willie68/go-micro/pkg/pmodel"
 )
 
@@ -13,8 +13,6 @@ import (
 type AdrInt struct {
 	adrs map[string]pmodel.Address
 }
-
-var _ adrsvc.AddressStorage = &AdrInt{}
 
 // NewAdrInt create a new instance of the internal address storage
 func NewAdrInt() (*AdrInt, error) {
@@ -43,7 +41,7 @@ func (a *AdrInt) Has(id string) bool {
 func (a *AdrInt) Read(id string) (*pmodel.Address, error) {
 	adr, ok := a.adrs[id]
 	if !ok {
-		return nil, adrsvc.ErrNotFound
+		return nil, common.ErrNotFound
 	}
 	return &adr, nil
 }
@@ -60,7 +58,7 @@ func (a *AdrInt) Create(adr pmodel.Address) (string, error) {
 func (a *AdrInt) Update(adr pmodel.Address) error {
 	_, ok := a.adrs[adr.ID]
 	if !ok {
-		return adrsvc.ErrNotFound
+		return common.ErrNotFound
 	}
 	a.adrs[adr.ID] = adr
 	return nil
@@ -70,7 +68,7 @@ func (a *AdrInt) Update(adr pmodel.Address) error {
 func (a *AdrInt) Delete(id string) error {
 	_, ok := a.adrs[id]
 	if !ok {
-		return adrsvc.ErrNotFound
+		return common.ErrNotFound
 	}
 	delete(a.adrs, id)
 	return nil
@@ -96,4 +94,9 @@ func (a *AdrInt) Init() error {
 func (a *AdrInt) Shutdown() error {
 	// Nothing to do here
 	return nil
+}
+
+func (a *AdrInt) HealthCheck() error {
+	_, err := a.Check()
+	return err
 }

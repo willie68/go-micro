@@ -11,7 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/samber/do/v2"
 	"github.com/willie68/go-micro/internal/logging"
-	"github.com/willie68/go-micro/internal/services/adrsvc"
+	adrcfg "github.com/willie68/go-micro/internal/services/adrsvc/common"
 	"github.com/willie68/go-micro/internal/services/caservice"
 	"github.com/willie68/go-micro/internal/services/health"
 	"github.com/willie68/go-micro/internal/services/shttp"
@@ -42,7 +42,7 @@ type Config struct {
 	// Enable Profiling option
 	Profiling Profiling `yaml:"profiling"`
 	// This is the demo address storage config
-	AddressStorage adrsvc.Config `yaml:"addressstorage"`
+	AddressStorage adrcfg.Config `yaml:"addressstorage"`
 }
 
 // Authentication configuration

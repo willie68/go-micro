@@ -8,7 +8,7 @@ import (
 
 	// needed declaration
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/willie68/go-micro/internal/services/adrsvc"
+	"github.com/willie68/go-micro/internal/services/adrsvc/common"
 	"github.com/willie68/go-micro/pkg/pmodel"
 )
 
@@ -26,8 +26,6 @@ type AdrMdb struct {
 	db   *sql.DB
 	mcfg Config
 }
-
-var _ adrsvc.AddressStorage = &AdrMdb{}
 
 // NewAdrMdb creates a new AdrMdb isntance
 func NewAdrMdb(cfg Config) (*AdrMdb, error) {
@@ -78,7 +76,7 @@ func (a *AdrMdb) Read(id string) (*pmodel.Address, error) {
 		&address.ID, &address.Name, &address.Firstname, &address.Street, &address.City, &address.State, &address.ZipCode)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, adrsvc.ErrNotFound
+			return nil, common.ErrNotFound
 		}
 		return nil, err
 	}
@@ -139,4 +137,9 @@ func (a *AdrMdb) Init() error {
 func (a *AdrMdb) Shutdown() error {
 	// Nothing to do here
 	return nil
+}
+
+func (a *AdrMdb) HealthCheck() error {
+	_, err := a.Check()
+	return err
 }

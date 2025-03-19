@@ -40,7 +40,7 @@ func NewHealthSystem(inj do.Injector, config Config) (*Service, error) {
 		checks:  make([]Check, 0),
 		reg:     sync.Mutex{},
 	}
-	err := shealth.Init()
+	err := shealth.Init(inj)
 	if err != nil {
 		return nil, err
 	}
@@ -49,12 +49,12 @@ func NewHealthSystem(inj do.Injector, config Config) (*Service, error) {
 }
 
 // Init initialise the health system
-func (h *Service) Init() error {
+func (h *Service) Init(inj do.Injector) error {
 	logger.Infof("healthcheck starting with period: %d seconds", h.cfg.Period)
 	h.messages = make([]string, 0)
 	h.messages = append(h.messages, "service starting")
 	h.readyz = false
-	h.doCheck()
+	h.doCheck(inj)
 	h.lastChecked = time.Now()
 	go func() {
 		if h.cfg.StartDelay > 0 {
@@ -64,7 +64,7 @@ func (h *Service) Init() error {
 			if h.cfg.Period > 0 {
 				background := time.NewTicker(time.Second * time.Duration(h.cfg.Period))
 				for range background.C {
-					h.doCheck()
+					h.doCheck(inj)
 				}
 			}
 		}()
@@ -122,7 +122,7 @@ func (h *Service) Message() Message {
 }
 
 // doCheck internal function to process the health check
-func (h *Service) doCheck() {
+func (h *Service) doCheck(inj do.Injector) {
 	h.lastChecked = time.Now()
 	h.messages = make([]string, 0)
 	healthy := true
@@ -132,6 +132,13 @@ func (h *Service) doCheck() {
 		if !ok {
 			healthy = false
 			h.messages = append(h.messages, fmt.Sprintf("%s: %s", c.CheckName(), err.Error()))
+		}
+	}
+	errs := inj.HealthCheck()
+	for k, err := range errs {
+		if err != nil {
+			healthy = false
+			h.messages = append(h.messages, fmt.Sprintf("%s: %s", k, err.Error()))
 		}
 	}
 	defer h.reg.Unlock()

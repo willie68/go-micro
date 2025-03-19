@@ -1,0 +1,201 @@
+basePath: /api/v1
+definitions:
+  github_com_willie68_go-micro_internal_serror.Serr:
+    properties:
+      code:
+        type: integer
+      key:
+        type: string
+      message:
+        type: string
+      origin:
+        type: string
+      service:
+        type: string
+    type: object
+  pmodel.Address:
+    properties:
+      city:
+        type: string
+      firstname:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      state:
+        type: string
+      street:
+        type: string
+      zip_code:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: The GoMicro service is a template for microservices written in go.
+  title: GoMicro service API
+  version: "1.0"
+paths:
+  /addresses:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tenant
+        in: header
+        name: tenant
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response with list of addresses as json
+          schema:
+            items:
+              $ref: '#/definitions/pmodel.Address'
+            type: array
+        "400":
+          description: client error information as json
+          schema:
+            $ref: '#/definitions/github_com_willie68_go-micro_internal_serror.Serr'
+        "500":
+          description: server error information as json
+          schema:
+            $ref: '#/definitions/github_com_willie68_go-micro_internal_serror.Serr'
+      security:
+      - api_key: []
+      summary: getting all addresses
+      tags:
+      - addresses
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tenant
+        in: header
+        name: tenant
+        required: true
+        type: string
+      - description: address to be added
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/pmodel.Address'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: tenant
+          schema:
+            type: string
+        "400":
+          description: client error information as json
+          schema:
+            $ref: '#/definitions/github_com_willie68_go-micro_internal_serror.Serr'
+        "500":
+          description: server error information as json
+          schema:
+            $ref: '#/definitions/github_com_willie68_go-micro_internal_serror.Serr'
+      security:
+      - api_key: []
+      summary: Create a new address
+      tags:
+      - addresses
+  /addresses/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tenant
+        in: header
+        name: tenant
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+        "400":
+          description: client error information as json
+          schema:
+            $ref: '#/definitions/github_com_willie68_go-micro_internal_serror.Serr'
+      security:
+      - api_key: []
+      summary: Delete a address
+      tags:
+      - addresses
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tenant
+        in: header
+        name: tenant
+        required: true
+        type: string
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: response with the address with id as json
+          schema:
+            items:
+              $ref: '#/definitions/pmodel.Address'
+            type: array
+        "400":
+          description: client error information as json
+          schema:
+            $ref: '#/definitions/github_com_willie68_go-micro_internal_serror.Serr'
+        "500":
+          description: server error information as json
+          schema:
+            $ref: '#/definitions/github_com_willie68_go-micro_internal_serror.Serr'
+      security:
+      - api_key: []
+      summary: getting one address
+      tags:
+      - addresses
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Tenant
+        in: header
+        name: tenant
+        required: true
+        type: string
+      - description: Add store
+        in: body
+        name: payload
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: tenant
+          schema:
+            type: string
+        "400":
+          description: client error information as json
+          schema:
+            $ref: '#/definitions/github_com_willie68_go-micro_internal_serror.Serr'
+        "500":
+          description: server error information as json
+          schema:
+            $ref: '#/definitions/github_com_willie68_go-micro_internal_serror.Serr'
+      security:
+      - api_key: []
+      summary: Create a new address
+      tags:
+      - addresses
+swagger: "2.0"
