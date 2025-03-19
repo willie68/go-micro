@@ -8,22 +8,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/samber/do"
+	"github.com/samber/do/v2"
 	"github.com/willie68/go-micro/internal/api"
 	"github.com/willie68/go-micro/internal/logging"
 )
-
-//go:generate mockery --name=SHealth --outpkg=servicemocks --filename=service.go --with-expecter
-type SHealth interface {
-	Healthy() bool
-	Readyz() bool
-	LastChecked() time.Time
-	Message() Message
-	Register(check Check)
-	Unregister(checkname string) bool
-
-	CheckHealthCheckTimer()
-}
 
 var logger = logging.New().WithName("health")
 
@@ -38,8 +26,6 @@ type Service struct {
 	reg         sync.Mutex
 }
 
-var _ SHealth = &Service{}
-
 // Message a health message
 type Message struct {
 	Messages  []string `json:"messages"`
@@ -47,8 +33,8 @@ type Message struct {
 }
 
 // NewHealthSystem initialize the complete health system
-func NewHealthSystem(config Config) (SHealth, error) {
-	shealth := Service{
+func NewHealthSystem(inj do.Injector, config Config) (*Service, error) {
+	shealth := &Service{
 		cfg:     config,
 		healthy: false,
 		checks:  make([]Check, 0),
@@ -58,8 +44,8 @@ func NewHealthSystem(config Config) (SHealth, error) {
 	if err != nil {
 		return nil, err
 	}
-	do.ProvideValue[SHealth](nil, &shealth)
-	return &shealth, nil
+	do.ProvideValue(inj, shealth)
+	return shealth, nil
 }
 
 // Init initialise the health system
@@ -156,7 +142,7 @@ func (h *Service) doCheck() {
 }
 
 // Healthy return the actual health state
-func (h *Service) Healthy() bool {
+func (h *Service) Healthyz() bool {
 	return h.healthy
 }
 
@@ -170,15 +156,23 @@ func (h *Service) LastChecked() time.Time {
 	return h.lastChecked
 }
 
+type Healthy interface {
+	Healthyz() bool
+	Readyz() bool
+	Message() Message
+	LastChecked() time.Time
+	CheckHealthCheckTimer()
+}
+
 // Handler is the default handler factory for HTTP requests against the healthsystem
 type Handler struct {
-	health SHealth
+	health Healthy
 }
 
 // NewHealthHandler creates a new healthhandler for a REST interface
-func NewHealthHandler() api.Handler {
+func NewHealthHandler(inj do.Injector) api.Handler {
 	return &Handler{
-		health: do.MustInvoke[SHealth](nil),
+		health: do.MustInvokeAs[Healthy](inj),
 	}
 }
 
@@ -194,7 +188,7 @@ func (h *Handler) Routes() (string, *chi.Mux) {
 
 // GetLivenessEndpoint liveness probe
 func (h *Handler) GetLivenessEndpoint(response http.ResponseWriter, req *http.Request) {
-	if h.health.Healthy() {
+	if h.health.Healthyz() {
 		render.Status(req, http.StatusOK)
 	} else {
 		render.Status(req, http.StatusServiceUnavailable)
@@ -204,7 +198,7 @@ func (h *Handler) GetLivenessEndpoint(response http.ResponseWriter, req *http.Re
 
 // HeadLivenessEndpoint liveness probe
 func (h *Handler) HeadLivenessEndpoint(response http.ResponseWriter, req *http.Request) {
-	if h.health.Healthy() {
+	if h.health.Healthyz() {
 		render.Status(req, http.StatusOK)
 	} else {
 		render.Status(req, http.StatusServiceUnavailable)

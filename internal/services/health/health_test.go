@@ -5,12 +5,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/samber/do"
+	"github.com/samber/do/v2"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	hs SHealth
+	hs *Service
 
 	_ Check = &MyCheck{}
 )
@@ -35,30 +35,32 @@ func (m *MyCheck) CheckName() string {
 	return m.name
 }
 
-func InitHealth(ast *assert.Assertions) {
+func InitHealth(inj do.Injector, ast *assert.Assertions) {
 	if hs == nil {
 		cfg := Config{
 			Period:     10,
 			StartDelay: 1,
 		}
-		h, err := NewHealthSystem(cfg)
+		h, err := NewHealthSystem(inj, cfg)
 		hs = h
 		ast.Nil(err)
 		ast.NotNil(hs)
 	}
 }
 
-func ShutdownHealth() {
-	_ = do.Shutdown[SHealth](nil)
+func ShutdownHealth(inj do.Injector) {
+	_ = do.Shutdown[Service](inj)
 	hs = nil
 }
 
 func TestHealthBase(t *testing.T) {
 	ast := assert.New(t)
+	inj := do.New()
 
-	InitHealth(ast)
+	InitHealth(inj, ast)
 
-	hsdi, err := do.Invoke[SHealth](nil)
+	// check if the service is injected
+	hsdi, err := do.Invoke[*Service](inj)
 	ast.Nil(err)
 	ast.NotNil(hsdi)
 
@@ -83,31 +85,31 @@ func TestHealthBase(t *testing.T) {
 	ok := hs.Unregister(chk.name)
 	ast.True(ok)
 
-	ShutdownHealth()
+	ShutdownHealth(inj)
 }
 
 func TestMessage(t *testing.T) {
 	ast := assert.New(t)
+	inj := do.New()
 
 	n := time.Now()
-	InitHealth(ast)
-	h, ok := hs.(*Service)
-	ast.True(ok)
-	h.lastChecked = n
-	h.messages = make([]string, 0)
+	InitHealth(inj, ast)
+	hs.lastChecked = n
+	hs.messages = make([]string, 0)
 	msg := hs.Message()
 	ast.Equal(n.String(), msg.LastCheck)
 	ast.Equal(0, len(msg.Messages))
 
-	ShutdownHealth()
+	ShutdownHealth(inj)
 }
 
 func TestHealthUnhealthy(t *testing.T) {
 	ast := assert.New(t)
+	inj := do.New()
 
-	InitHealth(ast)
+	InitHealth(inj, ast)
 
-	hsdi, err := do.Invoke[SHealth](nil)
+	hsdi, err := do.Invoke[*Service](inj)
 	ast.Nil(err)
 	ast.NotNil(hsdi)
 
@@ -118,7 +120,7 @@ func TestHealthUnhealthy(t *testing.T) {
 		ret:   false,
 		err:   errors.New("error"),
 	}
-	err = Register(&chk)
+	err = Register(inj, &chk)
 	ast.Nil(err)
 
 	time.Sleep(12 * time.Second)
@@ -131,8 +133,8 @@ func TestHealthUnhealthy(t *testing.T) {
 	ast.Equal(1, len(msg.Messages))
 	ast.Equal("myname: error", msg.Messages[0])
 
-	err = Unregister(chk.name)
+	err = Unregister(inj, chk.name)
 	ast.Nil(err)
 
-	ShutdownHealth()
+	ShutdownHealth(inj)
 }

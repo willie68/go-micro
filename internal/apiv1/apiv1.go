@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/httptracer"
 	"github.com/go-chi/render"
 	"github.com/opentracing/opentracing-go"
+	"github.com/samber/do/v2"
 	httpSwagger "github.com/swaggo/http-swagger"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -41,7 +42,7 @@ func token(r *http.Request) (string, error) {
 }
 
 // APIRoutes configuring the api routes for the main REST API
-func APIRoutes(cfn config.Config, trc opentracing.Tracer) (*chi.Mux, error) {
+func APIRoutes(inj do.Injector, cfn config.Config, trc opentracing.Tracer) (*chi.Mux, error) {
 	logger.Infof("baseurl : %s", BaseURL)
 	router := chi.NewRouter()
 	setDefaultHandler(router, cfn, trc)
@@ -56,9 +57,9 @@ func APIRoutes(cfn config.Config, trc opentracing.Tracer) (*chi.Mux, error) {
 
 	// building the routes
 	router.Route("/", func(r chi.Router) {
-		r.Mount(NewAdrHandler().Routes())
+		r.Mount(NewAdrHandler(inj).Routes())
 
-		r.Mount(health.NewHealthHandler().Routes())
+		r.Mount(health.NewHealthHandler(inj).Routes())
 		if cfn.Metrics.Enable {
 			r.Mount("/metrics", promhttp.Handler())
 		}
@@ -141,7 +142,7 @@ func setDefaultHandler(router *chi.Mux, cfn config.Config, tracer opentracing.Tr
 }
 
 // HealthRoutes returning the health routes
-func HealthRoutes(cfn config.Config, tracer opentracing.Tracer) *chi.Mux {
+func HealthRoutes(inj do.Injector, cfn config.Config, tracer opentracing.Tracer) *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(
 		render.SetContentType(render.ContentTypeJSON),
@@ -173,7 +174,7 @@ func HealthRoutes(cfn config.Config, tracer opentracing.Tracer) *chi.Mux {
 	}
 
 	router.Route("/", func(r chi.Router) {
-		r.Mount(health.NewHealthHandler().Routes())
+		r.Mount(health.NewHealthHandler(inj).Routes())
 		if cfn.Metrics.Enable {
 			r.Mount(api.MetricsEndpoint, promhttp.Handler())
 		}

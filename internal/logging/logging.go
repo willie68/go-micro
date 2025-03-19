@@ -300,3 +300,19 @@ func (s *Logger) Close() {
 		_ = s.c.Close()
 	}
 }
+
+/* new logger with slog for testing
+
+log := slog.New(slog.NewTextHandler(&lumberjack.Logger{
+	Filename:   "e:/temp/foo.log",
+	MaxSize:    1, // megabytes
+	MaxBackups: 3,
+	MaxAge:     28,   //days
+	Compress:   true, // disabled by default
+}, nil))
+
+for i := range 50000 {
+	log.Info("this is a log with", slog.Int("i", i))
+}
+
+*/

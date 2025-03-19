@@ -9,7 +9,7 @@ import (
 	"dario.cat/mergo"
 	"github.com/drone/envsubst"
 	"github.com/pkg/errors"
-	"github.com/samber/do"
+	"github.com/samber/do/v2"
 	"github.com/willie68/go-micro/internal/logging"
 	"github.com/willie68/go-micro/internal/services/adrsvc"
 	"github.com/willie68/go-micro/internal/services/caservice"
@@ -136,8 +136,8 @@ func init() {
 }
 
 // Provide provide the config to the dependency injection
-func (c *Config) Provide() {
-	do.ProvideValue[Config](nil, *c)
+func (c *Config) Provide(inj do.Injector) {
+	do.ProvideValue[Config](inj, *c)
 }
 
 // Get returns loaded config

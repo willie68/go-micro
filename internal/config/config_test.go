@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/samber/do"
+	"github.com/samber/do/v2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,6 +16,7 @@ const (
 )
 
 func TestLoadFromYaml(t *testing.T) {
+	inj := do.New()
 	ast := assert.New(t)
 	File = testDataPath + serviceLocalFile
 
@@ -30,12 +31,12 @@ func TestLoadFromYaml(t *testing.T) {
 	ast.Equal(3, Get().HealthSystem.StartDelay)
 	ast.Equal("", Get().SecretFile)
 	ast.Equal("https://127.0.0.1:8443", Get().HTTP.ServiceURL)
-	c.Provide()
+	c.Provide(inj)
 
-	cfg := do.MustInvoke[Config](nil)
+	cfg := do.MustInvoke[Config](inj)
 	ast.Nil(err)
 	ast.NotNil(cfg)
-	do.MustShutdown[Config](nil)
+	do.MustShutdown[Config](inj)
 }
 
 func TestDefaultConfig(t *testing.T) {

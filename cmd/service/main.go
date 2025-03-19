@@ -7,7 +7,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/samber/do"
+	"github.com/samber/do/v2"
 	_ "github.com/willie68/go-micro/docs"
 	"github.com/willie68/go-micro/internal/apiv1"
 	"github.com/willie68/go-micro/internal/serror"
@@ -44,6 +44,7 @@ func init() {
 // @BasePath		/api/v1
 // @in				header
 func main() {
+	inj := do.New()
 	flag.Parse()
 	defer log.Root.Close()
 
@@ -66,10 +67,10 @@ func main() {
 	}
 
 	serviceConfig = config.Get()
-	serviceConfig.Provide()
+	serviceConfig.Provide(inj)
 	initLogging()
 
-	if err := services.InitServices(serviceConfig); err != nil {
+	if err := services.InitServices(inj, serviceConfig); err != nil {
 		log.Root.Alertf("error creating services: %v", err)
 		panic("error creating services")
 	}
@@ -81,16 +82,16 @@ func main() {
 
 	log.Root.Infof("ssl: %t", serviceConfig.HTTP.Sslport > 0)
 	log.Root.Infof("serviceURL: %s", serviceConfig.HTTP.ServiceURL)
-	router, err := apiv1.APIRoutes(serviceConfig, tracer)
+	router, err := apiv1.APIRoutes(inj, serviceConfig, tracer)
 	if err != nil {
 		errstr := fmt.Sprintf("could not create api routes. %s", err.Error())
 		log.Root.Alert(errstr)
 		panic(errstr)
 	}
 
-	healthRouter := apiv1.HealthRoutes(serviceConfig, tracer)
+	healthRouter := apiv1.HealthRoutes(inj, serviceConfig, tracer)
 
-	sh := do.MustInvoke[shttp.SHttp](nil)
+	sh := do.MustInvoke[shttp.SHttp](inj)
 	sh.StartServers(router, healthRouter)
 
 	log.Root.Info("waiting for clients")

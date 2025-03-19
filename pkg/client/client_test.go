@@ -3,6 +3,7 @@ package client
 import (
 	"testing"
 
+	"github.com/samber/do/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/willie68/go-micro/pkg/pmodel"
 )
@@ -15,7 +16,8 @@ var cl *Client
 
 func initCl() {
 	var err error
-	StartServer()
+	inj := do.New()
+	StartServer(inj)
 	cl, err = NewClient("https://127.0.0.1:9443", Tenant)
 	if err != nil {
 		panic(err)

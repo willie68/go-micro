@@ -10,9 +10,8 @@ import (
 	"github.com/go-chi/render"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	"github.com/samber/do"
+	"github.com/samber/do/v2"
 	"github.com/willie68/go-micro/internal/serror"
-	"github.com/willie68/go-micro/internal/services/adrsvc"
 	"github.com/willie68/go-micro/pkg/pmodel"
 
 	"github.com/willie68/go-micro/internal/api"
@@ -31,15 +30,24 @@ var (
 	})
 )
 
+type AddressStorage interface {
+	Addresses() ([]pmodel.Address, error)
+	Has(id string) bool
+	Read(id string) (*pmodel.Address, error)
+	Create(adr pmodel.Address) (string, error)
+	Update(adr pmodel.Address) error
+	Delete(id string) error
+}
+
 // AdrHandler the address handler
 type AdrHandler struct {
-	adrstg adrsvc.AddressStorage
+	adrstg AddressStorage
 }
 
 // NewAdrHandler creates a new REST address handler
-func NewAdrHandler() api.Handler {
+func NewAdrHandler(inj do.Injector) api.Handler {
 	return &AdrHandler{
-		adrstg: do.MustInvoke[adrsvc.AddressStorage](nil),
+		adrstg: do.MustInvokeAs[AddressStorage](inj),
 	}
 }
 

@@ -3,7 +3,7 @@ package health
 import (
 	"errors"
 
-	"github.com/samber/do"
+	"github.com/samber/do/v2"
 )
 
 // Check this is the interface for the healthcheck system. All service, which like to participate to this, should implement this interface and register via health.Register() method.
@@ -14,10 +14,18 @@ type Check interface {
 	Check() (bool, error)
 }
 
+type RegisterCheck interface {
+	Register(check Check)
+}
+
+type UnregisterCheck interface {
+	Unregister(checkname string) bool
+}
+
 // Register register a new healthcheck. If a healthcheck with the same name is already present, this will be overwritten
 // Otherwise the new healthcheck will be appended
-func Register(check Check) error {
-	sh := do.MustInvoke[SHealth](nil)
+func Register(inj do.Injector, check Check) error {
+	sh := do.MustInvokeAs[RegisterCheck](inj)
 	if sh == nil {
 		return errors.New("can't get the health system service, not correctly initialised?")
 	}
@@ -26,8 +34,8 @@ func Register(check Check) error {
 }
 
 // Unregister unregister a healthcheck. Return true if the healthcheck can be unregistered otherwise false
-func Unregister(checkname string) error {
-	sh := do.MustInvoke[SHealth](nil)
+func Unregister(inj do.Injector, checkname string) error {
+	sh := do.MustInvokeAs[UnregisterCheck](inj)
 	if sh == nil {
 		return errors.New("can't get the health system service, not correctly initialised?")
 	}

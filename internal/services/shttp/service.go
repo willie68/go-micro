@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/samber/do"
+	"github.com/samber/do/v2"
 	"github.com/willie68/go-micro/internal/logging"
 	"github.com/willie68/go-micro/internal/services/caservice"
 )
@@ -27,7 +27,7 @@ type SHttp struct {
 }
 
 // NewSHttp creates a new shttp service
-func NewSHttp(cfn Config, cfgCa caservice.Config) (*SHttp, error) {
+func NewSHttp(inj do.Injector, cfn Config, cfgCa caservice.Config) (*SHttp, error) {
 	sh := SHttp{
 		cfn:     cfn,
 		cfa:     cfgCa,
@@ -35,7 +35,7 @@ func NewSHttp(cfn Config, cfgCa caservice.Config) (*SHttp, error) {
 	}
 	sh.init()
 
-	do.ProvideValue[SHttp](nil, sh)
+	do.ProvideValue[SHttp](inj, sh)
 
 	return &sh, nil
 }

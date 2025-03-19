@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/samber/do"
+	"github.com/samber/do/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/willie68/go-micro/internal/apiv1"
 	"github.com/willie68/go-micro/internal/config"
@@ -20,7 +20,7 @@ var (
 	cfg        config.Config
 )
 
-func StartServer() {
+func StartServer(inj do.Injector) {
 	if sh == nil {
 		fmt.Println("starting server")
 		_ = os.Chdir("../../")
@@ -32,22 +32,22 @@ func StartServer() {
 		}
 
 		cfg = config.Get()
-		cfg.Provide()
-		if err := services.InitServices(cfg); err != nil {
+		cfg.Provide(inj)
+		if err := services.InitServices(inj, cfg); err != nil {
 			panic("error creating services")
 		}
 
-		s := do.MustInvoke[shttp.SHttp](nil)
+		s := do.MustInvoke[shttp.SHttp](inj)
 		sh = &s
 	}
 	if !sh.Started {
-		router, err := apiv1.APIRoutes(cfg, nil)
+		router, err := apiv1.APIRoutes(inj, cfg, nil)
 		if err != nil {
 			errstr := fmt.Sprintf("could not create api routes. %s", err.Error())
 			panic(errstr)
 		}
 
-		healthRouter := apiv1.HealthRoutes(cfg, nil)
+		healthRouter := apiv1.HealthRoutes(inj, cfg, nil)
 		sh.StartServers(router, healthRouter)
 
 		time.Sleep(1 * time.Second)
@@ -55,9 +55,10 @@ func StartServer() {
 }
 
 func TestStartServer(t *testing.T) {
+	inj := do.New()
 	ast := assert.New(t)
 
-	StartServer()
+	StartServer(inj)
 
 	ast.NotNil(sh)
 	ast.True(sh.Started)

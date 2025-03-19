@@ -1,22 +1,25 @@
 package adrfact
 
 import (
-	"github.com/samber/do"
+	"github.com/samber/do/v2"
 	"github.com/willie68/go-micro/internal/services/adrsvc"
 	"github.com/willie68/go-micro/internal/services/adrsvc/adrint"
 	"github.com/willie68/go-micro/internal/services/adrsvc/adrmysql"
+	"github.com/willie68/go-micro/internal/services/health"
 )
 
 // New create a new storage servcice based on the configuration
-func New(cfn adrsvc.Config) (adrsvc.AddressStorage, error) {
-	var adrstg adrsvc.AddressStorage
-	var err error
+func New(inj do.Injector, cfn adrsvc.Config) error {
 	switch cfn.Type {
 	case "internal":
-		adrstg, err = adrint.NewAdrInt()
+		adrstg, err := adrint.NewAdrInt()
 		if err != nil {
-			return nil, err
+			return err
 		}
+		do.ProvideValue(inj, adrstg)
+
+		err = health.Register(inj, adrstg)
+		return err
 	case "mysql":
 		c := adrmysql.Config{
 			Host:     cfn.Connection["host"].(string),
@@ -25,14 +28,14 @@ func New(cfn adrsvc.Config) (adrsvc.AddressStorage, error) {
 			Username: cfn.Connection["username"].(string),
 			Password: cfn.Connection["password"].(string),
 		}
-		adrstg, err = adrmysql.NewAdrMdb(c)
+		sqlstg, err := adrmysql.NewAdrMdb(c)
 		if err != nil {
-			return nil, err
+			return err
 		}
+		do.ProvideValue(inj, sqlstg)
+
+		err = health.Register(inj, sqlstg)
+		return err
 	}
-	if adrstg == nil {
-		return nil, adrsvc.ErrNotFound
-	}
-	do.ProvideValue(nil, adrstg)
-	return adrstg, nil
+	return adrsvc.ErrNotFound
 }
