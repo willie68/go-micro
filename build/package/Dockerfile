@@ -1,5 +1,5 @@
 ##### BUILDER #####
-FROM golang:1.23-alpine3.20 AS builder
+FROM golang:1.24-alpine3.21 AS builder
 
 ## Task: Install build deps
 
@@ -25,8 +25,9 @@ ENV GOOS="linux"
 ENV GOARCH="amd64"
 ENV CGO_ENABLED="0"
 
-RUN swag init -g ./cmd/service/main.go; \
- go build -ldflags="-s -w" -o gomicro-service cmd/service/main.go 
+RUN swag init -g ./cmd/service/main.go
+RUN swag init -d "./internal/apiv1" -g "../../cmd/service/main.go" --parseDependency --parseDepth 2 -o "./api"
+RUN go build -ldflags="-s -w" -o gomicro-service cmd/service/main.go 
 
 ## Task: set permissions
 RUN chmod 0755 /src/gomicro-service
@@ -58,7 +59,7 @@ RUN set -eu +x; \
 
 ##### TARGET #####
 
-FROM alpine:3.20
+FROM alpine:3.21
 
 ARG RELEASE
 ENV IMG_VERSION="${RELEASE}"

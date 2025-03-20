@@ -38,7 +38,7 @@ logging:
 
 # managing authentication and authorisation
 auth:
-  type: jwt
+  type: #jwt
   properties: 
     validate: true
     strict: true
