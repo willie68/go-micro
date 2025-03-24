@@ -3,6 +3,7 @@ package shttp
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -14,7 +15,7 @@ import (
 	"github.com/willie68/go-micro/internal/services/caservice"
 )
 
-var logger = logging.New().WithName("shttp")
+var logger = logging.New("shttp")
 
 // SHttp a service encapsulating http and https server
 type SHttp struct {
@@ -64,11 +65,11 @@ func (s *SHttp) ShutdownServers() {
 	defer cancel()
 
 	if err := s.srv.Shutdown(ctx); err != nil {
-		logger.Errorf("shutdown http server error: %v", err)
+		logger.Error(fmt.Sprintf("shutdown http server error: %v", err))
 	}
 	if s.useSSL {
 		if err := s.sslsrv.Shutdown(ctx); err != nil {
-			logger.Errorf("shutdown https server error: %v", err)
+			logger.Error(fmt.Sprintf("shutdown https server error: %v", err))
 		}
 	}
 	s.Started = false
@@ -80,7 +81,7 @@ func (s *SHttp) startHTTPSServer(router *chi.Mux) {
 	if s.cfa.UseCA {
 		tlsConfig, err = s.GetTLSConfig()
 		if err != nil {
-			logger.Alertf("could not create tls config. %s", err.Error())
+			logger.Warn(fmt.Sprintf("could not create tls config. %s", err.Error()))
 			panic(-1)
 		}
 	} else {
@@ -88,7 +89,7 @@ func (s *SHttp) startHTTPSServer(router *chi.Mux) {
 			// using the files provided by config
 			tlsConfig, err = s.TLSFromFiles()
 			if err != nil {
-				logger.Alertf("could not create tls config. %s", err.Error())
+				logger.Warn(fmt.Sprintf("could not create tls config. %s", err.Error()))
 				panic(-1)
 			}
 		} else {
@@ -111,7 +112,7 @@ func (s *SHttp) startHTTPSServer(router *chi.Mux) {
 			}
 			tlsConfig, err = gc.GenerateTLSConfig()
 			if err != nil {
-				logger.Alertf("could not create tls config. %s", err.Error())
+				logger.Warn(fmt.Sprintf("could not create tls config. %s", err.Error()))
 				panic(-1)
 			}
 		}
@@ -125,9 +126,9 @@ func (s *SHttp) startHTTPSServer(router *chi.Mux) {
 		TLSConfig:    tlsConfig,
 	}
 	go func() {
-		logger.Infof("starting https server on address: %s", s.sslsrv.Addr)
+		logger.Info(fmt.Sprintf("starting https server on address: %s", s.sslsrv.Addr))
 		if err := s.sslsrv.ListenAndServeTLS("", ""); err != nil {
-			logger.Alertf("error starting server: %s", err.Error())
+			logger.Warn(fmt.Sprintf("error starting server: %s", err.Error()))
 		}
 	}()
 }
@@ -142,9 +143,9 @@ func (s *SHttp) startHTTPServer(router *chi.Mux) {
 		Handler:      router,
 	}
 	go func() {
-		logger.Infof("starting http server on address: %s", s.srv.Addr)
+		logger.Info(fmt.Sprintf("starting http server on address: %s", s.srv.Addr))
 		if err := s.srv.ListenAndServe(); err != nil {
-			logger.Alertf("error starting server: %s", err.Error())
+			logger.Warn(fmt.Sprintf("error starting server: %s", err.Error()))
 		}
 	}()
 }

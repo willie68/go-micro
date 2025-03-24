@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -11,6 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/samber/do/v2"
+	"github.com/willie68/go-micro/internal/logging"
 	"github.com/willie68/go-micro/internal/serror"
 	"github.com/willie68/go-micro/pkg/pmodel"
 
@@ -42,12 +44,14 @@ type AddressStorage interface {
 // AdrHandler the address handler
 type AdrHandler struct {
 	adrstg AddressStorage
+	logger *slog.Logger
 }
 
 // NewAdrHandler creates a new REST address handler
 func NewAdrHandler(inj do.Injector) api.Handler {
 	return &AdrHandler{
 		adrstg: do.MustInvokeAs[AddressStorage](inj),
+		logger: logging.New("addresshandler"),
 	}
 }
 
@@ -145,7 +149,7 @@ func (c *AdrHandler) PostAddress(response http.ResponseWriter, request *http.Req
 		httputils.Err(response, request, serror.BadRequest(nil, errMissingTenantKey, msg))
 		return
 	}
-	logger.Infof("create config: tenant %s", tenant)
+	c.logger.Info(fmt.Sprintf("create config: tenant %s", tenant))
 
 	if b, err = io.ReadAll(request.Body); err != nil {
 		httputils.Err(response, request, serror.Wrapc(err, http.StatusBadRequest))
@@ -196,7 +200,7 @@ func (c *AdrHandler) UpdateAddress(response http.ResponseWriter, request *http.R
 		httputils.Err(response, request, serror.BadRequest(nil, errMissingTenantKey, msg))
 		return
 	}
-	logger.Infof("create config: tenant %s", tenant)
+	logger.Info(fmt.Sprintf("create config: tenant %s", tenant))
 
 	if b, err = io.ReadAll(request.Body); err != nil {
 		httputils.Err(response, request, serror.Wrapc(err, http.StatusBadRequest))

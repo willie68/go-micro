@@ -13,7 +13,7 @@ import (
 	"github.com/willie68/go-micro/internal/logging"
 )
 
-var logger = logging.New().WithName("health")
+var logger = logging.New("health")
 
 // Service  this is the healthcheck service
 type Service struct {
@@ -50,7 +50,7 @@ func NewHealthSystem(inj do.Injector, config Config) (*Service, error) {
 
 // Init initialise the health system
 func (h *Service) Init(inj do.Injector) error {
-	logger.Infof("healthcheck starting with period: %d seconds", h.cfg.Period)
+	logger.Info(fmt.Sprintf("healthcheck starting with period: %d seconds", h.cfg.Period))
 	h.messages = make([]string, 0)
 	h.messages = append(h.messages, "service starting")
 	h.readyz = false
@@ -171,21 +171,28 @@ type Healthy interface {
 	CheckHealthCheckTimer()
 }
 
+type ServiceName interface {
+	ServiceName() string
+}
+
 // Handler is the default handler factory for HTTP requests against the healthsystem
 type Handler struct {
-	health Healthy
+	health      Healthy
+	serviceName ServiceName
 }
 
 // NewHealthHandler creates a new healthhandler for a REST interface
 func NewHealthHandler(inj do.Injector) api.Handler {
 	return &Handler{
-		health: do.MustInvokeAs[Healthy](inj),
+		health:      do.MustInvokeAs[Healthy](inj),
+		serviceName: do.MustInvokeAs[ServiceName](inj),
 	}
 }
 
 // Routes getting all routes for the health endpoint
 func (h *Handler) Routes() (string, *chi.Mux) {
 	router := chi.NewRouter()
+	router.Get("/", h.GetDefaultEndpoint)
 	router.Get("/livez", h.GetLivenessEndpoint)
 	router.Get("/readyz", h.GetReadinessEndpoint)
 	router.Head("/livez", h.HeadLivenessEndpoint)
@@ -237,4 +244,8 @@ func (h *Handler) HeadReadinessEndpoint(response http.ResponseWriter, req *http.
 		render.Status(req, http.StatusServiceUnavailable)
 	}
 	render.NoContent(response, req)
+}
+
+func (h *Handler) GetDefaultEndpoint(response http.ResponseWriter, request *http.Request) {
+	render.HTML(response, request, fmt.Sprintf("<b>%s</b>: http-server up and running!", h.serviceName.ServiceName()))
 }

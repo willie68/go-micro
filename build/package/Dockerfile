@@ -25,8 +25,8 @@ ENV GOOS="linux"
 ENV GOARCH="amd64"
 ENV CGO_ENABLED="0"
 
-RUN swag init -g ./cmd/service/main.go
-RUN swag init -d "./internal/apiv1" -g "../../cmd/service/main.go" --parseDependency --parseDepth 2 -o "./api"
+RUN swag init -g ./cmd/service/main.go ; \
+    swag init -d "./internal/apiv1" -g "../../cmd/service/main.go" --parseDependency --parseDepth 2 -o "./api"
 RUN go build -ldflags="-s -w" -o gomicro-service cmd/service/main.go 
 
 ## Task: set permissions

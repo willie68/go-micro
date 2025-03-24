@@ -30,7 +30,7 @@ const APIVersion = "1"
 // BaseURL is the url all endpoints will be available under
 var BaseURL = fmt.Sprintf("/api/v%s", APIVersion)
 
-var logger = logging.New().WithName("apiv1")
+var logger = logging.New("apiv1")
 
 // defining all sub pathes for api v1
 const addressesSubpath = "/addresses"
@@ -43,7 +43,7 @@ func token(r *http.Request) (string, error) {
 
 // APIRoutes configuring the api routes for the main REST API
 func APIRoutes(inj do.Injector, cfn config.Config, trc opentracing.Tracer) (*chi.Mux, error) {
-	logger.Infof("baseurl : %s", BaseURL)
+	logger.Info(fmt.Sprintf("baseurl : %s", BaseURL))
 	router := chi.NewRouter()
 	setDefaultHandler(router, cfn, trc)
 
@@ -70,15 +70,15 @@ func APIRoutes(inj do.Injector, cfn config.Config, trc opentracing.Tracer) (*chi
 	))
 	// adding a file server with web client asserts
 	httputils.FileServer(router, "/client", http.FS(web.WebClientAssets))
-	logger.Infof("%s api routes", config.Servicename)
+	logger.Info(fmt.Sprintf("%s api routes", config.Servicename))
 
 	walkFunc := func(method string, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
-		logger.Infof("api route: %s %s", method, route)
+		logger.Info(fmt.Sprintf("api route: %s %s", method, route))
 		return nil
 	}
 
 	if err := chi.Walk(router, walkFunc); err != nil {
-		logger.Alertf("could not walk api routes. %s", err.Error())
+		logger.Warn(fmt.Sprintf("could not walk api routes. %v", err))
 	}
 	return router, nil
 }
@@ -88,7 +88,7 @@ func setJWTHandler(router *chi.Mux, cfn config.Config) error {
 	if err != nil {
 		return err
 	}
-	logger.Infof("jwt config: %v", jwtConfig)
+	logger.Info(fmt.Sprintf("jwt config: %v", jwtConfig))
 	jwtAuth := auth.JWTAuth{
 		Config: jwtConfig,
 	}
@@ -186,11 +186,11 @@ func HealthRoutes(inj do.Injector, cfn config.Config, tracer opentracing.Tracer)
 
 	logger.Info("health api routes")
 	walkFunc := func(method string, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
-		logger.Infof("health route: %s %s", method, route)
+		logger.Info(fmt.Sprintf("health route: %s %s", method, route))
 		return nil
 	}
 	if err := chi.Walk(router, walkFunc); err != nil {
-		logger.Alertf("could not walk health routes. %s", err.Error())
+		logger.Warn(fmt.Sprintf("could not walk health routes. %s", err.Error()))
 	}
 
 	return router

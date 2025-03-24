@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	logger = logging.New().WithName("services")
+	logger = logging.New("services")
 )
 
 // Service is the standard service interface

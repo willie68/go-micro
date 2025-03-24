@@ -69,18 +69,18 @@ func (c *Client) init(u string) error {
 func (c *Client) GetAddresses() (*[]pmodel.Address, error) {
 	res, err := c.Get("addresses")
 	if err != nil {
-		logging.Root.Errorf("get request failed: %v", err)
+		logging.Root.Error(fmt.Sprintf("get request failed: %v", err))
 		return nil, err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		logging.Root.Errorf("get bad response: %d", res.StatusCode)
+		logging.Root.Error(fmt.Sprintf("get bad response: %d", res.StatusCode))
 		return nil, ReadErr(res)
 	}
 	var l []pmodel.Address
 	err = ReadJSON(res, &l)
 	if err != nil {
-		logging.Root.Errorf("parsing response failed: %v", err)
+		logging.Root.Error(fmt.Sprintf("parsing response failed: %v", err))
 		return nil, err
 	}
 	return &l, nil
@@ -90,18 +90,18 @@ func (c *Client) GetAddresses() (*[]pmodel.Address, error) {
 func (c *Client) GetAddress(n string) (*pmodel.Address, error) {
 	res, err := c.Get(fmt.Sprintf("addresses/%s", n))
 	if err != nil {
-		logging.Root.Errorf("get request failed: %v", err)
+		logging.Root.Error(fmt.Sprintf("get request failed: %v", err))
 		return nil, err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		logging.Root.Errorf("get bad response: %d", res.StatusCode)
+		logging.Root.Error(fmt.Sprintf("get bad response: %d", res.StatusCode))
 		return nil, ReadErr(res)
 	}
 	var cd pmodel.Address
 	err = ReadJSON(res, &cd)
 	if err != nil {
-		logging.Root.Errorf("parsing response failed: %v", err)
+		logging.Root.Error(fmt.Sprintf("parsing response failed: %v", err))
 		return nil, err
 	}
 	return &cd, nil
@@ -111,12 +111,12 @@ func (c *Client) GetAddress(n string) (*pmodel.Address, error) {
 func (c *Client) CreateAddress(pcd pmodel.Address) (string, error) {
 	res, err := c.PostJSON("addresses/", pcd)
 	if err != nil {
-		logging.Root.Errorf("put request failed: %v", err)
+		logging.Root.Error(fmt.Sprintf("put request failed: %v", err))
 		return "", err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusCreated {
-		logging.Root.Errorf("put bad response: %d", res.StatusCode)
+		logging.Root.Error(fmt.Sprintf("put bad response: %d", res.StatusCode))
 		return "", ReadErr(res)
 	}
 	cd := struct {
@@ -124,7 +124,7 @@ func (c *Client) CreateAddress(pcd pmodel.Address) (string, error) {
 	}{}
 	err = ReadJSON(res, &cd)
 	if err != nil {
-		logging.Root.Errorf("parsing response failed: %v", err)
+		logging.Root.Error(fmt.Sprintf("parsing response failed: %v", err))
 		return "", err
 	}
 	return cd.ID, nil
@@ -134,13 +134,13 @@ func (c *Client) CreateAddress(pcd pmodel.Address) (string, error) {
 func (c *Client) DeleteAddress(n string) (bool, error) {
 	res, err := c.Delete(fmt.Sprintf("addresses/%s", n))
 	if err != nil {
-		logging.Root.Errorf("delete request failed: %v", err)
+		logging.Root.Error(fmt.Sprintf("delete request failed: %v", err))
 		return false, err
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
 		if res.StatusCode != http.StatusNotFound {
-			logging.Root.Errorf("delete bad response: %d", res.StatusCode)
+			logging.Root.Error(fmt.Sprintf("delete bad response: %d", res.StatusCode))
 			return false, ReadErr(res)
 		}
 		return false, nil
@@ -190,23 +190,23 @@ func (c *Client) do(req *http.Request) (*http.Response, error) {
 	ul := req.URL.RequestURI()
 	res, err := c.clt.Do(req)
 	if err != nil {
-		logging.Root.Errorf("request %s %s error: %v", req.Method, ul, err)
+		logging.Root.Error(fmt.Sprintf("request %s %s error: %v", req.Method, ul, err))
 	} else {
-		logging.Root.Infof("request %s %s returned %s", req.Method, ul, res.Status)
+		logging.Root.Info(fmt.Sprintf("request %s %s returned %s", req.Method, ul, res.Status))
 	}
 	return res, err
 }
 
 func (c *Client) newRequest(method, endpoint string, body io.Reader) (*http.Request, error) {
 	ul := fmt.Sprintf("%s/%s", c.url, endpoint)
-	logging.Root.Debugf("creating request %s %s", method, ul)
+	logging.Root.Debug(fmt.Sprintf("creating request %s %s", method, ul))
 	req, err := http.NewRequestWithContext(c.ctx, method, ul, body)
 	if err != nil {
-		logging.Root.Errorf("cannot create request %s %s", method, ul)
+		logging.Root.Error(fmt.Sprintf("cannot create request %s %s", method, ul))
 		return nil, err
 	}
 	req.Header.Set("tenant", c.tenant)
-	logging.Root.Debugf("request %s %s", method, ul)
+	logging.Root.Debug(fmt.Sprintf("request %s %s", method, ul))
 	return req, nil
 }
 

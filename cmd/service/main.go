@@ -46,23 +46,22 @@ func init() {
 func main() {
 	inj := do.New()
 	flag.Parse()
-	defer log.Root.Close()
 
 	serror.Service = config.Servicename
 	config.File = configFile
 	if config.File == "" {
 		cfgFile, err := config.GetDefaultConfigfile()
 		if err != nil {
-			log.Root.Errorf("error getting default config file: %v", err)
+			log.Root.Error(fmt.Sprintf("error getting default config file: %v", err))
 			panic("error getting default config file")
 		}
 		config.File = cfgFile
 	}
 
-	log.Root.Infof("using config file: %s", configFile)
+	log.Root.Info(fmt.Sprintf("using config file: %s", configFile))
 
 	if err := config.Load(); err != nil {
-		log.Root.Alertf("can't load config file: %s", err.Error())
+		log.Root.Warn(fmt.Sprintf("can't load config file: %v", err))
 		panic("can't load config file")
 	}
 
@@ -71,7 +70,7 @@ func main() {
 	initLogging()
 
 	if err := services.InitServices(inj, serviceConfig); err != nil {
-		log.Root.Alertf("error creating services: %v", err)
+		log.Root.Warn(fmt.Sprintf("error creating services: %v", err))
 		panic("error creating services")
 	}
 	log.Root.Info("service is starting")
@@ -80,12 +79,12 @@ func main() {
 	tracer, closer = initJaeger(config.Servicename, serviceConfig.OpenTracing)
 	defer closer.Close()
 
-	log.Root.Infof("ssl: %t", serviceConfig.HTTP.Sslport > 0)
-	log.Root.Infof("serviceURL: %s", serviceConfig.HTTP.ServiceURL)
+	log.Root.Info(fmt.Sprintf("ssl: %t", serviceConfig.HTTP.Sslport > 0))
+	log.Root.Info(fmt.Sprintf("serviceURL: %s", serviceConfig.HTTP.ServiceURL))
 	router, err := apiv1.APIRoutes(inj, serviceConfig, tracer)
 	if err != nil {
 		errstr := fmt.Sprintf("could not create api routes. %s", err.Error())
-		log.Root.Alert(errstr)
+		log.Root.Warn(errstr)
 		panic(errstr)
 	}
 
@@ -110,7 +109,7 @@ func initLogging() {
 	var err error
 	serviceConfig.Logging.Filename, err = config.ReplaceConfigdir(serviceConfig.Logging.Filename)
 	if err != nil {
-		log.Root.Errorf("error on config dir: %v", err)
+		log.Root.Error(fmt.Sprintf("error on config dir: %v", err))
 	}
 	log.Init(serviceConfig.Logging)
 }

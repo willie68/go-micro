@@ -11,6 +11,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"encoding/pem"
+	"fmt"
 	"math/big"
 	"net"
 	"net/url"
@@ -70,11 +71,11 @@ func (gc *generateCertificate) GenerateTLSConfig() (*tls.Config, error) {
 	case "P521":
 		priv, err = ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
 	default:
-		logger.Fatalf("Unrecognized elliptic curve: %q", gc.EcdsaCurve)
+		logger.Error(fmt.Sprintf("Unrecognized elliptic curve: %q", gc.EcdsaCurve))
 		return nil, err
 	}
 	if err != nil {
-		logger.Fatalf("Failed to generate private key: %v", err)
+		logger.Error(fmt.Sprintf("Failed to generate private key: %v", err))
 		return nil, err
 	}
 
@@ -84,26 +85,26 @@ func (gc *generateCertificate) GenerateTLSConfig() (*tls.Config, error) {
 	} else {
 		notBefore, err = time.Parse("Jan 2 15:04:05 2006", gc.ValidFrom)
 		if err != nil {
-			logger.Fatalf("Failed to parse creation date: %v", err)
+			logger.Error(fmt.Sprintf("Failed to parse creation date: %v", err))
 			return nil, err
 		}
 	}
 
 	template, err := gc.createTemplate(notBefore)
 	if err != nil {
-		logger.Fatalf("Failed to create certificate template: %v", err)
+		logger.Warn(fmt.Sprintf("Failed to create certificate template: %v", err))
 		return nil, err
 	}
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, template, template, gc.publicKey(priv), priv)
 	if err != nil {
-		logger.Fatalf("Failed to create certificate: %v", err)
+		logger.Warn(fmt.Sprintf("Failed to create certificate: %v", err))
 		return nil, err
 	}
 
 	privBytes, err := x509.MarshalPKCS8PrivateKey(priv)
 	if err != nil {
-		logger.Fatalf("Unable to marshal private key: %v", err)
+		logger.Warn(fmt.Sprintf("Unable to marshal private key: %v", err))
 		return nil, err
 	}
 
@@ -111,7 +112,7 @@ func (gc *generateCertificate) GenerateTLSConfig() (*tls.Config, error) {
 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 	tlsCert, err := tls.X509KeyPair(certPEM, keyPEM)
 	if err != nil {
-		logger.Fatalf("Failed to combine tls key pair: %v", err)
+		logger.Warn(fmt.Sprintf("Failed to combine tls key pair: %v", err))
 		return nil, err
 	}
 
@@ -124,7 +125,7 @@ func (gc *generateCertificate) createTemplate(notBefore time.Time) (*x509.Certif
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
-		logger.Fatalf("Failed to generate serial number: %v", err)
+		logger.Warn(fmt.Sprintf("Failed to generate serial number: %v", err))
 		return nil, err
 	}
 
@@ -222,7 +223,7 @@ func (s *SHttp) GetTLSConfig() (*tls.Config, error) {
 
 	privBytes, err := x509.MarshalPKCS8PrivateKey(prv)
 	if err != nil {
-		logger.Fatalf("Unable to marshal private key: %v", err)
+		logger.Warn(fmt.Sprintf("Unable to marshal private key: %v", err))
 		return nil, err
 	}
 

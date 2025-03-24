@@ -137,7 +137,13 @@ func init() {
 
 // Provide provide the config to the dependency injection
 func (c *Config) Provide(inj do.Injector) {
-	do.ProvideValue[Config](inj, *c)
+	do.ProvideValue(inj, c)
+}
+
+var _ health.ServiceName = &Config{}
+
+func (c *Config) ServiceName() string {
+	return Servicename
 }
 
 // Get returns loaded config

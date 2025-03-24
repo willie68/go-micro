@@ -5,6 +5,7 @@ go 1.24
 require (
 	dario.cat/mergo v1.0.1
 	github.com/DATA-DOG/go-sqlmock v1.5.2
+	github.com/Graylog2/go-gelf v0.0.0-20170811154226-7ebf4f536d8f
 	github.com/aphistic/golf v0.0.0-20180712155816-02c07f170c5a
 	github.com/drone/envsubst v1.0.3
 	github.com/go-chi/chi/v5 v5.2.1
@@ -18,6 +19,8 @@ require (
 	github.com/prometheus/client_golang v1.21.1
 	github.com/rs/xid v1.6.0
 	github.com/samber/do/v2 v2.0.0-beta.7
+	github.com/samber/slog-graylog/v2 v2.7.3
+	github.com/samber/slog-multi v1.4.0
 	github.com/spf13/pflag v1.0.6
 	github.com/stretchr/testify v1.10.0
 	github.com/swaggo/http-swagger v1.3.4
@@ -64,9 +67,10 @@ require (
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/samber/do v1.6.0 // indirect
 	github.com/samber/go-type-to-string v1.4.0 // indirect
+	github.com/samber/lo v1.49.1 // indirect
+	github.com/samber/slog-common v0.18.1 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
-	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/swaggo/files v1.0.1 // indirect
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	go.uber.org/atomic v1.11.0 // indirect
