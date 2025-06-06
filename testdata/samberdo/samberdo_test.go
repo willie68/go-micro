@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/willie68/go-micro/testdata/samberdo/common"
 	"github.com/willie68/go-micro/testdata/samberdo/consumer"
+	"github.com/willie68/go-micro/testdata/samberdo/consumer2"
 	"github.com/willie68/go-micro/testdata/samberdo/producer1"
 	"github.com/willie68/go-micro/testdata/samberdo/producer2"
 )
@@ -36,5 +37,11 @@ func TestSamberDOInterfaces(t *testing.T) {
 	s = cons2.Else()
 	ast.NotEmpty(s)
 	t.Logf("output 2: %s", s)
+
+	cons12 := consumer2.New(inj1, "con12")
+	s = cons12.Else()
+	ast.NotEmpty(s)
+	t.Logf("output 1 2: %s", s)
+
 	t.Fail()
 }
