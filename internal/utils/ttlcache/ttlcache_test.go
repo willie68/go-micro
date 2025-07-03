@@ -109,6 +109,32 @@ func TestNoTTL(t *testing.T) {
 	ast.Equal(1, len(c.items))
 }
 
+func TestAutoDelete(t *testing.T) {
+	ast := assert.New(t)
+
+	c := New[string, string](WithTTL[string, string](2*time.Second), WithAutoDeletion[string, string](5*time.Second))
+	ast.NotNil(c)
+
+	c.Add("test", "sicher")
+	ast.True(c.Has("test"))
+	v, ok := c.Get("test")
+	ast.True(ok)
+	ast.Equal("sicher", *v)
+
+	time.Sleep(11 * time.Second)
+
+	ast.Equal(0, len(c.items))
+
+	c.Stop()
+
+	c.Add("test", "sicher")
+	ast.True(c.Has("test"))
+
+	time.Sleep(11 * time.Second)
+
+	ast.Equal(1, len(c.items))
+}
+
 func TestVariableTTL(t *testing.T) {
 	ast := assert.New(t)
 

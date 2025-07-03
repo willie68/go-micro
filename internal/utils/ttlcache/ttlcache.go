@@ -11,10 +11,12 @@ import (
 
 // Cache the simple cache
 type Cache[K comparable, V any] struct {
-	lock      sync.RWMutex
-	items     map[K]entry[V]
-	ttl       time.Duration
-	deletions chan K
+	lock           sync.RWMutex
+	items          map[K]entry[V]
+	ttl            time.Duration
+	deletions      chan K
+	autodelete     *time.Ticker
+	doneAutodelete chan bool
 }
 
 // entry one entry in the map
@@ -37,7 +39,7 @@ func New[K comparable, V any](opts ...Option[K, V]) *Cache[K, V] {
 	for _, opt := range opts {
 		opt(c)
 	}
-	if c.ttl >= 0 {
+	if c.ttl > 0 {
 		go func() {
 			for k := range c.deletions {
 				c.deleteEvicted(k)
@@ -61,6 +63,33 @@ func WithTTL[K comparable, V any](d time.Duration) Option[K, V] {
 func WithNoTTL[K comparable, V any]() Option[K, V] {
 	return func(c *Cache[K, V]) {
 		c.ttl = -1
+	}
+}
+
+// WithAutoDeletion will start a timer and automatically delete evicted entries. The timer will run every d duration
+func WithAutoDeletion[K comparable, V any](d time.Duration) Option[K, V] {
+	return func(c *Cache[K, V]) {
+		c.autodelete = time.NewTicker(d)
+		c.doneAutodelete = make(chan bool)
+
+		go func() {
+			for {
+				select {
+				case <-c.doneAutodelete:
+					return
+				case <-c.autodelete.C:
+					c.DeleteEvicted()
+				}
+			}
+		}()
+	}
+}
+
+// Stop will stop the auto delete ticker, if present
+func (c *Cache[K, V]) Stop() {
+	if c.autodelete != nil {
+		c.autodelete.Stop()
+		c.doneAutodelete <- true
 	}
 }
 
@@ -147,11 +176,22 @@ func (c *Cache[K, V]) Purge() {
 	c.items = make(map[K]entry[V])
 }
 
+// DeleteEvicted remove all evicted values from cache
+func (c *Cache[K, V]) DeleteEvicted() {
+	for k, v := range c.items {
+		if c.isEvicted(v) {
+			c.deletions <- k
+		}
+	}
+}
+
 // Close closes all needed resources, e.g. the deletion queue channel
 func (c *Cache[K, V]) Close() {
 	c.lock.Lock()
 	defer c.lock.Unlock()
+	c.Stop()
 	close(c.deletions)
+	close(c.doneAutodelete)
 }
 
 // deleteEvicted delete an entry only if it's evicted
