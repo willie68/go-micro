@@ -10,10 +10,10 @@ import (
 	"github.com/drone/envsubst"
 	"github.com/pkg/errors"
 	"github.com/samber/do/v2"
-	"github.com/willie68/go-micro/internal/logging"
 	adrcfg "github.com/willie68/go-micro/internal/services/adrsvc/common"
 	"github.com/willie68/go-micro/internal/services/caservice"
 	"github.com/willie68/go-micro/internal/services/health"
+	"github.com/willie68/go-micro/internal/services/logging"
 	"github.com/willie68/go-micro/internal/services/shttp"
 	"gopkg.in/yaml.v3"
 )

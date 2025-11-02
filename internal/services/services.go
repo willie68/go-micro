@@ -3,9 +3,9 @@ package services
 import (
 	"github.com/samber/do/v2"
 	"github.com/willie68/go-micro/internal/config"
-	"github.com/willie68/go-micro/internal/logging"
 	"github.com/willie68/go-micro/internal/services/adrsvc"
 	"github.com/willie68/go-micro/internal/services/health"
+	"github.com/willie68/go-micro/internal/services/logging"
 	"github.com/willie68/go-micro/internal/services/shttp"
 )
 

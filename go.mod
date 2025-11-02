@@ -6,7 +6,6 @@ require (
 	dario.cat/mergo v1.0.1
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/Graylog2/go-gelf v0.0.0-20170811154226-7ebf4f536d8f
-	github.com/aphistic/golf v0.0.0-20180712155816-02c07f170c5a
 	github.com/drone/envsubst v1.0.3
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-chi/cors v1.2.1
@@ -18,11 +17,11 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.21.1
 	github.com/rs/xid v1.6.0
-	github.com/samber/do/v2 v2.0.0-beta.7
+	github.com/samber/do/v2 v2.0.0
 	github.com/samber/slog-graylog/v2 v2.7.3
 	github.com/samber/slog-multi v1.4.0
 	github.com/spf13/pflag v1.0.6
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.4
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
@@ -36,6 +35,7 @@ require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/ajg/form v1.5.1 // indirect
+	github.com/aphistic/golf v0.0.0-20180712155816-02c07f170c5a // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -66,7 +66,7 @@ require (
 	github.com/prometheus/common v0.62.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/samber/do v1.6.0 // indirect
-	github.com/samber/go-type-to-string v1.4.0 // indirect
+	github.com/samber/go-type-to-string v1.8.0 // indirect
 	github.com/samber/lo v1.49.1 // indirect
 	github.com/samber/slog-common v0.18.1 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect

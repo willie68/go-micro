@@ -11,11 +11,15 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/samber/do/v2"
-	"github.com/willie68/go-micro/internal/logging"
 	"github.com/willie68/go-micro/internal/services/caservice"
+	"github.com/willie68/go-micro/internal/services/logging"
 )
 
 var logger = logging.New("shttp")
+
+type srvConfig interface {
+	GetHttpConfig() Config
+}
 
 // SHttp a service encapsulating http and https server
 type SHttp struct {
@@ -36,7 +40,7 @@ func NewSHttp(inj do.Injector, cfn Config, cfgCa caservice.Config) (*SHttp, erro
 	}
 	sh.init()
 
-	do.ProvideValue[SHttp](inj, sh)
+	do.ProvideValue(inj, sh)
 
 	return &sh, nil
 }
@@ -95,13 +99,16 @@ func (s *SHttp) startHTTPSServer(router *chi.Mux) {
 		} else {
 			// generating our own certificate
 			h := s.cfn.ServiceURL
+			if h == "" {
+				h = "https://localhost"
+			}
 			ul, err := url.Parse(h)
 			if err == nil {
 				h = ul.Hostname()
 			}
 			gc := generateCertificate{
-				ServiceName: s.cfa.Servicename,
-				CA:          s.cfa.URL,
+				ServiceName: s.cfn.Servicename,
+				CA:          s.cfn.ServiceURL,
 				Host:        h,
 				ValidFor:    10 * 365 * 24 * time.Hour,
 				IsCA:        false,

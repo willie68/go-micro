@@ -18,8 +18,8 @@ import (
 	"github.com/willie68/go-micro/internal/api"
 	"github.com/willie68/go-micro/internal/auth"
 	"github.com/willie68/go-micro/internal/config"
-	"github.com/willie68/go-micro/internal/logging"
 	"github.com/willie68/go-micro/internal/services/health"
+	"github.com/willie68/go-micro/internal/services/logging"
 	"github.com/willie68/go-micro/internal/utils/httputils"
 	"github.com/willie68/go-micro/pkg/web"
 )

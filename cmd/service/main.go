@@ -20,7 +20,7 @@ import (
 
 	jaegercfg "github.com/uber/jaeger-client-go/config"
 
-	log "github.com/willie68/go-micro/internal/logging"
+	log "github.com/willie68/go-micro/internal/services/logging"
 
 	flag "github.com/spf13/pflag"
 )
@@ -111,7 +111,7 @@ func initLogging() {
 	if err != nil {
 		log.Root.Error(fmt.Sprintf("error on config dir: %v", err))
 	}
-	log.Init(serviceConfig.Logging)
+	log.Init(config.Get().Logging)
 }
 
 // initJaeger initialize the jaeger (opentracing) component

@@ -12,8 +12,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/samber/do/v2"
-	"github.com/willie68/go-micro/internal/logging"
 	"github.com/willie68/go-micro/internal/serror"
+	"github.com/willie68/go-micro/internal/services/logging"
 	"github.com/willie68/go-micro/pkg/pmodel"
 
 	"github.com/willie68/go-micro/internal/api"
