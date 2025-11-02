@@ -13,12 +13,6 @@ var (
 	logger = logging.New("services")
 )
 
-// Service is the standard service interface
-type Service interface {
-	Init() error
-	Shutdown() error
-}
-
 // InitServices initialise the service system
 func InitServices(inj do.Injector, cfg config.Config) error {
 	logger.Debug("initialise services")
@@ -49,6 +43,7 @@ func InitRESTService(inj do.Injector, cfg config.Config) error {
 	return err
 }
 
+// ShutdownServices shutting down all services, that support do.Shutdowner interface
 func ShutdownServices(inj do.Injector) {
 	inj.Shutdown()
 }

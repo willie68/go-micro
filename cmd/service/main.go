@@ -98,6 +98,8 @@ func main() {
 	<-c
 
 	sh.ShutdownServers()
+	services.ShutdownServices(inj)
+
 	log.Root.Info("finished")
 
 	os.Exit(0)
