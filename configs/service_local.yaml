@@ -26,13 +26,6 @@ healthcheck:
   period: 30
   startdelay: 3
 
-# using a ca for the certificate
-ca:
-  useca: false
-  url: https://127.0.0.1:9543
-  accesskey: 3fa6a4bd-74cb-42ff-be40-e5213f8e9b18
-  secret: 7d122aab1d57b0177da31829ac791587
-
 # logging config
 logging:
     level: debug

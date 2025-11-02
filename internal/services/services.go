@@ -45,7 +45,7 @@ func InitHelperServices(inj do.Injector, cfg config.Config) error {
 
 // InitRESTService initialise REST Services
 func InitRESTService(inj do.Injector, cfg config.Config) error {
-	_, err := shttp.NewSHttp(inj, cfg.HTTP, cfg.CA)
+	_, err := shttp.NewSHttp(inj, cfg.HTTP)
 	return err
 }
 

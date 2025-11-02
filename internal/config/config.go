@@ -11,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/samber/do/v2"
 	adrcfg "github.com/willie68/go-micro/internal/services/adrsvc/common"
-	"github.com/willie68/go-micro/internal/services/caservice"
 	"github.com/willie68/go-micro/internal/services/health"
 	"github.com/willie68/go-micro/internal/services/logging"
 	"github.com/willie68/go-micro/internal/services/shttp"
@@ -37,8 +36,6 @@ type Config struct {
 	HTTP shttp.Config `yaml:"http"`
 	// special config for health checks
 	HealthSystem health.Config `yaml:"healthcheck"`
-	// CA service will be used, microvault
-	CA caservice.Config `yaml:"ca"`
 	// Enable Profiling option
 	Profiling Profiling `yaml:"profiling"`
 	// This is the demo address storage config

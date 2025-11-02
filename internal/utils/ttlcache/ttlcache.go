@@ -191,7 +191,9 @@ func (c *Cache[K, V]) Close() {
 	defer c.lock.Unlock()
 	c.Stop()
 	close(c.deletions)
-	close(c.doneAutodelete)
+	if c.doneAutodelete != nil {
+		close(c.doneAutodelete)
+	}
 }
 
 // deleteEvicted delete an entry only if it's evicted

@@ -33,10 +33,10 @@ func TestLoadFromYaml(t *testing.T) {
 	ast.Equal("https://127.0.0.1:8443", Get().HTTP.ServiceURL)
 	c.Provide(inj)
 
-	cfg := do.MustInvoke[Config](inj)
+	cfg := do.MustInvoke[*Config](inj)
 	ast.Nil(err)
 	ast.NotNil(cfg)
-	do.MustShutdown[Config](inj)
+	do.MustShutdown[*Config](inj)
 }
 
 func TestDefaultConfig(t *testing.T) {
