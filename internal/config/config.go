@@ -15,7 +15,7 @@ import (
 	"github.com/willie68/go-micro/internal/services/health"
 	"github.com/willie68/go-micro/internal/services/logging"
 	"github.com/willie68/go-micro/internal/services/shttp"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v3"
 )
 
 // Servicename the name of this service
@@ -80,7 +80,7 @@ var DefaultConfig = Config{
 	SecretFile: "",
 	Logging: logging.Config{
 		Level:    "INFO",
-		Filename: "${configdir}/logging.log",
+		Filename: "logging.log",
 	},
 }
 
@@ -196,18 +196,6 @@ func recurseEnvSubst(s string) (string, error) {
 		data = dataStr
 	}
 	return data, nil
-}
-
-// InitConfigdir replace the configdir macro
-func initConfigdir(s string) error {
-	if strings.Contains(s, "${configdir}") {
-		configFolder, err := GetDefaultConfigFolder()
-		if err != nil {
-			return err
-		}
-		return os.Setenv("configdir", configFolder)
-	}
-	return nil
 }
 
 func readSecret() error {

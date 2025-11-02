@@ -26,8 +26,8 @@ require (
 	github.com/swaggo/swag v1.16.6
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/undefinedlabs/go-mpatch v1.0.7
+	go.yaml.in/yaml/v3 v3.0.4
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -68,4 +68,5 @@ require (
 	golang.org/x/text v0.29.0 // indirect
 	golang.org/x/tools v0.36.0 // indirect
 	google.golang.org/protobuf v1.36.8 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
