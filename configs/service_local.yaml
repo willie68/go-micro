@@ -30,7 +30,7 @@ healthcheck:
 logging:
     level: debug
     filename: "${logfile}"
-    gelf-url: 127.0.0.1
+    gelf-url: # ip adress of a gelf server 127.0.0.1
     gelf-port: 12201
 
 # config for open telemtrie

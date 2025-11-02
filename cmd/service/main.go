@@ -52,22 +52,21 @@ func main() {
 	if config.File == "" {
 		cfgFile, err := config.GetDefaultConfigfile()
 		if err != nil {
-			log.Root.Error(fmt.Sprintf("error getting default config file: %v", err))
-			panic("error getting default config file")
+			panic(fmt.Sprintf("error getting default config file: %v", err))
 		}
 		config.File = cfgFile
 	}
-
-	log.Root.Info(fmt.Sprintf("using config file: %s", configFile))
 
 	if err := config.Load(); err != nil {
 		log.Root.Warn(fmt.Sprintf("can't load config file: %v", err))
 		panic("can't load config file")
 	}
 
+	log.Init(config.Get().Logging)
+	log.Root.Info(fmt.Sprintf("using config file: %s: '%s'", configFile, config.YAML()))
+
 	serviceConfig = config.Get()
 	serviceConfig.Provide(inj)
-	initLogging()
 
 	if err := services.InitServices(inj, serviceConfig); err != nil {
 		log.Root.Warn(fmt.Sprintf("error creating services: %v", err))
@@ -76,7 +75,7 @@ func main() {
 	log.Root.Info("service is starting")
 
 	var closer io.Closer
-	tracer, closer = initJaeger(config.Servicename, serviceConfig.OpenTracing)
+	tracer, closer = initTracing(config.Servicename, serviceConfig.OpenTracing)
 	defer closer.Close()
 
 	log.Root.Info(fmt.Sprintf("ssl: %t", serviceConfig.HTTP.Sslport > 0))
@@ -104,18 +103,8 @@ func main() {
 	os.Exit(0)
 }
 
-// initLogging initialize the logging, especially the gelf logger
-func initLogging() {
-	var err error
-	serviceConfig.Logging.Filename, err = config.ReplaceConfigdir(serviceConfig.Logging.Filename)
-	if err != nil {
-		log.Root.Error(fmt.Sprintf("error on config dir: %v", err))
-	}
-	log.Init(config.Get().Logging)
-}
-
-// initJaeger initialize the jaeger (opentracing) component
-func initJaeger(servicename string, cnfg config.OpenTracing) (opentracing.Tracer, io.Closer) {
+// initTracing initialize the jaeger (opentracing) component
+func initTracing(servicename string, cnfg config.OpenTracing) (opentracing.Tracer, io.Closer) {
 	cfg := jaegercfg.Configuration{
 		ServiceName: servicename,
 		Sampler: &jaegercfg.SamplerConfig{

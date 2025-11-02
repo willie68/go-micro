@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -97,7 +98,7 @@ func GetDefaultConfigFolder() (string, error) {
 	return configFolder, nil
 }
 
-// GetDefaultConfigfile getting the default config file
+// GetDefaultConfigfile getting the default config file : $HOME/<servicename>/service/service.yaml
 func GetDefaultConfigfile() (string, error) {
 	configFolder, err := GetDefaultConfigFolder()
 	if err != nil {
@@ -148,6 +149,16 @@ func Get() Config {
 	return config
 }
 
+func JSON() string {
+	js, _ := json.Marshal(config)
+	return string(js)
+}
+
+func YAML() string {
+	js, _ := yaml.Marshal(config)
+	return string(js)
+}
+
 // Load loads the config
 func Load() error {
 	myFile, err := ReplaceConfigdir(File)
@@ -163,16 +174,40 @@ func Load() error {
 	if err != nil {
 		return fmt.Errorf("can't load config file: %s", err.Error())
 	}
-	dataStr, err := envsubst.EvalEnv(string(data))
-	if err != nil {
-		return fmt.Errorf("can't substitute config file: %s", err.Error())
-	}
-
+	dataStr := string(data)
+	dataStr, err = recurseEnvSubst(dataStr)
 	err = yaml.Unmarshal([]byte(dataStr), &config)
 	if err != nil {
 		return fmt.Errorf("can't unmarshal config file: %s", err.Error())
 	}
 	return readSecret()
+}
+
+func recurseEnvSubst(s string) (string, error) {
+	data := s
+	for {
+		dataStr, err := envsubst.EvalEnv(data)
+		if err != nil {
+			return "", fmt.Errorf("can't substitute config file: %s", err.Error())
+		}
+		if data == dataStr {
+			break
+		}
+		data = dataStr
+	}
+	return data, nil
+}
+
+// InitConfigdir replace the configdir macro
+func initConfigdir(s string) error {
+	if strings.Contains(s, "${configdir}") {
+		configFolder, err := GetDefaultConfigFolder()
+		if err != nil {
+			return err
+		}
+		return os.Setenv("configdir", configFolder)
+	}
+	return nil
 }
 
 func readSecret() error {
