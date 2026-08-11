@@ -62,7 +62,7 @@ func main() {
 		panic("can't load config file")
 	}
 
-	log.Init(config.Get().Logging)
+	log.Init(config.Get().Logging, config.Servicename)
 	log.Root.Info(fmt.Sprintf("using config file: %s: '%s'", configFile, config.YAML()))
 
 	serviceConfig = config.Get()
