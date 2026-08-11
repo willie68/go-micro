@@ -35,6 +35,8 @@ logging:
   filename: ""
   gelf-url:
   gelf-port:
+  # gelf-protocol: udp (default) or tcp
+  gelf-protocol: udp
 
 # managing authentication and authorisation
 auth:
