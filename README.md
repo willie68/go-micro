@@ -10,7 +10,7 @@ The project structure depends on this: https://github.com/golang-standards/proje
 
 Features:
 
-- usage of Opentracing/jaeger
+- usage of OpenTelemetry (OTLP)
 - gelf logging
 - authorization with jwt
 - cached healthcheck, livez and readyz endpoints

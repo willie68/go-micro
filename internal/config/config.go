@@ -29,8 +29,8 @@ type Config struct {
 	Logging logging.Config `yaml:"logging"`
 	// use authentication via jwt
 	Auth Authentication `yaml:"auth"`
-	// opentelemtrie tracer can be configured here
-	OpenTracing OpenTracing `yaml:"opentracing"`
+	// opentelemetry tracer config
+	OpenTelemetry OpenTelemetry `yaml:"opentelemetry"`
 	// and some metrics
 	Metrics Metrics `yaml:"metrics"`
 	// HTTP REST Service
@@ -49,9 +49,8 @@ type Authentication struct {
 	Properties map[string]any `yaml:"properties"`
 }
 
-// OpenTracing configuration
-type OpenTracing struct {
-	Host     string `yaml:"host"`
+// OpenTelemetry configuration
+type OpenTelemetry struct {
 	Endpoint string `yaml:"endpoint"`
 }
 
