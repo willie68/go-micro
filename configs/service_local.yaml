@@ -33,10 +33,9 @@ logging:
     gelf-url: # ip adress of a gelf server 127.0.0.1
     gelf-port: 12201
 
-# config for open telemtrie
-opentracing:
-#    host: "127.0.0.1:5776"
-#    endpoint: "http://127.0.0.1:14268/api/traces"^
+# config for opentelemetry
+opentelemetry:
+#    endpoint: "http://127.0.0.1:4318/v1/traces"
 
 # activate the metrics endpoint
 metrics:

@@ -8,9 +8,9 @@ import (
 
 	"github.com/samber/do/v2"
 	"github.com/stretchr/testify/assert"
+	"github.com/willie68/go-micro/internal"
 	"github.com/willie68/go-micro/internal/apiv1"
 	"github.com/willie68/go-micro/internal/config"
-	"github.com/willie68/go-micro/internal/services"
 	"github.com/willie68/go-micro/internal/services/shttp"
 )
 
@@ -33,7 +33,7 @@ func StartServer(inj do.Injector) {
 
 		cfg = config.Get()
 		cfg.Provide(inj)
-		if err := services.InitServices(inj, cfg); err != nil {
+		if err := internal.InitServices(inj, cfg); err != nil {
 			panic("error creating services")
 		}
 
@@ -41,13 +41,13 @@ func StartServer(inj do.Injector) {
 		sh = &s
 	}
 	if !sh.Started {
-		router, err := apiv1.APIRoutes(inj, cfg, nil)
+		router, err := apiv1.APIRoutes(inj, cfg)
 		if err != nil {
 			errstr := fmt.Sprintf("could not create api routes. %s", err.Error())
 			panic(errstr)
 		}
 
-		healthRouter := apiv1.HealthRoutes(inj, cfg, nil)
+		healthRouter := apiv1.HealthRoutes(inj, cfg)
 		sh.StartServers(router, healthRouter)
 
 		time.Sleep(1 * time.Second)
