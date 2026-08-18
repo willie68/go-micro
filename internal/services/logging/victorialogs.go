@@ -127,161 +127,98 @@ func (h *victoriaLogsHandler) WithGroup(name string) slog.Handler {
 	}
 }
 
-// victoriaLogsSink owns the HTTP connection/client to VictoriaLogs. On write failure
-// it queues the message (dropping the oldest once victoriaLogsMaxQueue is reached)
-// and starts a single reconnect loop with exponential backoff. Once reconnected,
-// queued messages are flushed in order.
+// victoriaLogsSink owns the HTTP client to VictoriaLogs. send() only enqueues
+// (dropping the oldest once victoriaLogsMaxQueue is reached) so slog.Handle
+// never blocks on the network. A background loop delivers queued messages and
+// retries with exponential backoff while VictoriaLogs is down.
 type victoriaLogsSink struct {
-	url string
+	url    string
+	client *http.Client
 
-	mu           sync.Mutex
-	queue        [][]byte
-	reconnecting bool
+	mu    sync.Mutex
+	cond  *sync.Cond
+	queue [][]byte
 }
 
 func newVictoriaLogsSink(url string) *victoriaLogsSink {
-	s := &victoriaLogsSink{url: url}
-	// Try initial connection, but don't block on startup
-	if !s.testConnection() {
-		s.mu.Lock()
-		s.reconnecting = true
-		s.mu.Unlock()
-		go s.reconnectLoop()
-	} else {
-		log.Printf("victorialogs: http connected to %s", url)
+	s := &victoriaLogsSink{
+		url: url,
+		client: &http.Client{
+			Timeout: 5 * time.Second,
+		},
 	}
+	s.cond = sync.NewCond(&s.mu)
+	go s.sendLoop()
 	return s
 }
 
-// testConnection checks if VictoriaLogs is reachable
-func (s *victoriaLogsSink) testConnection() bool {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.url, bytes.NewReader([]byte("{}")))
-	if err != nil {
-		log.Printf("warn: victorialogs test connection create request: %v", err)
-		return false
-	}
-	req.Header.Set("Content-Type", "application/stream+json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		log.Printf("warn: victorialogs http test %s: %v", s.url, err)
-		return false
-	}
-	defer resp.Body.Close()
-	_, _ = io.ReadAll(resp.Body)
-
-	if resp.StatusCode >= 400 {
-		log.Printf("warn: victorialogs http test status %d", resp.StatusCode)
-		return false
-	}
-	return true
-}
-
-// send writes payload (a JSON-formatted log entry) to VictoriaLogs.
-// On failure it queues the message for later delivery and (re-)starts
-// the reconnect loop if not already running.
+// send queues payload for background delivery. It must not perform HTTP I/O:
+// slog-multi Fanout runs handlers sequentially, so a blocked VictoriaLogs
+// send would stall stdout/file/gelf logging as well.
 func (s *victoriaLogsSink) send(payload []byte) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.url, bytes.NewReader(payload))
-	if err != nil {
-		log.Printf("warn: victorialogs http send create request: %v", err)
-		goto queue
-	}
-	req.Header.Set("Content-Type", "application/stream+json")
-
-	{
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			log.Printf("warn: victorialogs http send: %v", err)
-			goto queue
-		}
-		defer resp.Body.Close()
-		_, _ = io.ReadAll(resp.Body)
-
-		if resp.StatusCode < 400 {
-			return // success
-		}
-
-		log.Printf("warn: victorialogs http send status %d", resp.StatusCode)
-	}
-
-queue:
 	s.mu.Lock()
 	if len(s.queue) >= victoriaLogsMaxQueue {
 		s.queue = s.queue[1:] // drop oldest
 	}
 	s.queue = append(s.queue, payload)
-	needReconnect := !s.reconnecting
-	s.reconnecting = true
+	s.cond.Signal()
 	s.mu.Unlock()
-
-	if needReconnect {
-		go s.reconnectLoop()
-	}
 }
 
-// reconnectLoop retries connecting with exponential backoff until it
-// succeeds and the whole queue has been flushed.
-func (s *victoriaLogsSink) reconnectLoop() {
+func (s *victoriaLogsSink) sendLoop() {
 	backoff := time.Second
 	const maxBackoff = 30 * time.Second
-	for {
-		if s.testConnection() && s.flushQueue() {
-			s.mu.Lock()
-			s.reconnecting = false
-			s.mu.Unlock()
-			log.Printf("victorialogs: reconnected and queue flushed")
-			return
-		}
-		time.Sleep(backoff)
-		if backoff < maxBackoff {
-			backoff *= 2
-		}
-	}
-}
+	connected := false
 
-// flushQueue drains queued messages over the HTTP connection in order.
-// Returns false if the connection failed partway through; the remaining
-// (unsent) messages stay queued for the next reconnect attempt.
-func (s *victoriaLogsSink) flushQueue() bool {
 	for {
 		s.mu.Lock()
-		if len(s.queue) == 0 {
-			s.mu.Unlock()
-			return true
+		for len(s.queue) == 0 {
+			s.cond.Wait()
 		}
 		payload := s.queue[0]
 		s.mu.Unlock()
 
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.url, bytes.NewReader(payload))
-		cancel()
-		if err != nil {
-			log.Printf("warn: victorialogs flush create request: %v", err)
-			return false
+		if err := s.post(payload); err != nil {
+			log.Printf("warn: victorialogs http send %s: %v", s.url, err)
+			connected = false
+			time.Sleep(backoff)
+			if backoff < maxBackoff {
+				backoff *= 2
+			}
+			continue
 		}
-		req.Header.Set("Content-Type", "application/stream+json")
 
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			log.Printf("warn: victorialogs flush: %v", err)
-			return false
+		if !connected {
+			log.Printf("victorialogs: http connected to %s", s.url)
+			connected = true
 		}
-		defer resp.Body.Close()
-		_, _ = io.ReadAll(resp.Body)
-
-		if resp.StatusCode >= 400 {
-			log.Printf("warn: victorialogs flush status %d", resp.StatusCode)
-			return false
-		}
+		backoff = time.Second
 
 		s.mu.Lock()
 		s.queue = s.queue[1:]
 		s.mu.Unlock()
 	}
+}
+
+func (s *victoriaLogsSink) post(payload []byte) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, s.url, bytes.NewReader(payload))
+	if err != nil {
+		return fmt.Errorf("create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/stream+json")
+
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	_, _ = io.ReadAll(resp.Body)
+
+	if resp.StatusCode >= 400 {
+		return fmt.Errorf("status %d", resp.StatusCode)
+	}
+	return nil
 }
