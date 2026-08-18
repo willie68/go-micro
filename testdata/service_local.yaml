@@ -19,11 +19,6 @@ healthcheck:
   # period in seconds to start the healtcheck
   period: 60
   startdelay: 3
-ca:
-  useca: false
-  url: https://127.0.0.1:9544
-  accesskey: 3fa6a4bd-74cb-42ff-be40-e5213f8e9b18
-  secret: 7d122aab1d57b0177da31829ac791587
 # enable/disable metrics 
 metrics:
   enable: true

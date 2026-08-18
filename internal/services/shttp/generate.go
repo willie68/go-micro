@@ -9,17 +9,14 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/asn1"
 	"encoding/pem"
 	"fmt"
 	"math/big"
 	"net"
-	"net/url"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
-	mv "github.com/willie68/micro-vault/pkg/client"
 )
 
 // generateCertificate model
@@ -165,76 +162,6 @@ func (gc *generateCertificate) createTemplate(notBefore time.Time) (*x509.Certif
 		template.KeyUsage |= x509.KeyUsageCertSign
 	}
 	return &template, nil
-}
-
-// GetTLSConfig generates the tls config, getting certificate from ca service
-func (s *SHttp) GetTLSConfig() (*tls.Config, error) {
-	var err error
-	subj := pkix.Name{
-		CommonName: s.cfa.Servicename,
-	}
-	rawSubj := subj.ToRDNSequence()
-
-	asn1Subj, err := asn1.Marshal(rawSubj)
-	if err != nil {
-		return nil, err
-	}
-
-	template := x509.CertificateRequest{
-		RawSubject:         asn1Subj,
-		SignatureAlgorithm: x509.SHA256WithRSA,
-	}
-
-	for _, sip := range s.cfn.IPAddresses {
-		if ip := net.ParseIP(sip); ip != nil {
-			template.IPAddresses = append(template.IPAddresses, ip)
-		}
-	}
-
-	for _, sdn := range s.cfn.DNSNames {
-		template.DNSNames = append(template.DNSNames, sdn)
-	}
-
-	h := s.cfn.ServiceURL
-	ul, err := url.Parse(h)
-	if err == nil {
-		h = ul.Hostname()
-	}
-	if ip := net.ParseIP(h); ip != nil {
-		template.IPAddresses = append(template.IPAddresses, ip)
-	} else {
-		template.DNSNames = append(template.DNSNames, h)
-	}
-
-	cli, err := mv.LoginClient(s.cfa.AccessKey, s.cfa.Secret, s.cfa.URL)
-	if err != nil {
-		return nil, err
-	}
-
-	crt, err := cli.CreateCertificate(template)
-	if err != nil {
-		return nil, err
-	}
-
-	prv, err := cli.PrivateKey()
-	if err != nil {
-		return nil, err
-	}
-
-	privBytes, err := x509.MarshalPKCS8PrivateKey(prv)
-	if err != nil {
-		logger.Warn(fmt.Sprintf("Unable to marshal private key: %v", err))
-		return nil, err
-	}
-
-	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: privBytes})
-	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: crt.Raw})
-	tlsCert, err := tls.X509KeyPair(certPEM, keyPEM)
-	if err != nil {
-		return nil, err
-	}
-
-	return &tls.Config{Certificates: []tls.Certificate{tlsCert}}, nil
 }
 
 func (s *SHttp) TLSFromFiles() (*tls.Config, error) {

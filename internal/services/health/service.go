@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/render"
 	"github.com/samber/do/v2"
 	"github.com/willie68/go-micro/internal/api"
-	"github.com/willie68/go-micro/internal/logging"
+	"github.com/willie68/go-micro/internal/services/logging"
 )
 
 var logger = logging.New("health")

@@ -2,25 +2,29 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"io"
+	"net/url"
 	"os"
 	"os/signal"
+	"strings"
 
 	"github.com/samber/do/v2"
 	_ "github.com/willie68/go-micro/docs"
+	"github.com/willie68/go-micro/internal"
 	"github.com/willie68/go-micro/internal/apiv1"
 	"github.com/willie68/go-micro/internal/serror"
-	"github.com/willie68/go-micro/internal/services"
 	"github.com/willie68/go-micro/internal/services/shttp"
 
-	"github.com/opentracing/opentracing-go"
-	"github.com/uber/jaeger-client-go"
 	config "github.com/willie68/go-micro/internal/config"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/resource"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
 
-	jaegercfg "github.com/uber/jaeger-client-go/config"
-
-	log "github.com/willie68/go-micro/internal/logging"
+	log "github.com/willie68/go-micro/internal/services/logging"
 
 	flag "github.com/spf13/pflag"
 )
@@ -28,7 +32,6 @@ import (
 var (
 	configFile    string
 	serviceConfig config.Config
-	tracer        opentracing.Tracer
 	c             chan os.Signal
 )
 
@@ -52,43 +55,43 @@ func main() {
 	if config.File == "" {
 		cfgFile, err := config.GetDefaultConfigfile()
 		if err != nil {
-			log.Root.Error(fmt.Sprintf("error getting default config file: %v", err))
-			panic("error getting default config file")
+			panic(fmt.Sprintf("error getting default config file: %v", err))
 		}
 		config.File = cfgFile
 	}
-
-	log.Root.Info(fmt.Sprintf("using config file: %s", configFile))
 
 	if err := config.Load(); err != nil {
 		log.Root.Warn(fmt.Sprintf("can't load config file: %v", err))
 		panic("can't load config file")
 	}
 
+	log.Init(config.Get().Logging, config.Servicename)
+	log.Root.Info(fmt.Sprintf("using config file: %s: '%s'", configFile, config.YAML()))
+
 	serviceConfig = config.Get()
 	serviceConfig.Provide(inj)
-	initLogging()
 
-	if err := services.InitServices(inj, serviceConfig); err != nil {
+	if err := internal.InitServices(inj, serviceConfig); err != nil {
 		log.Root.Warn(fmt.Sprintf("error creating services: %v", err))
 		panic("error creating services")
 	}
 	log.Root.Info("service is starting")
 
-	var closer io.Closer
-	tracer, closer = initJaeger(config.Servicename, serviceConfig.OpenTracing)
-	defer closer.Close()
+	tp, err := initOpenTelemetry(config.Servicename, serviceConfig.OpenTelemetry)
+	if err != nil {
+		panic(fmt.Sprintf("opentelemetry init failed: %v", err))
+	}
 
 	log.Root.Info(fmt.Sprintf("ssl: %t", serviceConfig.HTTP.Sslport > 0))
 	log.Root.Info(fmt.Sprintf("serviceURL: %s", serviceConfig.HTTP.ServiceURL))
-	router, err := apiv1.APIRoutes(inj, serviceConfig, tracer)
+	router, err := apiv1.APIRoutes(inj, serviceConfig)
 	if err != nil {
 		errstr := fmt.Sprintf("could not create api routes. %s", err.Error())
 		log.Root.Warn(errstr)
 		panic(errstr)
 	}
 
-	healthRouter := apiv1.HealthRoutes(inj, serviceConfig, tracer)
+	healthRouter := apiv1.HealthRoutes(inj, serviceConfig)
 
 	sh := do.MustInvoke[shttp.SHttp](inj)
 	sh.StartServers(router, healthRouter)
@@ -99,8 +102,9 @@ func main() {
 	<-c
 
 	sh.ShutdownServers()
-	log.Root.Info("finished")
+	tp.Shutdown(context.Background())
 
+	log.Root.Info("finished")
 	os.Exit(0)
 }
 
@@ -111,30 +115,60 @@ func initLogging() {
 	if err != nil {
 		log.Root.Error(fmt.Sprintf("error on config dir: %v", err))
 	}
-	log.Init(serviceConfig.Logging)
+	log.Init(serviceConfig.Logging, "gomicro")
 }
 
-// initJaeger initialize the jaeger (opentracing) component
-func initJaeger(servicename string, cnfg config.OpenTracing) (opentracing.Tracer, io.Closer) {
-	cfg := jaegercfg.Configuration{
-		ServiceName: servicename,
-		Sampler: &jaegercfg.SamplerConfig{
-			Type:  "const",
-			Param: 1,
-		},
-		Reporter: &jaegercfg.ReporterConfig{
-			LogSpans:           true,
-			LocalAgentHostPort: cnfg.Host,
-			CollectorEndpoint:  cnfg.Endpoint,
-		},
+// initOpenTelemetry initialize the opentelemetry component
+func initOpenTelemetry(servicename string, cnfg config.OpenTelemetry) (*sdktrace.TracerProvider, error) {
+	endpoint := strings.TrimSpace(cnfg.Endpoint)
+	if endpoint == "" {
+		return nil, nil
 	}
-	if (cnfg.Endpoint == "") && (cnfg.Host == "") {
-		cfg.Disabled = true
+
+	clientOptions := []otlptracehttp.Option{}
+	if strings.Contains(endpoint, "://") {
+		u, err := url.Parse(endpoint)
+		if err != nil {
+			return nil, err
+		}
+		clientOptions = append(clientOptions, otlptracehttp.WithEndpoint(u.Host))
+		if u.Path != "" && u.Path != "/" {
+			clientOptions = append(clientOptions, otlptracehttp.WithURLPath(strings.TrimPrefix(u.Path, "/")))
+		}
+		if strings.EqualFold(u.Scheme, "http") {
+			clientOptions = append(clientOptions, otlptracehttp.WithInsecure())
+		}
+	} else {
+		clientOptions = append(clientOptions, otlptracehttp.WithEndpoint(endpoint), otlptracehttp.WithInsecure())
 	}
-	tracer, closer, err := cfg.NewTracer(jaegercfg.Logger(jaeger.StdLogger))
+
+	exporter, err := otlptracehttp.New(context.Background(), clientOptions...)
 	if err != nil {
-		panic(fmt.Sprintf("ERROR: cannot init Jaeger: %v\n", err))
+		return nil, err
 	}
-	opentracing.SetGlobalTracer(tracer)
-	return tracer, closer
+
+	res, err := resource.Merge(
+		resource.Default(),
+		resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceName(servicename),
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithBatcher(exporter),
+		sdktrace.WithResource(res),
+	)
+	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(
+		propagation.NewCompositeTextMapPropagator(
+			propagation.TraceContext{},
+			propagation.Baggage{},
+		),
+	)
+
+	return tp, nil
 }

@@ -11,16 +11,18 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/samber/do/v2"
-	"github.com/willie68/go-micro/internal/logging"
-	"github.com/willie68/go-micro/internal/services/caservice"
+	"github.com/willie68/go-micro/internal/services/logging"
 )
 
 var logger = logging.New("shttp")
 
+type srvConfig interface {
+	GetHttpConfig() Config
+}
+
 // SHttp a service encapsulating http and https server
 type SHttp struct {
 	cfn     Config
-	cfa     caservice.Config
 	useSSL  bool
 	sslsrv  *http.Server
 	srv     *http.Server
@@ -28,15 +30,14 @@ type SHttp struct {
 }
 
 // NewSHttp creates a new shttp service
-func NewSHttp(inj do.Injector, cfn Config, cfgCa caservice.Config) (*SHttp, error) {
+func NewSHttp(inj do.Injector, cfn Config) (*SHttp, error) {
 	sh := SHttp{
 		cfn:     cfn,
-		cfa:     cfgCa,
 		Started: false,
 	}
 	sh.init()
 
-	do.ProvideValue[SHttp](inj, sh)
+	do.ProvideValue(inj, sh)
 
 	return &sh, nil
 }
@@ -78,45 +79,42 @@ func (s *SHttp) ShutdownServers() {
 func (s *SHttp) startHTTPSServer(router *chi.Mux) {
 	var tlsConfig *tls.Config
 	var err error
-	if s.cfa.UseCA {
-		tlsConfig, err = s.GetTLSConfig()
+
+	if s.cfn.Certificate != "" && s.cfn.Key != "" {
+		// using the files provided by config
+		tlsConfig, err = s.TLSFromFiles()
 		if err != nil {
 			logger.Warn(fmt.Sprintf("could not create tls config. %s", err.Error()))
 			panic(-1)
 		}
 	} else {
-		if s.cfn.Certificate != "" && s.cfn.Key != "" {
-			// using the files provided by config
-			tlsConfig, err = s.TLSFromFiles()
-			if err != nil {
-				logger.Warn(fmt.Sprintf("could not create tls config. %s", err.Error()))
-				panic(-1)
-			}
-		} else {
-			// generating our own certificate
-			h := s.cfn.ServiceURL
-			ul, err := url.Parse(h)
-			if err == nil {
-				h = ul.Hostname()
-			}
-			gc := generateCertificate{
-				ServiceName: s.cfa.Servicename,
-				CA:          s.cfa.URL,
-				Host:        h,
-				ValidFor:    10 * 365 * 24 * time.Hour,
-				IsCA:        false,
-				EcdsaCurve:  "P384",
-				Ed25519Key:  false,
-				DNSnames:    s.cfn.DNSNames,
-				IPs:         s.cfn.IPAddresses,
-			}
-			tlsConfig, err = gc.GenerateTLSConfig()
-			if err != nil {
-				logger.Warn(fmt.Sprintf("could not create tls config. %s", err.Error()))
-				panic(-1)
-			}
+		// generating our own certificate
+		h := s.cfn.ServiceURL
+		if h == "" {
+			h = "https://localhost"
+		}
+		ul, err := url.Parse(h)
+		if err == nil {
+			h = ul.Hostname()
+		}
+		gc := generateCertificate{
+			ServiceName: s.cfn.Servicename,
+			CA:          s.cfn.ServiceURL,
+			Host:        h,
+			ValidFor:    10 * 365 * 24 * time.Hour,
+			IsCA:        false,
+			EcdsaCurve:  "P384",
+			Ed25519Key:  false,
+			DNSnames:    s.cfn.DNSNames,
+			IPs:         s.cfn.IPAddresses,
+		}
+		tlsConfig, err = gc.GenerateTLSConfig()
+		if err != nil {
+			logger.Warn(fmt.Sprintf("could not create tls config. %s", err.Error()))
+			panic(-1)
 		}
 	}
+
 	s.sslsrv = &http.Server{
 		Addr:         "0.0.0.0:" + strconv.Itoa(s.cfn.Sslport),
 		WriteTimeout: time.Second * 15,

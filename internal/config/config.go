@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,12 +11,11 @@ import (
 	"github.com/drone/envsubst"
 	"github.com/pkg/errors"
 	"github.com/samber/do/v2"
-	"github.com/willie68/go-micro/internal/logging"
 	adrcfg "github.com/willie68/go-micro/internal/services/adrsvc/common"
-	"github.com/willie68/go-micro/internal/services/caservice"
 	"github.com/willie68/go-micro/internal/services/health"
+	"github.com/willie68/go-micro/internal/services/logging"
 	"github.com/willie68/go-micro/internal/services/shttp"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v3"
 )
 
 // Servicename the name of this service
@@ -29,16 +29,14 @@ type Config struct {
 	Logging logging.Config `yaml:"logging"`
 	// use authentication via jwt
 	Auth Authentication `yaml:"auth"`
-	// opentelemtrie tracer can be configured here
-	OpenTracing OpenTracing `yaml:"opentracing"`
+	// opentelemetry tracer config
+	OpenTelemetry OpenTelemetry `yaml:"opentelemetry"`
 	// and some metrics
 	Metrics Metrics `yaml:"metrics"`
 	// HTTP REST Service
 	HTTP shttp.Config `yaml:"http"`
 	// special config for health checks
 	HealthSystem health.Config `yaml:"healthcheck"`
-	// CA service will be used, microvault
-	CA caservice.Config `yaml:"ca"`
 	// Enable Profiling option
 	Profiling Profiling `yaml:"profiling"`
 	// This is the demo address storage config
@@ -51,9 +49,8 @@ type Authentication struct {
 	Properties map[string]any `yaml:"properties"`
 }
 
-// OpenTracing configuration
-type OpenTracing struct {
-	Host     string `yaml:"host"`
+// OpenTelemetry configuration
+type OpenTelemetry struct {
 	Endpoint string `yaml:"endpoint"`
 }
 
@@ -82,7 +79,7 @@ var DefaultConfig = Config{
 	SecretFile: "",
 	Logging: logging.Config{
 		Level:    "INFO",
-		Filename: "${configdir}/logging.log",
+		Filename: "logging.log",
 	},
 }
 
@@ -100,7 +97,7 @@ func GetDefaultConfigFolder() (string, error) {
 	return configFolder, nil
 }
 
-// GetDefaultConfigfile getting the default config file
+// GetDefaultConfigfile getting the default config file : $HOME/<servicename>/service/service.yaml
 func GetDefaultConfigfile() (string, error) {
 	configFolder, err := GetDefaultConfigFolder()
 	if err != nil {
@@ -151,6 +148,16 @@ func Get() Config {
 	return config
 }
 
+func JSON() string {
+	js, _ := json.Marshal(config)
+	return string(js)
+}
+
+func YAML() string {
+	js, _ := yaml.Marshal(config)
+	return string(js)
+}
+
 // Load loads the config
 func Load() error {
 	myFile, err := ReplaceConfigdir(File)
@@ -166,16 +173,28 @@ func Load() error {
 	if err != nil {
 		return fmt.Errorf("can't load config file: %s", err.Error())
 	}
-	dataStr, err := envsubst.EvalEnv(string(data))
-	if err != nil {
-		return fmt.Errorf("can't substitute config file: %s", err.Error())
-	}
-
+	dataStr := string(data)
+	dataStr, err = recurseEnvSubst(dataStr)
 	err = yaml.Unmarshal([]byte(dataStr), &config)
 	if err != nil {
 		return fmt.Errorf("can't unmarshal config file: %s", err.Error())
 	}
 	return readSecret()
+}
+
+func recurseEnvSubst(s string) (string, error) {
+	data := s
+	for {
+		dataStr, err := envsubst.EvalEnv(data)
+		if err != nil {
+			return "", fmt.Errorf("can't substitute config file: %s", err.Error())
+		}
+		if data == dataStr {
+			break
+		}
+		data = dataStr
+	}
+	return data, nil
 }
 
 func readSecret() error {

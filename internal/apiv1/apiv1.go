@@ -8,18 +8,16 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/go-chi/httptracer"
 	"github.com/go-chi/render"
-	"github.com/opentracing/opentracing-go"
 	"github.com/samber/do/v2"
 	httpSwagger "github.com/swaggo/http-swagger"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/willie68/go-micro/internal/api"
 	"github.com/willie68/go-micro/internal/auth"
 	"github.com/willie68/go-micro/internal/config"
-	"github.com/willie68/go-micro/internal/logging"
 	"github.com/willie68/go-micro/internal/services/health"
+	"github.com/willie68/go-micro/internal/services/logging"
 	"github.com/willie68/go-micro/internal/utils/httputils"
 	"github.com/willie68/go-micro/pkg/web"
 )
@@ -42,10 +40,10 @@ func token(r *http.Request) (string, error) {
 }
 
 // APIRoutes configuring the api routes for the main REST API
-func APIRoutes(inj do.Injector, cfn config.Config, trc opentracing.Tracer) (*chi.Mux, error) {
+func APIRoutes(inj do.Injector, cfn config.Config) (*chi.Mux, error) {
 	logger.Info(fmt.Sprintf("baseurl : %s", BaseURL))
 	router := chi.NewRouter()
-	setDefaultHandler(router, cfn, trc)
+	setDefaultHandler(router, cfn)
 
 	// jwt is activated, register the Authenticator and Validator
 	if strings.EqualFold(cfn.Auth.Type, "jwt") {
@@ -99,7 +97,7 @@ func setJWTHandler(router *chi.Mux, cfn config.Config) error {
 	return nil
 }
 
-func setDefaultHandler(router *chi.Mux, cfn config.Config, tracer opentracing.Tracer) {
+func setDefaultHandler(router *chi.Mux, cfn config.Config) {
 	router.Use(
 		render.SetContentType(render.ContentTypeJSON),
 		middleware.Logger,
@@ -115,68 +113,27 @@ func setDefaultHandler(router *chi.Mux, cfn config.Config, tracer opentracing.Tr
 			MaxAge:           300, // Maximum value not ignored by any of major browsers
 		}),
 	)
-	if tracer != nil {
-		router.Use(httptracer.Tracer(tracer, httptracer.Config{
-			ServiceName:    config.Servicename,
-			ServiceVersion: "V" + APIVersion,
-			SampleRate:     1,
-			SkipFunc: func(r *http.Request) bool {
-				return false
-				//return r.URL.Path == "/livez"
-			},
-			Tags: map[string]any{
-				"_dd.measured": 1, // datadog, turn on metrics for http.request stats
-				// "_dd1.sr.eausr": 1, // datadog, event sample rate
-			},
-		}))
-	}
-	if cfn.Metrics.Enable {
-		router.Use(
-			api.MetricsHandler(api.MetricsConfig{
-				SkipFunc: func(r *http.Request) bool {
-					return false
-				},
-			}),
-		)
+	if cfn.OpenTelemetry.Endpoint != "" {
+		router.Use(otelMiddleware())
 	}
 }
 
 // HealthRoutes returning the health routes
-func HealthRoutes(inj do.Injector, cfn config.Config, tracer opentracing.Tracer) *chi.Mux {
+func HealthRoutes(inj do.Injector, cfn config.Config) *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(
 		render.SetContentType(render.ContentTypeJSON),
 		middleware.Logger,
 		middleware.Recoverer,
 	)
-	if tracer != nil {
-		router.Use(httptracer.Tracer(tracer, httptracer.Config{
-			ServiceName:    config.Servicename,
-			ServiceVersion: "V" + APIVersion,
-			SampleRate:     1,
-			SkipFunc: func(r *http.Request) bool {
-				return false
-			},
-			Tags: map[string]any{
-				"_dd.measured": 1, // datadog, turn on metrics for http.request stats
-				// "_dd1.sr.eausr": 1, // datadog, event sample rate
-			},
-		}))
-	}
-	if cfn.Metrics.Enable {
-		router.Use(
-			api.MetricsHandler(api.MetricsConfig{
-				SkipFunc: func(r *http.Request) bool {
-					return false
-				},
-			}),
-		)
+	if cfn.OpenTelemetry.Endpoint != "" {
+		router.Use(otelMiddleware())
 	}
 
 	router.Route("/", func(r chi.Router) {
 		r.Mount(health.NewHealthHandler(inj).Routes())
 		if cfn.Metrics.Enable {
-			r.Mount(api.MetricsEndpoint, promhttp.Handler())
+			r.Mount("/metrics", promhttp.Handler())
 		}
 		if cfn.Profiling.Enable {
 			// Define the routes for serving profiling data
@@ -194,4 +151,13 @@ func HealthRoutes(inj do.Injector, cfn config.Config, tracer opentracing.Tracer)
 	}
 
 	return router
+}
+
+func otelMiddleware() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			spanName := r.Method + " " + r.URL.Path
+			otelhttp.NewHandler(next, spanName).ServeHTTP(w, r)
+		})
+	}
 }

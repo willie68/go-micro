@@ -35,6 +35,9 @@ logging:
   filename: ""
   gelf-url:
   gelf-port:
+  # gelf-protocol: udp (default) or tcp
+  gelf-protocol: udp
+  victoria-logs-url: http://localhost:9428
 
 # managing authentication and authorisation
 auth:

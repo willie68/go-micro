@@ -11,8 +11,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/willie68/go-micro/internal/logging"
 	"github.com/willie68/go-micro/internal/serror"
+	"github.com/willie68/go-micro/internal/services/logging"
 	"github.com/willie68/go-micro/pkg/pmodel"
 )
 
