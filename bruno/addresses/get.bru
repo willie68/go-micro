@@ -1,0 +1,33 @@
+meta {
+  name: Get address
+  type: http
+  seq: 3
+  tags: [
+    crud
+    addresses
+  ]
+}
+
+get {
+  url: {{apiUrl}}/api/v1/addresses/:id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id: {{addressId}}
+}
+
+headers {
+  tenant: {{tenant}}
+}
+
+tests {
+  test("get returns 200", function () {
+    expect(res.status).to.equal(200);
+  });
+
+  test("get returns the created id", function () {
+    expect(res.body.id).to.equal(bru.getVar("addressId"));
+  });
+}

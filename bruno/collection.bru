@@ -1,0 +1,33 @@
+meta {
+  name: go-micro
+}
+
+auth {
+  mode: none
+}
+
+vars:pre-request {
+  host: 127.0.0.1
+  httpPort: 9480
+  httpsPort: 9443
+  httpUrl: http://{{host}}:{{httpPort}}
+  httpsUrl: https://{{host}}:{{httpsPort}}
+  apiUrl: https://{{host}}:{{httpsPort}}
+  tenant: demo
+  addressId: 1
+}
+
+docs {
+  # go-micro
+
+  Health checks on HTTP and HTTPS plus address CRUD.
+
+  Collection defaults match `configs/service_local.yaml` (HTTP 9480, HTTPS 9443).
+  Environments only override `httpPort` / `httpsPort` when the config differs.
+
+  With TLS enabled the HTTP port only serves health, metrics and profiling.
+  The REST API (and the same health routes again) is on the HTTPS port.
+
+  Self-signed certificates: disable TLS verification in Bruno preferences,
+  or run `bru run --insecure --env local`.
+}

@@ -1,0 +1,25 @@
+meta {
+  name: GET readyz
+  type: http
+  seq: 2
+  tags: [
+    health
+    http
+  ]
+}
+
+get {
+  url: {{httpUrl}}/readyz
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("readiness is 200", function () {
+    expect(res.status).to.equal(200);
+  });
+
+  test("readiness reports service up", function () {
+    expect(res.body.messages).to.be.an("array").that.is.not.empty;
+  });
+}

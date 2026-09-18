@@ -1,0 +1,33 @@
+meta {
+  name: Delete address
+  type: http
+  seq: 5
+  tags: [
+    crud
+    addresses
+  ]
+}
+
+delete {
+  url: {{apiUrl}}/api/v1/addresses/:id
+  body: none
+  auth: inherit
+}
+
+params:path {
+  id: {{addressId}}
+}
+
+headers {
+  tenant: {{tenant}}
+}
+
+tests {
+  test("delete returns 200", function () {
+    expect(res.status).to.equal(200);
+  });
+
+  test("delete returns the removed address", function () {
+    expect(res.body.id).to.equal(bru.getVar("addressId"));
+  });
+}

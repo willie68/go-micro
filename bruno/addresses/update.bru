@@ -1,0 +1,46 @@
+meta {
+  name: Update address
+  type: http
+  seq: 4
+  tags: [
+    crud
+    addresses
+  ]
+}
+
+post {
+  url: {{apiUrl}}/api/v1/addresses/:id
+  body: json
+  auth: inherit
+}
+
+params:path {
+  id: {{addressId}}
+}
+
+headers {
+  tenant: {{tenant}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "id": "{{addressId}}",
+    "name": "Schluck",
+    "firstname": "Karl Heinz",
+    "street": "Hochstraße 7",
+    "city": "Hattingen",
+    "state": "Germany",
+    "zip_code": "45530"
+  }
+}
+
+tests {
+  test("update returns 201", function () {
+    expect(res.status).to.equal(201);
+  });
+
+  test("update writes the new zip code", function () {
+    expect(res.body.zip_code).to.equal("45530");
+  });
+}

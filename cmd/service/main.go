@@ -9,12 +9,12 @@ import (
 	"os/signal"
 	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/samber/do/v2"
-	_ "github.com/willie68/go-micro/docs"
-	"github.com/willie68/go-micro/internal"
-	"github.com/willie68/go-micro/internal/apiv1"
-	"github.com/willie68/go-micro/internal/serror"
-	"github.com/willie68/go-micro/internal/services/shttp"
+	_ "github.com/willie68/go-micro/api"
+	"github.com/willie68/go-micro/internal/adapter/inbound/http/apiv1"
+	"github.com/willie68/go-micro/internal/bootstrap"
+	"github.com/willie68/go-micro/internal/shared/serror"
 
 	config "github.com/willie68/go-micro/internal/config"
 	"go.opentelemetry.io/otel"
@@ -24,7 +24,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
 
-	log "github.com/willie68/go-micro/internal/services/logging"
+	log "github.com/willie68/go-micro/internal/infrastructure/logging"
 
 	flag "github.com/spf13/pflag"
 )
@@ -32,8 +32,14 @@ import (
 var (
 	configFile    string
 	serviceConfig config.Config
-	c             chan os.Signal
+	c             = make(chan os.Signal, 1)
 )
+
+type SHttp interface {
+	StartServers(router, healthRouter *chi.Mux)
+	ShutdownServers()
+	Started() bool
+}
 
 func init() {
 	// variables for parameter override
@@ -71,7 +77,7 @@ func main() {
 	serviceConfig = config.Get()
 	serviceConfig.Provide(inj)
 
-	if err := internal.InitServices(inj, serviceConfig); err != nil {
+	if err := bootstrap.InitServices(inj, serviceConfig); err != nil {
 		log.Root.Warn(fmt.Sprintf("error creating services: %v", err))
 		panic("error creating services")
 	}
@@ -93,16 +99,17 @@ func main() {
 
 	healthRouter := apiv1.HealthRoutes(inj, serviceConfig)
 
-	sh := do.MustInvoke[shttp.SHttp](inj)
+	sh := do.MustInvokeAs[SHttp](inj)
 	sh.StartServers(router, healthRouter)
 
 	log.Root.Info("waiting for clients")
-	c = make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	<-c
 
 	sh.ShutdownServers()
-	tp.Shutdown(context.Background())
+	if tp != nil {
+		tp.Shutdown(context.Background())
+	}
 
 	log.Root.Info("finished")
 	os.Exit(0)

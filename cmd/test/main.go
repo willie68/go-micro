@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/willie68/go-micro/internal/services/logging"
+	"github.com/willie68/go-micro/internal/infrastructure/logging"
 )
 
 var loggerNames = []string{

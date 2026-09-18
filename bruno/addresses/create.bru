@@ -1,0 +1,47 @@
+meta {
+  name: Create address
+  type: http
+  seq: 1
+  tags: [
+    crud
+    addresses
+  ]
+}
+
+post {
+  url: {{apiUrl}}/api/v1/addresses/
+  body: json
+  auth: inherit
+}
+
+headers {
+  tenant: {{tenant}}
+  content-type: application/json
+}
+
+body:json {
+  {
+    "name": "Schluck",
+    "firstname": "Karl Heinz",
+    "street": "Hochstraße 7",
+    "city": "Hattingen",
+    "state": "Germany",
+    "zip_code": "45527"
+  }
+}
+
+script:post-response {
+  if (res.body && res.body.id) {
+    bru.setVar("addressId", res.body.id);
+  }
+}
+
+tests {
+  test("create returns 201", function () {
+    expect(res.status).to.equal(201);
+  });
+
+  test("create returns an id", function () {
+    expect(res.body.id).to.be.a("string").that.is.not.empty;
+  });
+}

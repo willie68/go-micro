@@ -1,0 +1,15 @@
+meta {
+  name: Addresses
+  seq: 3
+}
+
+headers {
+  tenant: {{tenant}}
+  content-type: application/json
+}
+
+docs {
+  Basic address CRUD against `/api/v1/addresses`.
+  Header `tenant` is required. Run Create before Get/Update/Delete so `addressId` is set.
+  With TLS enabled these routes exist only on HTTPS (`apiUrl`).
+}

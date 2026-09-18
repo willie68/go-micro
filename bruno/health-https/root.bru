@@ -1,0 +1,25 @@
+meta {
+  name: GET root
+  type: http
+  seq: 5
+  tags: [
+    health
+    https
+  ]
+}
+
+get {
+  url: {{httpsUrl}}/
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("health root is 200", function () {
+    expect(res.status).to.equal(200);
+  });
+
+  test("health root mentions the http server", function () {
+    expect(String(res.body)).to.include("http-server up and running");
+  });
+}

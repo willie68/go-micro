@@ -55,6 +55,15 @@ func TestDefaultConfig(t *testing.T) {
 	ast.Equal("INFO", cnf.Logging.Level)
 }
 
+func TestJSONYAMLAndServiceName(t *testing.T) {
+	ast := assert.New(t)
+	config = DefaultConfig
+	c := Get()
+	ast.Equal(Servicename, c.ServiceName())
+	ast.NotEmpty(JSON())
+	ast.NotEmpty(YAML())
+}
+
 func TestCfgSubst(t *testing.T) {
 	ast := assert.New(t)
 

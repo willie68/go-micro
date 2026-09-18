@@ -5,12 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/willie68/go-micro/internal/utils"
+	"github.com/willie68/go-micro/internal/shared/utils"
 )
 
 func TestMain(t *testing.T) {
-	ast := assert.New(t)
 	configFile = "../../testdata/service_local_minimal.yaml"
 
 	fakeExit := func(int) {
@@ -25,12 +23,11 @@ func TestMain(t *testing.T) {
 	}()
 
 	time.Sleep(10 * time.Second)
-	ast.NotNil(c)
 	c <- syscall.SIGINT
 	time.Sleep(1 * time.Second)
 
 	// Assert that os.Exit gets called
-	if !p.Called {
+	if !p.Called() {
 		t.Errorf("Expected os.Exit to be called but it was not called")
 		return
 	}
@@ -38,8 +35,8 @@ func TestMain(t *testing.T) {
 	// Also, Assert that os.Exit gets called with the correct code
 	expectedCalledWith := 0 // no error
 
-	if p.CalledWith != expectedCalledWith {
-		t.Errorf("Expected os.Exit to be called with %d but it was called with %d", expectedCalledWith, p.CalledWith)
+	if p.CalledWith() != expectedCalledWith {
+		t.Errorf("Expected os.Exit to be called with %d but it was called with %d", expectedCalledWith, p.CalledWith())
 		return
 	}
 }

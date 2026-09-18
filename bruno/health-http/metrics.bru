@@ -1,0 +1,22 @@
+meta {
+  name: GET metrics
+  type: http
+  seq: 6
+  tags: [
+    health
+    http
+    metrics
+  ]
+}
+
+get {
+  url: {{httpUrl}}/metrics
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("metrics is 200", function () {
+    expect(res.status).to.equal(200);
+  });
+}

@@ -1,0 +1,29 @@
+meta {
+  name: List addresses
+  type: http
+  seq: 2
+  tags: [
+    crud
+    addresses
+  ]
+}
+
+get {
+  url: {{apiUrl}}/api/v1/addresses/
+  body: none
+  auth: inherit
+}
+
+headers {
+  tenant: {{tenant}}
+}
+
+tests {
+  test("list returns 200", function () {
+    expect(res.status).to.equal(200);
+  });
+
+  test("list returns an array", function () {
+    expect(res.body).to.be.an("array");
+  });
+}

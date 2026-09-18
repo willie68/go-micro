@@ -11,10 +11,10 @@ import (
 	"github.com/drone/envsubst"
 	"github.com/pkg/errors"
 	"github.com/samber/do/v2"
-	adrcfg "github.com/willie68/go-micro/internal/services/adrsvc/common"
-	"github.com/willie68/go-micro/internal/services/health"
-	"github.com/willie68/go-micro/internal/services/logging"
-	"github.com/willie68/go-micro/internal/services/shttp"
+	"github.com/willie68/go-micro/internal/adapter/outbound/address"
+	"github.com/willie68/go-micro/internal/infrastructure/health"
+	"github.com/willie68/go-micro/internal/infrastructure/logging"
+	"github.com/willie68/go-micro/internal/infrastructure/shttp"
 	"go.yaml.in/yaml/v3"
 )
 
@@ -40,7 +40,7 @@ type Config struct {
 	// Enable Profiling option
 	Profiling Profiling `yaml:"profiling"`
 	// This is the demo address storage config
-	AddressStorage adrcfg.Config `yaml:"addressstorage"`
+	AddressStorage address.Config `yaml:"addressstorage"`
 }
 
 // Authentication configuration

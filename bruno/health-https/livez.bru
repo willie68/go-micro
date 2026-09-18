@@ -1,0 +1,25 @@
+meta {
+  name: GET livez
+  type: http
+  seq: 1
+  tags: [
+    health
+    https
+  ]
+}
+
+get {
+  url: {{httpsUrl}}/livez
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("liveness is 200", function () {
+    expect(res.status).to.equal(200);
+  });
+
+  test("liveness payload has lastCheck", function () {
+    expect(res.body).to.have.property("lastCheck");
+  });
+}

@@ -6,19 +6,25 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/samber/do/v2"
 	"github.com/stretchr/testify/assert"
-	"github.com/willie68/go-micro/internal"
-	"github.com/willie68/go-micro/internal/apiv1"
+	"github.com/willie68/go-micro/internal/adapter/inbound/http/apiv1"
+	"github.com/willie68/go-micro/internal/bootstrap"
 	"github.com/willie68/go-micro/internal/config"
-	"github.com/willie68/go-micro/internal/services/shttp"
 )
 
 var (
 	srvStarted bool
-	sh         *shttp.SHttp
+	sh         SHttp
 	cfg        config.Config
 )
+
+type SHttp interface {
+	StartServers(router, healthRouter *chi.Mux)
+	ShutdownServers()
+	Started() bool
+}
 
 func StartServer(inj do.Injector) {
 	if sh == nil {
@@ -33,14 +39,13 @@ func StartServer(inj do.Injector) {
 
 		cfg = config.Get()
 		cfg.Provide(inj)
-		if err := internal.InitServices(inj, cfg); err != nil {
+		if err := bootstrap.InitServices(inj, cfg); err != nil {
 			panic("error creating services")
 		}
 
-		s := do.MustInvoke[shttp.SHttp](inj)
-		sh = &s
+		sh = do.MustInvokeAs[SHttp](inj)
 	}
-	if !sh.Started {
+	if !sh.Started() {
 		router, err := apiv1.APIRoutes(inj, cfg)
 		if err != nil {
 			errstr := fmt.Sprintf("could not create api routes. %s", err.Error())
@@ -61,5 +66,5 @@ func TestStartServer(t *testing.T) {
 	StartServer(inj)
 
 	ast.NotNil(sh)
-	ast.True(sh.Started)
+	ast.True(sh.Started())
 }

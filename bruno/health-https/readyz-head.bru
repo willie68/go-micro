@@ -1,0 +1,21 @@
+meta {
+  name: HEAD readyz
+  type: http
+  seq: 4
+  tags: [
+    health
+    https
+  ]
+}
+
+head {
+  url: {{httpsUrl}}/readyz
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("HEAD readyz returns 204", function () {
+    expect(res.status).to.equal(204);
+  });
+}

@@ -1,0 +1,21 @@
+meta {
+  name: HEAD livez
+  type: http
+  seq: 3
+  tags: [
+    health
+    http
+  ]
+}
+
+head {
+  url: {{httpUrl}}/livez
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("HEAD livez returns 204", function () {
+    expect(res.status).to.equal(204);
+  });
+}
